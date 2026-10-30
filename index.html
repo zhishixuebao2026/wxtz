@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>万象天账 · 墨序司异闻籍</title>
+<meta name="description" content="原创世界观：天不造物，天记账。中界如摊开的账册，十三京星布其上；墨序执三律，灰吏勾天下，修士以性命作票号。">
+<meta name="theme-color" content="#0c0f13">
+<meta name="color-scheme" content="dark">
+<meta property="og:title" content="万象天账 · 墨序司异闻籍">
+<meta property="og:description" content="原创世界观：天不造物，天记账。中界如摊开的账册，十三京星布其上；墨序执三律，灰吏勾天下，修士以性命作票号。">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%230c0f13'/%3E%3Crect x='8' y='8' width='48' height='48' rx='6' fill='none' stroke='%23c0402e' stroke-width='2'/%3E%3Ctext x='32' y='45' font-size='34' text-anchor='middle' fill='%23c8a35a' font-family='serif'%3E%E8%B4%A6%3C/text%3E%3C/svg%3E">
+<!-- 楷体 web 字体渐进增强：双 CDN 同族名互为域名级备份；media=print 异步挂载不阻塞首屏，全挂则落回系统楷体（见 style.css --kai 栈） -->
+<link rel="stylesheet" href="https://registry.npmmirror.com/lxgw-wenkai-lite-webfont/latest/files/style.css" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-lite-webfont@latest/style.css" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="assets/style.css?v=148">
+</head>
+<body>
+<noscript><div class="nosig">此站全篇依 JS 成册——请开 JavaScript 后入站。<br>本站纯静：离线双击 index.html 亦可读，无需服务器。</div></noscript>
+<div class="grain" aria-hidden="true"></div>
+
+<header class="top">
+  <div class="brand">
+    <span class="brand-seal">墨序监印</span>
+    <div class="brand-t">
+      <h1>万象天账</h1>
+      <p>墨序司· 异闻籍</p>
+    </div>
+  </div>
+  <div class="era" id="eraBadge"><i></i>第七账期 · 未结</div>
+</header>
+
+<nav class="nav" id="nav" aria-label="篇目">
+  <button data-goto="home" class="on">总纲</button>
+  <button data-goto="map">天地图</button>
+  <button data-goto="power">力量等级</button>
+  <button data-goto="beings">众生谱</button>
+  <button data-goto="characters">人物志</button>
+  <button data-goto="network">关系网</button>
+  <button data-goto="timeline">历纪</button>
+  <button data-goto="suiling">岁令</button>
+  <button data-goto="lexicon">词库</button>
+  <button data-goto="shiju">拾句</button>
+  <button data-goto="find">索引</button>
+  <button data-goto="goods">货殖</button>
+  <button data-goto="stakes">界桩</button>
+  <button data-goto="organs">公门</button>
+  <button data-goto="docs">故纸</button>
+  <button data-goto="stories">异闻</button>
+  <button data-goto="updates">更新志</button>
+</nav>
+
+<main id="main">
+
+  <!-- ================= 总纲 ================= -->
+  <section id="pg-home" class="page on">
+    <div class="hero">
+      <div class="hero-mark" aria-hidden="true">账</div>
+      <h2 class="motto" id="homeMotto"></h2>
+      <div class="hero-rule"></div>
+      <div class="preamble" id="homePre"></div>
+    </div>
+    <h3 class="sec-title"><span>三律</span><em>THE THREE LAWS</em></h3>
+    <div class="laws" id="laws"></div>
+    <h3 class="sec-title"><span>墨序五层</span><em>THE INK ORDER</em></h3>
+    <div class="moxu" id="moxu"></div>
+    <div class="entry-btns">
+      <button data-goto="map">开天地图</button>
+      <button data-goto="lexicon">查词库</button>
+      <button data-goto="stories">读异闻</button>
+      <button id="bibleBtnHome">存抄本</button>
+    </div>
+    <article class="ns-card" id="newestStory" hidden></article>
+    <p class="home-tally" id="homeTally"></p>
+    <p class="home-today" id="todayLine"></p>
+    <div class="city-strip" id="cityStrip" aria-label="十三京星带"></div>
+  </section>
+
+  <!-- ================= 天地图================= -->
+  <section id="pg-map" class="page">
+    <h3 class="sec-title"><span>天地图</span><em>THE WORLD LEDGER</em></h3>
+    <p class="lead" id="mapLead"></p>
+    <div class="map-flex">
+      <div class="map-wrap">
+        <svg id="mapSvg" viewBox="0 0 1000 760" role="img" aria-label="中界账图：两页对开，十三京星布"></svg>
+      </div>
+      <aside id="cityDetail" class="city-detail" aria-live="polite"></aside>
+    </div>
+    <div class="map-legend" id="mapLegend"></div>
+  </section>
+
+  <!-- ================= 关系网================= -->
+  <section id="pg-network" class="page">
+    <h3 class="sec-title"><span>关系网</span><em>THE DEBT WEB</em></h3>
+    <p class="lead" id="networkLead"></p>
+    <div class="net-flex">
+      <div class="net-wrap">
+        <svg id="netSvg" viewBox="0 0 1000 760" role="img" aria-label="人物关系网：坐标与天地图同格"></svg>
+      </div>
+      <aside id="netDetail" class="net-detail" aria-live="polite"></aside>
+      <div class="net-legend" id="netLegend"></div>
+    </div>
+  </section>
+
+  <!-- ================= 力量等级 ================= -->
+  <section id="pg-power" class="page">
+    <h3 class="sec-title"><span>境界九阶</span><em>NINE LEDGERS</em></h3>
+    <p class="lead" id="powerIntro"></p>
+    <div class="levels" id="levels"></div>
+    <h3 class="sec-title"><span>鉴真五问</span><em>THE FIVE INQUIRIES</em></h3>
+    <p class="lead" id="falsifyIntro"></p>
+    <div class="falsify" id="falsify"></div>
+    <p class="verdict" id="falsifyEnd"></p>
+    <h3 class="sec-title"><span>落账判语</span><em>CLAIM CHECKER</em></h3>
+    <p class="lead">把宣称写上秤，鉴真司按五问断之：虚词收虚账，落档看贷方。</p>
+    <div class="judge">
+      <div class="judge-in">
+        <input id="judgeInput" type="text" placeholder="例：我一拳能打爆整座城 / 我法力无尽，万法不侵……" aria-label="输入战力宣称">
+        <button id="judgeGo">上秤</button>
+      </div>
+      <div class="judge-samples" id="judgeSamples"></div>
+      <div class="judge-out" id="judgeOut" aria-live="polite"><p class="judge-idle">衙前秤闲。写一句，称一称。</p></div>
+    </div>
+    <h3 class="sec-title"><span>四柱清册</span><em>THE FOUR PILLARS</em></h3>
+    <p class="lead" id="fourIntro"></p>
+    <div class="four-box" id="fourBox"></div>
+  </section>
+
+  <!-- ================= 众生谱================= -->
+  <section id="pg-beings" class="page">
+    <h3 class="sec-title"><span>众生谱</span><em>BEINGS</em></h3>
+    <p class="lead">十众之中，公门最冷，异物最旧。点选门类，各看其账。</p>
+    <div class="chips" id="beingTabs"></div>
+    <div class="being-grid" id="beingGrid"></div>
+  </section>
+
+  <!-- ================= 人物志================= -->
+  <section id="pg-characters" class="page">
+    <h3 class="sec-title"><span>人物志</span><em>CHARACTERS</em></h3>
+    <p class="lead" id="charsLead">此册以人为账。凡立传者必有账缝——那是灰吏最爱收的地方。</p>
+    <div class="chips" id="charTabs"></div>
+    <div class="being-grid" id="charGrid"></div>
+  </section>
+
+  <!-- ================= 历纪 ================= -->
+  <section id="pg-timeline" class="page">
+    <h3 class="sec-title"><span>历纪</span><em>ERAS</em></h3>
+    <p class="lead unit" id="tlUnit"></p>
+    <div class="tl" id="tlList"></div>
+    <h3 class="sec-title"><span>甲子账牌</span><em>THE SIXTY TALLIES</em></h3>
+    <p class="lead" id="jiaziLead"></p>
+    <div class="jiazi-box" id="jiaziBox"></div>
+  </section>
+
+  <!-- ================= 岁令 ================= -->
+  <section id="pg-suiling" class="page">
+    <h3 class="sec-title"><span>岁令</span><em>THE YEAR'S ORDERS</em></h3>
+    <p class="lead" id="suilingLead"></p>
+    <p class="pre" id="suilingPre"></p>
+    <div class="suiling-grid" id="suilingGrid"></div>
+    <p class="tail-note" id="suilingTail"></p>
+
+  </section>
+
+  <!-- ================= 词库 ================= -->
+  <section id="pg-lexicon" class="page">
+    <h3 class="sec-title"><span>词库</span><em>LEXICON</em></h3>
+    <div class="lex-tools">
+      <input id="lexSearch" type="search" placeholder="搜：账 / 金沟 / 勾钎 / 失页 / 除夜钟……" aria-label="搜索词条">
+      <div class="chips" id="lexChips"></div>
+    </div>
+    <p class="count" id="lexCount"></p>
+    <div class="lex-list" id="lexList"></div>
+  </section>
+
+  <!-- ================= 拾句 ================= -->
+  <section id="pg-shiju" class="page">
+    <h3 class="sec-title"><span>拾句</span><em>INK &amp; GOLD</em></h3>
+    <p class="lead" id="shijuLead"></p>
+    <p class="pre" id="shijuPre"></p>
+    <h3 class="sec-title"><span>账房谚</span><em>KEEPER SAYINGS</em></h3>
+    <div id="shijuSay"></div>
+    <h3 class="sec-title"><span>京谚</span><em>CITY SAYINGS</em></h3>
+    <p class="lead">十三京，一京一句。点一句，进那座城的卷宗。</p>
+    <div class="shiju-city" id="shijuCity"></div>
+    <h3 class="sec-title"><span>岁令</span><em>THE YEAR'S ORDERS</em></h3>
+    <div id="shijuSuiling"></div>
+    <h3 class="sec-title"><span>卷尾</span><em>STORY TAILS</em></h3>
+    <div id="shijuTails"></div>
+  </section>
+
+  <!-- ================= 索引 ================= -->
+  <section id="pg-find" class="page">
+    <h3 class="sec-title"><span>索引</span><em>THE INDEX</em></h3>
+    <p class="lead">一索全书：词库、异闻、人物、十三京、货殖、界桩、公门、卷线、故纸、岁令、谚语、众生谱、历纪、更新志——十四源皆可勾稽，连这部书自己的账，也在账上。</p>
+    <div class="lex-tools">
+      <input id="findSearch" type="search" placeholder="搜：灶君 / 糖瓜 / 郑午 / 晏京 / 失页……" aria-label="全书检索">
+    </div>
+    <p class="count" id="findStats"></p>
+    <p class="count" id="findCount"></p>
+    <div class="find-list" id="findList" aria-live="polite"></div>
+  </section>
+
+  <!-- ================= 货殖 ================= -->
+  <section id="pg-goods" class="page">
+    <h3 class="sec-title"><span>货殖</span><em>GOODS OF THE LEDGER</em></h3>
+    <p class="lead" id="goodsLead"></p>
+    <div class="chips" id="goodsTabs"></div>
+    <div class="being-grid" id="goodsGrid"></div>
+  </section>
+
+  <!-- ================= 界桩志================= -->
+  <section id="pg-stakes" class="page">
+    <h3 class="sec-title"><span>界桩志</span><em>STAKES AT THE EDGE</em></h3>
+    <p class="lead" id="stakeLead"></p>
+    <div class="chips" id="stakeTabs"></div>
+    <div class="being-grid" id="stakeList"></div>
+  </section>
+
+  <!-- ================= 公门表 ================= -->
+  <section id="pg-organs" class="page">
+    <h3 class="sec-title"><span>公门表</span><em>THE OFFICES</em></h3>
+    <p class="lead" id="organLead"></p>
+    <div class="being-grid" id="organGrid"></div>
+  </section>
+
+  <!-- ================= 故纸 ================= -->
+  <section id="pg-docs" class="page">
+    <h3 class="sec-title"><span>故纸</span><em>OLD PAPERS</em></h3>
+    <p class="lead" id="docLead"></p>
+    <div class="being-grid" id="docGrid"></div>
+  </section>
+
+  <!-- ================= 异闻 ================= -->
+  <section id="pg-stories" class="page">
+    <h3 class="sec-title"><span id="storiesTitle">异闻</span><em>WANDER STORIES</em></h3>
+    <p class="lead" id="storyLead"></p>
+    <div class="chips" id="arcChips" aria-label="卷线十六线"></div>
+    <p class="count" id="arcTip"></p>
+    <div class="chips" id="storyTools"></div>
+    <div class="story-list" id="storyList"></div>
+  </section>
+
+  <!-- ================= 更新志================= -->
+  <section id="pg-updates" class="page">
+    <h3 class="sec-title"><span>更新志</span><em>LOG</em></h3>
+    <p class="chips"><button class="chip" id="bibleBtn" title="浏览器本地生成，不经过网络">存抄本 · 把整部书抄成一部可带走的抄本</button></p>
+    <p class="lead">此簿按版归档：首档开着，余档皆合——点一张版本牌，展一版账。</p>
+    <div id="updList"></div>
+    <h3 class="sec-title"><span>溯源簿</span><em>WHAT INSPIRED WHAT</em></h3>
+    <div class="trace" id="traceList"></div>
+    <p class="note" id="traceNote"></p>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <p class="ticker" id="ticker" aria-live="off"></p>
+  <p class="footline">万象天账 · 墨序司异闻籍 ——账不平，天不活。</p>
+  <p class="ver">版本 v1.20.0 · 资源戳 v=148 · 架子立在总纲，回家就看得见。</p>
+</footer>
+
+<script src="data/core.js?v=148"></script>
+<script src="data/cities.js?v=148"></script>
+<script src="data/beings.js?v=148"></script>
+<script src="data/timeline.js?v=148"></script>
+<script src="data/suiling.js?v=148"></script>
+<script src="data/organs.js?v=148"></script>
+<script src="data/arcs.js?v=148"></script>
+<script src="data/docs.js?v=148"></script>
+<script src="data/lexicon.js?v=148"></script>
+  <script src="data/sayings.js?v=148"></script>
+  <script src="data/goods.js?v=148"></script>
+  <script src="data/stakes.js?v=148"></script>
+<script src="data/stories.js?v=148"></script>
+<script src="data/characters.js?v=148"></script>
+<script src="data/relations.js?v=148"></script>
+<script src="data/updates.js?v=148"></script>
+<div id="firstGuide" class="first-guide" hidden>
+  <button class="fg-x" id="fgClose" aria-label="收讫">×</button>
+  <p class="fg-title">初见笺 · 墨序</p>
+  <p class="fg-line">这个世界，凡有点者皆可点：</p>
+  <ul>
+    <li>正文里字下点金 → 入词库、入人物志、入京卷宗；</li>
+    <li>图上点京、点道、点桩 → 就地开卷宗桩签；</li>
+    <li>人物卡点开 → 入关系网看其牵连；</li>
+    <li>异闻卷尾三签：岁令、谱、线——点「线」只展这一条线的卷；</li>
+    <li>公门与故纸里的卷号 → 直回该桩公案；</li>
+    <li>卷首 ★ → 收卷入自家架上（存你本机）；卷目旁「我架」一签，只看收过的。</li>
+    <li>更新志页「存抄本」——整部书当场抄成一部抄本带走，不经网络。</li>
+  </ul>
+  <p class="fg-tip">全书十七篇，索引十四源。收讫入站。</p>
+</div>
+<script src="assets/app.js?v=148"></script>
+</body>
+</html>
