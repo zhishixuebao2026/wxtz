@@ -1843,6 +1843,7 @@
       list.forEach(function (c) {
         var card = el('details', 'being char-card' + (c.portrait ? ' has-portrait' : ''));
         card.setAttribute('data-id', c.id);
+        if (c.portrait) card.style.setProperty('--char-bg', 'url("' + new URL(c.portrait, document.baseURI).href + '")');
         var summary = el('summary', 'char-summary');
         var info = el('div', 'char-summary-info');
         var top = el('div', 'being-top');
@@ -1858,23 +1859,8 @@
         info.appendChild(meta);
         info.appendChild(txt(el('p', 'char-peek'), c.temper));
         summary.appendChild(info);
-        if (c.portrait) {
-          var figure = el('figure', 'char-portrait');
-          var image = el('img');
-          image.src = c.portrait;
-          image.alt = c.name + ' · ' + c.title + '画像';
-          image.loading = 'lazy'; image.decoding = 'async';
-          figure.appendChild(image);
-          summary.appendChild(figure);
-        }
         card.appendChild(summary);
         var body = el('div', 'char-body');
-        if (c.portrait) {
-          var banner = el('div', 'char-art');
-          var art = el('img');
-          art.src = c.portrait; art.alt = ''; art.loading = 'lazy'; art.decoding = 'async';
-          banner.appendChild(art); body.appendChild(banner);
-        }
         var tp = el('p', 'text');
         var seenC = {};
         tp.appendChild(lrDecorate(c.text, seenC, false));
