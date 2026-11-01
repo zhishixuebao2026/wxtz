@@ -125,12 +125,15 @@
     var t = e.target.closest ? e.target.closest('[data-goto]') : null;
     if (t) show(t.getAttribute('data-goto'));
   });
-  var backButton = $('#readerBack');
-  if (backButton) backButton.addEventListener('click', function () {
+  function readerBack() {
     if (history.state && history.state.wxReader && Number(history.state.index) > 0) history.back();
     else if (CUR !== 'home') show('home', true, SCROLLS.home || 0);
     else window.scrollTo({ top: 0, behavior: 'smooth' });
-  });
+  }
+  var backButton = $('#readerBack');
+  if (backButton) backButton.addEventListener('click', readerBack);
+  var mobileBackButton = $('#mobileBack');
+  if (mobileBackButton) mobileBackButton.addEventListener('click', readerBack);
   var continueButton = $('#readerContinue');
   if (continueButton) continueButton.addEventListener('click', function () {
     if (!LAST_READING || PAGES.indexOf(LAST_READING.page) < 0) return;

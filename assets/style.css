@@ -682,7 +682,7 @@ body{
 /* v0.57.0 抄存：印刷样式——白纸黑字 */
 @media print{
   body{background:#fff;color:#111}
-  .top,.nav,.mobile-nav,#firstGuide,.entry-btns,.city-strip,.ticker,.chips,.ns-card{display:none!important}
+  .top,.reader-tools,.nav,.mobile-nav,#firstGuide,.entry-btns,.city-strip,.ticker,.chips,.ns-card{display:none!important}
   .page{color:#111;border:none;box-shadow:none}
   .story,.char-card,.being-card,.goods-card{background:#fff;color:#111;border:1px solid #bbb;box-shadow:none}
   .story .tail,.story .kicker{color:#444}
@@ -943,12 +943,14 @@ details.upd:not([open]):hover{opacity:1}
   .brand-seal{width:38px;height:38px;font-size:11px}
   .era{white-space:normal;line-height:1.45;font-size:10px;letter-spacing:.01em;padding:5px 7px;flex:1 1 100%;justify-content:center;margin-top:4px}
   .nav{display:none!important}
-  .mobile-nav{position:sticky;top:0;z-index:52;display:flex;align-items:center;gap:10px;margin:0;padding:7px 12px;border-bottom:1px solid rgba(200,163,90,.28);background:rgba(11,14,18,.96);backdrop-filter:blur(14px);box-shadow:0 8px 22px rgba(0,0,0,.36)}
-  .mobile-nav label{display:flex;align-items:center;gap:7px;flex:none;color:var(--gold2);font:12px var(--hei);letter-spacing:.1em}
-  .mobile-nav label span{font-size:19px;color:var(--verm2)}
-  .mobile-nav select{width:100%;min-width:0;height:40px;padding:0 38px 0 12px;appearance:none;border:1px solid rgba(200,163,90,.42);border-radius:4px;background-color:#11171e;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='m3 6 5 5 5-5' fill='none' stroke='%23d6b266' stroke-width='1.5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;color:#f0e6cf;font:14px var(--hei);letter-spacing:.08em}
-  .mobile-nav select:focus-visible{outline:2px solid var(--gold2);outline-offset:2px}
-  .mobile-nav-hint{flex:none;color:var(--silk3);font:10px var(--hei);letter-spacing:.08em}
+  .reader-tools #readerBack{display:none}
+  .mobile-nav{position:sticky;top:0;z-index:52;display:flex;align-items:center;gap:9px;margin:0;padding:7px 12px;border-bottom:1px solid rgba(200,163,90,.28);background:rgba(11,14,18,.96);backdrop-filter:blur(14px);box-shadow:0 8px 22px rgba(0,0,0,.36)}
+  .mobile-back{display:flex;flex:none;align-items:center;justify-content:center;gap:2px;min-width:62px;height:44px;padding:0 8px;border:1px solid rgba(200,163,90,.32);border-radius:4px;background:rgba(16,21,27,.84);color:var(--silk2);font:12px var(--hei);cursor:pointer;transition:color .18s,border-color .18s,background .18s}
+  .mobile-back span{color:var(--gold2);font:22px/1 var(--hei)}
+  .mobile-back:hover{border-color:var(--gold);background:rgba(200,163,90,.08);color:var(--gold2)}
+  .mobile-nav label{display:flex;align-items:center;flex:none;color:var(--gold2);font:12px var(--hei);letter-spacing:.06em}
+  .mobile-nav select{flex:1;width:auto;min-width:0;height:44px;padding:0 38px 0 12px;appearance:none;border:1px solid rgba(200,163,90,.42);border-radius:4px;background-color:#11171e;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='m3 6 5 5 5-5' fill='none' stroke='%23d6b266' stroke-width='1.5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;color:#f0e6cf;font:14px var(--hei);letter-spacing:.08em}
+  .mobile-nav select:focus-visible,.mobile-back:focus-visible{outline:2px solid var(--gold2);outline-offset:2px}
   #main{padding:18px 12px 12px}
   .sec-title{margin:34px 0 6px;font-size:17px;letter-spacing:.16em}
   .sec-title em{letter-spacing:.2em;font-size:10px}
