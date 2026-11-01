@@ -13,7 +13,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%230c0f13'/%3E%3Crect x='8' y='8' width='48' height='48' rx='6' fill='none' stroke='%23c0402e' stroke-width='2'/%3E%3Ctext x='32' y='45' font-size='34' text-anchor='middle' fill='%23c8a35a' font-family='serif'%3E%E8%B4%A6%3C/text%3E%3C/svg%3E">
 <!-- 自托管霞鹜文楷 Lite：页面无需依赖第三方字体/CDN，离线也能正确显示中文 -->
 <link rel="stylesheet" href="assets/fonts/lxgwwenkailite-regular.css">
-<link rel="stylesheet" href="assets/style.css?v=155">
+<link rel="stylesheet" href="assets/style.css?v=158">
 </head>
 <body>
 <a class="skip-link" href="#main">跳至正文</a>
@@ -88,7 +88,7 @@
       <ul>
         <li>正文里字下点金 → 入词库、入人物志、入京卷宗；</li>
         <li>图上点京、点道、点桩 → 就地开卷宗桩签；</li>
-        <li>人物卡点开读传；卡内「看关系网」再入图；</li>
+        <li>人物卡点开弹出详传；传内另点「看关系网」，画像可全屏细看；</li>
         <li>异闻卷尾三签：岁令、谱、线——点「线」只展这一条线的卷；</li>
         <li>公门与故纸里的卷号 → 直回该桩公案；</li>
         <li>卷首 ★ → 收卷入自家架上（存你本机）；卷目旁「我架」一签，只看收过的。</li>
@@ -299,30 +299,39 @@
 
 </main>
 
+<dialog id="characterDialog" class="character-dialog" aria-labelledby="characterDialogTitle">
+  <button type="button" id="characterDialogClose" class="dialog-close" aria-label="关闭人物详传">×</button>
+  <div id="characterDialogContent"></div>
+</dialog>
+<dialog id="portraitDialog" class="portrait-dialog" aria-label="人物画像全屏查看">
+  <button type="button" id="portraitDialogClose" class="dialog-close" aria-label="关闭画像">×</button>
+  <figure><img id="portraitViewerImage" alt=""><figcaption id="portraitViewerCaption"></figcaption></figure>
+</dialog>
+
 <footer class="foot">
   <p class="ticker" id="ticker" aria-live="off"></p>
   <p class="footline">万象天账 · 墨序司异闻籍 ——账不平，天不活。</p>
-  <p class="ver">版本 v1.24.0 · 资源戳 v=155 · 架子立在总纲，回家就看得见。</p>
+  <p class="ver">版本 v1.24.0 · 资源戳 v=158 · 架子立在总纲，回家就看得见。</p>
 </footer>
 
-<script src="data/core.js?v=155"></script>
-<script src="data/cities.js?v=155"></script>
-<script src="data/beings.js?v=155"></script>
-<script src="data/timeline.js?v=155"></script>
-<script src="data/suiling.js?v=155"></script>
-<script src="data/organs.js?v=155"></script>
-<script src="data/arcs.js?v=155"></script>
-<script src="data/docs.js?v=155"></script>
-<script src="data/lexicon.js?v=155"></script>
-  <script src="data/sayings.js?v=155"></script>
-  <script src="data/goods.js?v=155"></script>
-  <script src="data/stakes.js?v=155"></script>
-<script src="data/stories.js?v=155"></script>
-<script src="data/characters.js?v=155"></script>
-<script src="data/relations.js?v=155"></script>
-<script src="data/updates.js?v=155"></script>
-<script src="data/trials.js?v=155"></script>
-<script src="data/granaries.js?v=155"></script>
-<script src="assets/app.js?v=155"></script>
+<script src="data/core.js?v=158"></script>
+<script src="data/cities.js?v=158"></script>
+<script src="data/beings.js?v=158"></script>
+<script src="data/timeline.js?v=158"></script>
+<script src="data/suiling.js?v=158"></script>
+<script src="data/organs.js?v=158"></script>
+<script src="data/arcs.js?v=158"></script>
+<script src="data/docs.js?v=158"></script>
+<script src="data/lexicon.js?v=158"></script>
+  <script src="data/sayings.js?v=158"></script>
+  <script src="data/goods.js?v=158"></script>
+  <script src="data/stakes.js?v=158"></script>
+<script src="data/stories.js?v=158"></script>
+<script src="data/characters.js?v=158"></script>
+<script src="data/relations.js?v=158"></script>
+<script src="data/updates.js?v=158"></script>
+<script src="data/trials.js?v=158"></script>
+<script src="data/granaries.js?v=158"></script>
+<script src="assets/app.js?v=158"></script>
 </body>
 </html>

@@ -31,7 +31,6 @@
   var SCROLLS = {};
   var READER_KEY = 'wxtz_reader_v1';
   var LAST_READING = null;
-  var OPEN_CHARACTERS = {};
   var CHAR_FILTER = '全部';
   var NAV_INDEX = 0;
   try {
@@ -39,7 +38,6 @@
     if (cached && PAGES.indexOf(cached.page) >= 0) {
       LAST_READING = cached;
       if (cached.scrolls && typeof cached.scrolls === 'object') SCROLLS = cached.scrolls;
-      if (Array.isArray(cached.openCharacters)) cached.openCharacters.forEach(function (id) { OPEN_CHARACTERS[id] = true; });
       if (typeof cached.characterFilter === 'string') CHAR_FILTER = cached.characterFilter;
     }
   } catch (e) {}
@@ -72,7 +70,7 @@
     var y = readY();
     SCROLLS[CUR] = y;
     var root = document.documentElement, span = root.scrollHeight - root.clientHeight;
-    var record = { page: CUR, scroll: y, scrolls: SCROLLS, ratio: span > 0 ? Math.max(0, Math.min(1, y / span)) : 0, openCharacters: Object.keys(OPEN_CHARACTERS), characterFilter: CHAR_FILTER, savedAt: Date.now() };
+    var record = { page: CUR, scroll: y, scrolls: SCROLLS, ratio: span > 0 ? Math.max(0, Math.min(1, y / span)) : 0, characterFilter: CHAR_FILTER, savedAt: Date.now() };
     LAST_READING = record;
     try { localStorage.setItem(READER_KEY, JSON.stringify(record)); } catch (e) {}
     updateReaderUI(record.ratio);
@@ -1806,108 +1804,147 @@
     txt($('#traceNote'), WXNOTE);
   }
 
-  /* ---------------- 人物志 ---------------- */
+  /* ---------------- 人物志：索引不增高，详传入弹窗 ---------------- */
   var CHARCATS = ['塔主', '公门', '修士', '邪路', '异闻'];
   function buildCharacters() {
     lrBuild();
     var tabs = $('#charTabs');
     var grid = $('#charGrid');
-    grid.addEventListener('click', function (e) {
-      var netButton = e.target.closest ? e.target.closest('[data-character-network]') : null;
-      if (netButton) {
-        e.preventDefault(); e.stopPropagation();
-        var personId = netButton.getAttribute('data-character-network');
-        show('network');
-        if (PAGE_HOOKS.network) PAGE_HOOKS.network(personId);
-        return;
-      }
-      var lx = e.target.closest ? e.target.closest('.lx') : null;
-      if (lx) lrGo(lx);
-    });
+    var dialog = $('#characterDialog');
+    var dialogContent = $('#characterDialogContent');
+    var portraitDialog = $('#portraitDialog');
+    var portraitImage = $('#portraitViewerImage');
+    var portraitCaption = $('#portraitViewerCaption');
     var COL = { '塔主': 'c0', '公门': 'c1', '修士': 'c2', '异物': 'c3', '邪路': 'c4', '异闻': 'c5' };
     var cur = CHARCATS.indexOf(CHAR_FILTER) >= 0 ? CHAR_FILTER : '全部';
     CHAR_FILTER = cur;
-    var tw = WXCHARS.filter(function (c) { return c.cat === '塔主'; }).length;
-    txt($('#charsLead'), cnNum(WXCHARS.length) + ' 人，' + cnNum(tw) + ' 塔主。点姓名展传；「看关系网」才会转入牵连图。');
+
+    function imageUrl(c) { return c.portrait ? new URL(c.portrait, document.baseURI).href : ''; }
+    function openPortrait(c) {
+      if (!c || !c.portrait || !portraitDialog || !portraitImage) return;
+      portraitImage.src = imageUrl(c);
+      portraitImage.alt = c.name + ' · ' + c.title;
+      txt(portraitCaption, c.name + ' · ' + c.title);
+      if (portraitDialog.showModal) portraitDialog.showModal();
+    }
+    function openProfile(id) {
+      var c = WXCHARS.filter(function (item) { return item.id === id; })[0];
+      if (!c || !dialog || !dialogContent) return;
+      dialogContent.innerHTML = '';
+      var panel = el('article', 'character-profile' + (c.portrait ? ' has-portrait' : ''));
+      if (c.portrait) panel.style.setProperty('--char-bg', 'url("' + imageUrl(c) + '")');
+      var head = el('header', 'character-profile-heading');
+      var title = txt(el('h2'), c.name); title.id = 'characterDialogTitle';
+      head.appendChild(title);
+      head.appendChild(txt(el('p', 'profile-title'), c.title));
+      var meta = el('div', 'character-profile-meta');
+      meta.appendChild(txt(el('span'), c.place));
+      meta.appendChild(txt(el('span', 'chip ' + (COL[c.cat] || 'c2')), c.cat));
+      var degree = WXRELATIONS.links.reduce(function (n, link) { return n + (link.s === c.id || link.t === c.id ? 1 : 0); }, 0);
+      meta.appendChild(txt(el('span'), degree ? '牵 ' + cnNum(degree) + ' 线' : '账外留白'));
+      head.appendChild(meta);
+      panel.appendChild(head);
+
+      var body = el('div', 'character-profile-body');
+      var biography = el('p', 'character-profile-text text');
+      biography.appendChild(lrDecorate(c.text, {}, false));
+      body.appendChild(biography);
+      var hook = el('div', 'being-hook');
+      hook.appendChild(txt(el('b'), '账缝'));
+      hook.appendChild(txt(el('span'), c.hook));
+      body.appendChild(hook);
+      var actions = el('div', 'char-actions profile-actions');
+      var relation = el('button', 'char-network-link');
+      relation.type = 'button'; relation.setAttribute('data-character-network', c.id);
+      txt(relation, '看关系网 ↗'); actions.appendChild(relation);
+      if (c.portrait) {
+        var zoom = el('button', 'char-network-link char-portrait-open');
+        zoom.type = 'button'; zoom.setAttribute('data-portrait-open', c.id);
+        txt(zoom, '全屏看像 ⤢'); actions.appendChild(zoom);
+      }
+      actions.appendChild(txt(el('span', 'origin'), '出 · ' + c.origin));
+      body.appendChild(actions);
+      panel.appendChild(body);
+      dialogContent.appendChild(panel);
+      if (dialog.showModal) dialog.showModal();
+      else dialog.setAttribute('open', '');
+    }
+
+    txt($('#charsLead'), cnNum(WXCHARS.length) + ' 人，' + cnNum(WXCHARS.filter(function (c) { return c.cat === '塔主'; }).length) + ' 塔主。点人物看详传；传中可另入关系网，画像可全屏细观。');
+    grid.addEventListener('click', function (e) {
+      var profile = e.target.closest ? e.target.closest('[data-character-profile]') : null;
+      if (profile) { openProfile(profile.getAttribute('data-character-profile')); return; }
+      var lx = e.target.closest ? e.target.closest('.lx') : null;
+      if (lx) lrGo(lx);
+    });
+    if (dialog) {
+      dialog.addEventListener('click', function (e) {
+        var network = e.target.closest ? e.target.closest('[data-character-network]') : null;
+        if (network) {
+          var personId = network.getAttribute('data-character-network');
+          dialog.close(); show('network');
+          if (PAGE_HOOKS.network) PAGE_HOOKS.network(personId);
+          return;
+        }
+        var zoom = e.target.closest ? e.target.closest('[data-portrait-open]') : null;
+        if (zoom) { openPortrait(WXCHARS.filter(function (c) { return c.id === zoom.getAttribute('data-portrait-open'); })[0]); return; }
+        var lx = e.target.closest ? e.target.closest('.lx') : null;
+        if (lx) lrGo(lx);
+        if (e.target === dialog) dialog.close();
+      });
+      var close = $('#characterDialogClose');
+      if (close) close.addEventListener('click', function () { dialog.close(); });
+    }
+    if (portraitDialog) {
+      var closePortrait = $('#portraitDialogClose');
+      if (closePortrait) closePortrait.addEventListener('click', function () { portraitDialog.close(); });
+      portraitDialog.addEventListener('click', function (e) { if (e.target === portraitDialog) portraitDialog.close(); });
+    }
+
     function render(cat) {
       grid.innerHTML = '';
       var list = WXCHARS.filter(function (c) { return cat === '全部' || c.cat === cat; });
       if (!list.length) {
-        var tip = el('div', 'empty-tip');
-        txt(tip, '此门尚无立传之人。');
-        grid.appendChild(tip);
-        return;
+        var tip = el('div', 'empty-tip'); txt(tip, '此门尚无立传之人。'); grid.appendChild(tip); return;
       }
       var DEG = {};
       WXRELATIONS.links.forEach(function (l) { DEG[l.s] = (DEG[l.s] || 0) + 1; DEG[l.t] = (DEG[l.t] || 0) + 1; });
       list.forEach(function (c) {
-        var card = el('details', 'being char-card' + (c.portrait ? ' has-portrait' : ''));
+        var card = el('article', 'being char-card' + (c.portrait ? ' has-portrait' : ''));
         card.setAttribute('data-id', c.id);
-        if (c.portrait) card.style.setProperty('--char-bg', 'url("' + new URL(c.portrait, document.baseURI).href + '")');
-        var summary = el('summary', 'char-summary');
+        if (c.portrait) card.style.setProperty('--char-bg', 'url("' + imageUrl(c) + '")');
+        var summary = el('button', 'char-summary');
+        summary.type = 'button'; summary.setAttribute('data-character-profile', c.id);
+        summary.setAttribute('aria-haspopup', 'dialog'); summary.setAttribute('aria-controls', 'characterDialog');
+        summary.setAttribute('aria-label', '打开' + c.name + '的人物详传');
         var info = el('div', 'char-summary-info');
         var top = el('div', 'being-top');
-        top.appendChild(txt(el('h4'), c.name));
-        top.appendChild(txt(el('span', 'also'), c.title));
-        info.appendChild(top);
+        top.appendChild(txt(el('h4'), c.name)); top.appendChild(txt(el('span', 'also'), c.title)); info.appendChild(top);
         var meta = el('div', 'char-summary-meta');
         meta.appendChild(txt(el('span', 'place'), c.place));
-        var chip = el('span', 'chip ' + (COL[c.cat] || 'c2'));
-        txt(chip, c.cat); meta.appendChild(chip);
-        var dg = DEG[c.id] || 0;
-        meta.appendChild(txt(el('span', 'net-deg'), dg ? '牵 ' + cnNum(dg) + ' 线' : '账外留白'));
-        info.appendChild(meta);
-        info.appendChild(txt(el('p', 'char-peek'), c.temper));
-        summary.appendChild(info);
-        card.appendChild(summary);
-        var body = el('div', 'char-body');
-        var tp = el('p', 'text');
-        var seenC = {};
-        tp.appendChild(lrDecorate(c.text, seenC, false));
-        body.appendChild(tp);
-        var hk = el('div', 'being-hook');
-        hk.appendChild(txt(el('b'), '账缝'));
-        hk.appendChild(txt(el('span'), c.hook));
-        body.appendChild(hk);
-        var actions = el('div', 'char-actions');
-        var net = el('button', 'char-network-link');
-        net.type = 'button'; net.setAttribute('data-character-network', c.id);
-        net.setAttribute('aria-label', '查看' + c.name + '的人物关系');
-        txt(net, '看关系网 ↗'); actions.appendChild(net);
-        actions.appendChild(txt(el('span', 'origin'), '出 · ' + c.origin));
-        body.appendChild(actions);
-        card.appendChild(body);
-        card.open = !!OPEN_CHARACTERS[c.id];
-        card.addEventListener('toggle', function () {
-          if (card.open) OPEN_CHARACTERS[c.id] = true;
-          else delete OPEN_CHARACTERS[c.id];
-          persistReading();
-        });
-        linkVolumes(card);
-        grid.appendChild(card);
+        meta.appendChild(txt(el('span', 'chip ' + (COL[c.cat] || 'c2')), c.cat));
+        meta.appendChild(txt(el('span', 'net-deg'), DEG[c.id] ? '牵 ' + cnNum(DEG[c.id]) + ' 线' : '账外留白'));
+        info.appendChild(meta); info.appendChild(txt(el('p', 'char-peek'), c.temper));
+        summary.appendChild(info); card.appendChild(summary); grid.appendChild(card);
       });
     }
     function addTab(label) {
       var cnt = label === '全部' ? WXCHARS.length : WXCHARS.filter(function (c) { return c.cat === label; }).length;
-      var ch = el('button', 'chip' + (label === cur ? ' on' : ''));
-      ch.setAttribute('data-cat', label);
-      ch.setAttribute('aria-pressed', label === cur ? 'true' : 'false');
-      txt(ch, label + ' · ' + cnt);
-      ch.addEventListener('click', function () {
-        cur = label;
-        CHAR_FILTER = label;
+      var chip = el('button', 'chip' + (label === cur ? ' on' : ''));
+      chip.setAttribute('data-cat', label); chip.setAttribute('aria-pressed', label === cur ? 'true' : 'false');
+      txt(chip, label + ' · ' + cnt);
+      chip.addEventListener('click', function () {
+        cur = label; CHAR_FILTER = label;
         $$('#charTabs .chip').forEach(function (x) {
           var selected = x.getAttribute('data-cat') === label;
           x.classList.toggle('on', selected); x.setAttribute('aria-pressed', selected ? 'true' : 'false');
         });
-        render(cur);
+        render(cur); persistReading();
       });
-      tabs.appendChild(ch);
+      tabs.appendChild(chip);
     }
     tabs.innerHTML = '';
-    addTab('全部');
-    CHARCATS.forEach(addTab);
-    render(cur);
+    addTab('全部'); CHARCATS.forEach(addTab); render(cur);
   }
 
   /* ---------------- 落账判语（五问验算） ---------------- */
