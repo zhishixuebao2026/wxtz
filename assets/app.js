@@ -50,6 +50,14 @@
     var b = document.querySelector('#nav button[data-goto="' + id + '"]');
     return b ? b.textContent.trim() : '总纲';
   }
+  var mobilePageSelect = $('#mobilePageSelect');
+  if (mobilePageSelect) {
+    PAGES.forEach(function (id) {
+      var option = document.createElement('option'); option.value = id; option.textContent = pageLabel(id);
+      mobilePageSelect.appendChild(option);
+    });
+    mobilePageSelect.addEventListener('change', function () { show(mobilePageSelect.value); });
+  }
   function readY() { return window.pageYOffset || document.documentElement.scrollTop || 0; }
   function scrollRatio() {
     var root = document.documentElement, span = root.scrollHeight - root.clientHeight;
@@ -89,6 +97,7 @@
       b.classList.toggle('on', b.getAttribute('data-goto') === id);
     });
     CUR = id;
+    if (mobilePageSelect) mobilePageSelect.value = id;
     var nb = document.querySelector('#nav button[data-goto="' + id + '"]');
     document.title = (nb ? nb.textContent + ' · ' : '') + '万象天账 · 墨序司异闻籍';
     if (noPush) {
@@ -1450,93 +1459,118 @@
     txt($('#suilingTail'), WXSUILING.tail);
   }
 
-  /* ---------------- 公门表 ---------------- */
+  function volumeUiLabel(ref) {
+    if (typeof WXSTORIES === 'undefined') return ref;
+    var index = WXSTORIES.findIndex(function (story) { return story.no === ref; });
+    return index >= 0 ? String(index + 1) : ref;
+  }
+
+  /* ---------------- 公门表：按辖属分门，署规与回卷各有位置 ---------------- */
   function buildOrgans() {
     lrBuild();
     var grid = $('#organGrid');
     if (!grid || typeof WXORGANS === 'undefined') return;
-    txt($('#organLead'), '天不设衙门——天只年结。中界的分寸，是一座座衙门替天看着的：管名的、管秤的、管昼的、管忘的、管烧掉的。此册同墨——字下点金一样入账；点署下「城」入京卷宗，点卷号回该署的公案（卷玖拾陆《衙门》总述）。');
+    txt($('#organLead'), '十三署分三门：中界中枢不系一京，京署各守其职，灶司在人家门内。看主事与署规，点城入图，点卷回案。');
     grid.addEventListener('click', function (e) {
       var lx = e.target.closest ? e.target.closest('.lx') : null;
       if (lx) lrGo(lx);
     });
     grid.innerHTML = '';
-    WXORGANS.forEach(function (g) {
-      var card = el('article', 'being-card organ-card');
-      var seenO = {};
-      card.appendChild(txt(el('p', 'o-role'), g.role));
-      card.appendChild(txt(el('h4'), g.n));
-      var seatP = el('p', 'o-seat');
-      seatP.appendChild(lrDecorate(g.seat, seenO, false));
-      card.appendChild(seatP);
-      var body = el('div');
-      var l1 = el('p', 'o-line'); l1.appendChild(el('b')).textContent = '主事';
-      l1.appendChild(lrDecorate(g.head, seenO, false));
-      body.appendChild(l1);
-      var l2 = el('p', 'o-line'); l2.appendChild(el('b')).textContent = '规矩';
-      l2.appendChild(lrDecorate(g.law, seenO, false));
-      body.appendChild(l2);
-      card.appendChild(body);
-      if (g.city && cityByName(g.city)) {
-        var cc = el('button', 'sj-src');
-        txt(cc, '城 · ' + g.city);
-        cc.setAttribute('title', '入' + g.city + '卷宗');
-        cc.addEventListener('click', function (e) {
-          e.stopPropagation();
-          show('map'); openCity(cityByName(g.city).id);
+    var groups = [
+      { id: 'center', label: '中界中枢', note: '不系一京 · 守总账与墨序', rows: WXORGANS.filter(function (g) { return !g.city && g.n !== '灶'; }) },
+      { id: 'city', label: '京署职司', note: '有署有籍 · 各守一项分寸', rows: WXORGANS.filter(function (g) { return !!g.city; }) },
+      { id: 'folk', label: '民间香火', note: '家家户户 · 留一格给未到之人', rows: WXORGANS.filter(function (g) { return g.n === '灶'; }) }
+    ];
+    groups.forEach(function (group) {
+      if (!group.rows.length) return;
+      var section = el('section', 'organ-section organ-' + group.id);
+      var heading = el('header', 'organ-group-head');
+      var title = el('div', 'organ-group-title');
+      title.appendChild(txt(el('h4'), group.label));
+      title.appendChild(txt(el('p'), group.note));
+      heading.appendChild(title);
+      heading.appendChild(txt(el('span', 'organ-group-count'), String(group.rows.length).padStart(2, '0') + ' 署'));
+      section.appendChild(heading);
+      var cards = el('div', 'organ-group-grid');
+      group.rows.forEach(function (g) {
+        var card = el('article', 'organ-card');
+        var head = el('header', 'office-head');
+        head.appendChild(txt(el('span', 'office-role'), g.role));
+        head.appendChild(txt(el('span', 'office-scope'), group.id === 'center' ? '中枢' : group.id === 'folk' ? '民间' : g.city));
+        card.appendChild(head);
+        card.appendChild(txt(el('h4'), g.n));
+        var seat = el('p', 'office-seat');
+        seat.appendChild(lrDecorate(g.seat, {}, false));
+        card.appendChild(seat);
+        var chief = el('div', 'office-detail office-chief');
+        chief.appendChild(txt(el('span', 'office-label'), '主事'));
+        var chiefText = el('div', 'office-copy'); chiefText.appendChild(lrDecorate(g.head, {}, false)); chief.appendChild(chiefText);
+        card.appendChild(chief);
+        var rule = el('div', 'office-detail office-rule');
+        rule.appendChild(txt(el('span', 'office-label'), '署规'));
+        var ruleText = el('div', 'office-copy'); ruleText.appendChild(lrDecorate(g.law, {}, false)); rule.appendChild(ruleText);
+        card.appendChild(rule);
+        var links = el('footer', 'office-links');
+        if (g.city && cityByName(g.city)) {
+          var cityButton = el('button', 'office-link office-city');
+          cityButton.type = 'button'; txt(cityButton, '入城 · ' + g.city); cityButton.setAttribute('title', '入' + g.city + '卷宗');
+          cityButton.addEventListener('click', function () { show('map'); openCity(cityByName(g.city).id); });
+          links.appendChild(cityButton);
+        }
+        (g.ref || '').split('、').forEach(function (ref) {
+          if (!ref) return;
+          var refButton = el('button', 'office-link office-ref');
+          refButton.type = 'button'; txt(refButton, '事见 · ' + volumeUiLabel(ref)); refButton.setAttribute('title', '回到第' + volumeUiLabel(ref) + '卷公案');
+          refButton.addEventListener('click', function () { volGo(ref); });
+          links.appendChild(refButton);
         });
-        card.appendChild(cc);
-      }
-      (g.ref || '').split('、').forEach(function (r) {
-        if (!r) return;
-        var rc = el('button', 'sj-src');
-        txt(rc, r);
-        rc.setAttribute('title', '回该卷公案');
-        rc.addEventListener('click', function (e) {
-          e.stopPropagation();
-          volGo(r);
-        });
-        card.appendChild(rc);
+        card.appendChild(links);
+        cards.appendChild(card);
       });
-      grid.appendChild(card);
+      section.appendChild(cards); grid.appendChild(section);
     });
   }
 
-  /* ---------------- 故纸（世界的第一手文书） ---------------- */
+  /* ---------------- 故纸：原件架分栏，出处、落笔、正文、回卷分层 ---------------- */
   function buildDocs() {
     lrBuild();
     var grid = $('#docGrid');
     if (!grid || typeof WXDOCS === 'undefined') return;
-    txt($('#docLead'), '异闻是转述，故纸是原件：契约、告示、簿样、年报——中界自己落笔的东西，都收在这格架上。此册同墨，字下点金一样入账；点纸角的卷号，回它出自的那桩公案。');
+    txt($('#docLead'), '异闻是转述，故纸是原件。这里收契约、告示、簿样与年报：每张纸分列纸种、出处、落笔时刻与原文；边注卷号可回到来处。');
     grid.addEventListener('click', function (e) {
       var lx = e.target.closest ? e.target.closest('.lx') : null;
       if (lx) lrGo(lx);
     });
     grid.innerHTML = '';
-    WXDOCS.forEach(function (p) {
-      var card = el('article', 'being-card doc-card');
-      var seenD = {};
-      var top = el('div', 'dc-top');
-      top.appendChild(txt(el('span', 'dc-kind'), p.kind));
-      top.appendChild(txt(el('h4'), p.n));
+    WXDOCS.forEach(function (paper) {
+      var card = el('article', 'document-card doc-card');
+      var top = el('header', 'dc-top');
+      top.appendChild(txt(el('span', 'dc-kind'), paper.kind));
+      top.appendChild(txt(el('h4'), paper.n));
       card.appendChild(top);
-      var metaP = el('p', 'dc-meta');
-      metaP.appendChild(lrDecorate(p.seat + ' · ' + p.when, seenD, false));
-      card.appendChild(metaP);
-      var txtP = el('p', 'dc-text');
-      txtP.appendChild(lrDecorate(p.text, seenD, false));
-      card.appendChild(txtP);
-      (p.ref || '').split('、').forEach(function (r) {
-        if (!r) return;
-        var rc = el('button', 'sj-src');
-        txt(rc, r);
-        rc.setAttribute('title', '回该卷公案');
-        rc.addEventListener('click', function (e) {
-          e.stopPropagation();
-          volGo(r);
-        });
-        card.appendChild(rc);
+      var meta = el('div', 'dc-meta');
+      var place = el('div', 'dc-meta-item');
+      place.appendChild(txt(el('span', 'dc-meta-label'), '出处'));
+      place.appendChild(el('p')).appendChild(lrDecorate(paper.seat, {}, false));
+      meta.appendChild(place);
+      var when = el('div', 'dc-meta-item');
+      when.appendChild(txt(el('span', 'dc-meta-label'), '落笔'));
+      when.appendChild(txt(el('p'), paper.when));
+      meta.appendChild(when);
+      card.appendChild(meta);
+      var body = el('p', 'dc-text');
+      body.appendChild(lrDecorate(paper.text, {}, false));
+      card.appendChild(body);
+      var refs = el('footer', 'dc-refs');
+      refs.appendChild(txt(el('span', 'dc-ref-label'), '勾稽'));
+      (paper.ref || '').split('、').forEach(function (ref) {
+        if (!ref) return;
+        var button = el('button', 'sj-src dc-ref');
+        button.type = 'button'; txt(button, '事见 · ' + volumeUiLabel(ref)); button.setAttribute('title', '回到第' + volumeUiLabel(ref) + '卷公案');
+        button.addEventListener('click', function () { volGo(ref); });
+        refs.appendChild(button);
       });
+      card.appendChild(refs);
       grid.appendChild(card);
     });
   }
