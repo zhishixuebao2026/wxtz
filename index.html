@@ -11,12 +11,12 @@
 <meta property="og:description" content="原创世界观：天不造物，天记账。中界如摊开的账册，十三京星布其上；墨序执三律，灰吏勾天下，修士以性命作票号。">
 <meta property="og:type" content="website">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%230c0f13'/%3E%3Crect x='8' y='8' width='48' height='48' rx='6' fill='none' stroke='%23c0402e' stroke-width='2'/%3E%3Ctext x='32' y='45' font-size='34' text-anchor='middle' fill='%23c8a35a' font-family='serif'%3E%E8%B4%A6%3C/text%3E%3C/svg%3E">
-<!-- 楷体 web 字体渐进增强：双 CDN 同族名互为域名级备份；media=print 异步挂载不阻塞首屏，全挂则落回系统楷体（见 style.css --kai 栈） -->
-<link rel="stylesheet" href="https://registry.npmmirror.com/lxgw-wenkai-lite-webfont/latest/files/style.css" media="print" onload="this.media='all'">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-lite-webfont@latest/style.css" media="print" onload="this.media='all'">
-<link rel="stylesheet" href="assets/style.css?v=148">
+<!-- 自托管霞鹜文楷 Lite：页面无需依赖第三方字体/CDN，离线也能正确显示中文 -->
+<link rel="stylesheet" href="assets/fonts/lxgwwenkailite-regular.css">
+<link rel="stylesheet" href="assets/style.css?v=151">
 </head>
 <body>
+<a class="skip-link" href="#main">跳至正文</a>
 <noscript><div class="nosig">此站全篇依 JS 成册——请开 JavaScript 后入站。<br>本站纯静：离线双击 index.html 亦可读，无需服务器。</div></noscript>
 <div class="grain" aria-hidden="true"></div>
 
@@ -35,6 +35,7 @@
   <button data-goto="home" class="on">总纲</button>
   <button data-goto="map">天地图</button>
   <button data-goto="power">力量等级</button>
+  <button data-goto="trial">人间试账</button>
   <button data-goto="beings">众生谱</button>
   <button data-goto="characters">人物志</button>
   <button data-goto="network">关系网</button>
@@ -42,7 +43,7 @@
   <button data-goto="suiling">岁令</button>
   <button data-goto="lexicon">词库</button>
   <button data-goto="shiju">拾句</button>
-  <button data-goto="find">索引</button>
+  <button data-goto="find" title="全书检索 · 快捷键 /">索引</button>
   <button data-goto="goods">货殖</button>
   <button data-goto="stakes">界桩</button>
   <button data-goto="organs">公门</button>
@@ -69,8 +70,25 @@
       <button data-goto="map">开天地图</button>
       <button data-goto="lexicon">查词库</button>
       <button data-goto="stories">读异闻</button>
+      <button data-goto="trial">试一笔账</button>
       <button id="bibleBtnHome">存抄本</button>
     </div>
+    <details id="firstGuide" class="first-guide">
+      <summary class="fg-summary"><span>初见笺 · 墨序</span><span class="fg-summary-note">九条导读 · 点开阅览</span></summary>
+      <p class="fg-line">这个世界，凡有点者皆可点：</p>
+      <ul>
+        <li>正文里字下点金 → 入词库、入人物志、入京卷宗；</li>
+        <li>图上点京、点道、点桩 → 就地开卷宗桩签；</li>
+        <li>人物卡点开 → 入关系网看其牵连；</li>
+        <li>异闻卷尾三签：岁令、谱、线——点「线」只展这一条线的卷；</li>
+        <li>公门与故纸里的卷号 → 直回该桩公案；</li>
+        <li>卷首 ★ → 收卷入自家架上（存你本机）；卷目旁「我架」一签，只看收过的。</li>
+        <li>人间试账三案：逐策看贷方、借方与余账，点京名可回天地图。</li>
+        <li>货殖页「仓衡三制」：切换丰年、青黄、水患，看三种仓的粮如何过账。</li>
+        <li>更新志页「存抄本」——整部书当场抄成一部抄本带走，不经网络。</li>
+      </ul>
+      <p class="fg-tip">全书十八篇，索引十六源。收讫入站。</p>
+    </details>
     <article class="ns-card" id="newestStory" hidden></article>
     <p class="home-tally" id="homeTally"></p>
     <p class="home-today" id="todayLine"></p>
@@ -125,6 +143,14 @@
     <h3 class="sec-title"><span>四柱清册</span><em>THE FOUR PILLARS</em></h3>
     <p class="lead" id="fourIntro"></p>
     <div class="four-box" id="fourBox"></div>
+  </section>
+
+  <!-- ================= 人间试账 ================= -->
+  <section id="pg-trial" class="page">
+    <h3 class="sec-title"><span>人间试账</span><em>THREE HUMAN LEDGERS</em></h3>
+    <p class="lead" id="trialIntro"></p>
+    <p class="trial-note">这里没有无代价的捷径，也没有替你选好的善恶。每一笔都摊开来路、去处与余账；选过之后，仍可改选。</p>
+    <div class="trial-grid" id="trialGrid"></div>
   </section>
 
   <!-- ================= 众生谱================= -->
@@ -193,13 +219,17 @@
   <!-- ================= 索引 ================= -->
   <section id="pg-find" class="page">
     <h3 class="sec-title"><span>索引</span><em>THE INDEX</em></h3>
-    <p class="lead">一索全书：词库、异闻、人物、十三京、货殖、界桩、公门、卷线、故纸、岁令、谚语、众生谱、历纪、更新志——十四源皆可勾稽，连这部书自己的账，也在账上。</p>
-    <div class="lex-tools">
-      <input id="findSearch" type="search" placeholder="搜：灶君 / 糖瓜 / 郑午 / 晏京 / 失页……" aria-label="全书检索">
+    <p class="lead">一索全书：十四类旧卷宗，加上人间试账与仓衡三制；输入词语或用空格并列条件，检索词库、异闻、人物、京城、货殖、仓衡、界桩、公门、卷线、故纸、岁令、谚语、众生谱、历纪与更新志。点一笔即可回到原处。</p>
+    <div class="find-tools">
+      <input id="findSearch" type="search" placeholder="搜：灶君 / 失页 / 晏京；空格可并列检索" aria-label="全书检索" autocomplete="off">
+      <button class="chip find-clear" id="findClear" type="button" aria-label="清空检索">清空</button>
     </div>
+    <div class="find-quick" id="findQuick" aria-label="试试这些检索词"></div>
+    <div class="chips find-sources" id="findSources" role="group" aria-label="按卷宗来源筛选"></div>
     <p class="count" id="findStats"></p>
-    <p class="count" id="findCount"></p>
+    <p class="count" id="findCount" aria-live="polite"></p>
     <div class="find-list" id="findList" aria-live="polite"></div>
+    <button class="chip find-more" id="findMore" type="button" hidden>再展四十笔</button>
   </section>
 
   <!-- ================= 货殖 ================= -->
@@ -208,6 +238,11 @@
     <p class="lead" id="goodsLead"></p>
     <div class="chips" id="goodsTabs"></div>
     <div class="being-grid" id="goodsGrid"></div>
+    <h3 class="sec-title"><span>仓衡三制</span><em>THE GRAIN LEDGERS</em></h3>
+    <p class="lead" id="granaryIntro"></p>
+    <div class="chips granary-modes" id="granaryModes" role="group" aria-label="选择仓务情境"></div>
+    <div class="granary-panel" id="granaryPanel" aria-live="polite"></div>
+    <div class="granary-stores" id="granaryStores"></div>
   </section>
 
   <!-- ================= 界桩志================= -->
@@ -258,40 +293,27 @@
 <footer class="foot">
   <p class="ticker" id="ticker" aria-live="off"></p>
   <p class="footline">万象天账 · 墨序司异闻籍 ——账不平，天不活。</p>
-  <p class="ver">版本 v1.20.0 · 资源戳 v=148 · 架子立在总纲，回家就看得见。</p>
+  <p class="ver">版本 v1.23.0 · 资源戳 v=151 · 架子立在总纲，回家就看得见。</p>
 </footer>
 
-<script src="data/core.js?v=148"></script>
-<script src="data/cities.js?v=148"></script>
-<script src="data/beings.js?v=148"></script>
-<script src="data/timeline.js?v=148"></script>
-<script src="data/suiling.js?v=148"></script>
-<script src="data/organs.js?v=148"></script>
-<script src="data/arcs.js?v=148"></script>
-<script src="data/docs.js?v=148"></script>
-<script src="data/lexicon.js?v=148"></script>
-  <script src="data/sayings.js?v=148"></script>
-  <script src="data/goods.js?v=148"></script>
-  <script src="data/stakes.js?v=148"></script>
-<script src="data/stories.js?v=148"></script>
-<script src="data/characters.js?v=148"></script>
-<script src="data/relations.js?v=148"></script>
-<script src="data/updates.js?v=148"></script>
-<div id="firstGuide" class="first-guide" hidden>
-  <button class="fg-x" id="fgClose" aria-label="收讫">×</button>
-  <p class="fg-title">初见笺 · 墨序</p>
-  <p class="fg-line">这个世界，凡有点者皆可点：</p>
-  <ul>
-    <li>正文里字下点金 → 入词库、入人物志、入京卷宗；</li>
-    <li>图上点京、点道、点桩 → 就地开卷宗桩签；</li>
-    <li>人物卡点开 → 入关系网看其牵连；</li>
-    <li>异闻卷尾三签：岁令、谱、线——点「线」只展这一条线的卷；</li>
-    <li>公门与故纸里的卷号 → 直回该桩公案；</li>
-    <li>卷首 ★ → 收卷入自家架上（存你本机）；卷目旁「我架」一签，只看收过的。</li>
-    <li>更新志页「存抄本」——整部书当场抄成一部抄本带走，不经网络。</li>
-  </ul>
-  <p class="fg-tip">全书十七篇，索引十四源。收讫入站。</p>
-</div>
-<script src="assets/app.js?v=148"></script>
+<script src="data/core.js?v=151"></script>
+<script src="data/cities.js?v=151"></script>
+<script src="data/beings.js?v=151"></script>
+<script src="data/timeline.js?v=151"></script>
+<script src="data/suiling.js?v=151"></script>
+<script src="data/organs.js?v=151"></script>
+<script src="data/arcs.js?v=151"></script>
+<script src="data/docs.js?v=151"></script>
+<script src="data/lexicon.js?v=151"></script>
+  <script src="data/sayings.js?v=151"></script>
+  <script src="data/goods.js?v=151"></script>
+  <script src="data/stakes.js?v=151"></script>
+<script src="data/stories.js?v=151"></script>
+<script src="data/characters.js?v=151"></script>
+<script src="data/relations.js?v=151"></script>
+<script src="data/updates.js?v=151"></script>
+<script src="data/trials.js?v=151"></script>
+<script src="data/granaries.js?v=151"></script>
+<script src="assets/app.js?v=151"></script>
 </body>
 </html>

@@ -41,9 +41,12 @@ var WXRELATIONS = {
     { id: 'wuzhongren',  name: '雾中人',  g: '异闻', x: 150, y: 672 },
     { id: 'xiaolushi',   name: '小录事',  g: '公门', x: 712, y: 530 },
     { id: 'huashou',     name: '图房画手', g: '公门', x: 272, y: 110 },
-    { id: 'piaoli',      name: '老票吏',  g: '公门', x: 908, y: 368 }
+    { id: 'piaoli',      name: '老票吏',  g: '公门', x: 908, y: 368 },
+    { id: 'liangzhaohe', name: '梁照禾',  g: '公门', x: 936, y: 456 }
   ],
   links: [
+    { s: 'liyuan', t: 'liangzhaohe', kind: '同题', type: '两头记',
+      note: '李缘簿教徒弟搬桩两头记账；梁照禾给每袋粮两次过秤、三处留名。一个守边，一个守仓，皆不把余数推给无人处。' },
     { s: 'wenrenheng', t: 'liyuan', kind: '同场', type: '问话',
       note: '卷拾：合龙门差十一文，查了一夜，经手的正是李缘簿那趟界桩脚钱。他被叫去问话，原原本本说了，一文不瞒。' },
     { s: 'liyuan', t: 'tuoqingzhi', kind: '同场', type: '供簿',

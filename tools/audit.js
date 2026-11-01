@@ -4,7 +4,7 @@
 'use strict';
 const fs = require('fs'), vm = require('vm');
 const P = __dirname.replace(/\\/g, '/') + '/../';
-const DATA = ['core','cities','beings','timeline','lexicon','sayings','goods','stories','characters','relations','stakes','suiling','organs','arcs','docs','updates'];
+const DATA = ['core','cities','beings','timeline','lexicon','sayings','goods','stories','characters','relations','stakes','suiling','organs','arcs','docs','updates','trials','granaries'];
 const JS = DATA.map(d => 'data/' + d + '.js').concat(['assets/app.js']);
 let warn = [];
 const ok = m => console.log('  ✓ ' + m);
@@ -24,9 +24,38 @@ for (const ch of css) { if (ch === '{') d0++; else if (ch === '}') { d0--; if (d
 d0 === 0 ? ok('CSS 括号配平（' + css.split('\n').length + ' 行）') : ng('CSS 括号不配平，剩余 ' + d0);
 if (neg) ng('CSS 负深 ' + neg);
 
+const fontCssPath = P + 'assets/fonts/lxgwwenkailite-regular.css';
+const fontCss = fs.existsSync(fontCssPath) ? fs.readFileSync(fontCssPath, 'utf8') : '';
+const fontRefs = [...fontCss.matchAll(/url\(['\"]?([^'\")]+)['\"]?\)/g)].map(m => m[1]);
+const missingFonts = fontRefs.filter(src => !fs.existsSync(P + 'assets/fonts/' + src.replace(/^\.\//, '')));
+const remoteFonts = fontRefs.filter(src => /^https?:/i.test(src));
+fontCss && !missingFonts.length && !remoteFonts.length && fs.existsSync(P + 'assets/ledger-atmosphere.webp')
+  ? ok('本地字体子集 ' + fontRefs.length + ' 件、原创首页纸景齐备；无远程字体引用')
+  : ng('本地视觉资源缺失或含远程字体：' + missingFonts.join('、') + (remoteFonts.length ? '；远程 ' + remoteFonts.join('、') : ''));
+const unicodeRanges = [];
+for (const m of fontCss.matchAll(/unicode-range:\s*([^;}]+)/g)) {
+  for (const part of m[1].split(',')) {
+    const hit = part.trim().match(/^U\+([0-9a-f?]+)(?:-([0-9a-f]+))?$/i);
+    if (hit && !hit[1].includes('?')) unicodeRanges.push([parseInt(hit[1], 16), parseInt(hit[2] || hit[1], 16)]);
+  }
+}
+const projectText = [P + 'index.html'].concat(DATA.map(d => P + 'data/' + d + '.js'), [P + 'assets/app.js'])
+  .filter(fs.existsSync).map(f => fs.readFileSync(f, 'utf8')).join('');
+const missingGlyphs = [...new Set(Array.from(projectText).map(c => c.codePointAt(0)).filter(cp =>
+  ((cp >= 0x3400 && cp <= 0x9fff) || (cp >= 0x20000 && cp <= 0x3134f)) &&
+  !unicodeRanges.some(r => cp >= r[0] && cp <= r[1])
+))].sort((a, b) => a - b);
+missingGlyphs.length ? ng('自托管字体未覆盖项目汉字：' + missingGlyphs.map(cp => String.fromCodePoint(cp)).join(''))
+  : ok('自托管字体 Unicode 范围覆盖全站使用汉字');
+
 const html = fs.readFileSync(P + 'index.html', 'utf8');
 const secTags = (html.match(/<section/g) || []).length, secClose = (html.match(/<\/section>/g) || []).length;
 secTags === secClose ? ok('HTML section 标签配对（' + secTags + ' 对）') : ng('HTML section ' + secTags + ' / ' + secClose);
+const pageIds = [...html.matchAll(/<section id="pg-([^"]+)"/g)].map(m => m[1]).sort();
+const navBlock = (html.match(/<nav\b[^>]*>([\s\S]*?)<\/nav>/) || [0, ''])[1];
+const navPages = [...navBlock.matchAll(/data-goto="([^"]+)"/g)].map(m => m[1]).sort();
+const pageRoutesMatch = JSON.stringify(pageIds) === JSON.stringify(navPages);
+pageRoutesMatch ? ok('全篇导航与页面路由一一对应（' + pageIds.length + ' 篇）') : ng('导航与页面路由不一致：' + pageIds.join('、') + ' / ' + navPages.join('、'));
 const scriptTags = [...html.matchAll(/<script src="([^"]+)"/g)].map(m => m[1]);
 ok('index.html 引用 ' + scriptTags.length + ' 个脚本');
 const noVersion = scriptTags.filter(s => !/\?v=\d+$/.test(s));
@@ -66,6 +95,22 @@ shape('词条', q('WXLEXICON'), ['t','p','cat','d']);
 shape('人物', q('WXCHARS'), ['id','name','title','place','cat','temper','text','hook','origin']);
 shape('货殖', q('WXGOODS'), ['n','city','d']);
 shape('溯源', q('WXTRACE'), ['src','take']);
+shape('人间试账', q('WXTRIALS'), ['id','no','title','place','cityId','law','premise','question','choices']);
+const trialIds = q('WXTRIALS').map(x => x.id);
+if (new Set(trialIds).size !== trialIds.length) ng('试账案 id 重复');
+else ok('人间试账案 id 无重复');
+const trialBad = q('WXTRIALS').filter(x => x.choices.length < 2 || x.choices.some(c => !c.title || !c.credit || !c.debit || !c.remainder || !c.verdict || !c.note));
+trialBad.length ? ng('试账案缺少有效抉择与明账：' + trialBad.map(x => x.title).join('、')) : ok('试账各案至少两策，贷方、借方、余账与判语齐全');
+const trialCityBad = q('WXTRIALS').filter(x => !q('WXCITIES').some(c => c.id === x.cityId));
+trialCityBad.length ? ng('试账案指向不存在之京：' + trialCityBad.map(x => x.title).join('、')) : ok('试账案所指京城全部存在');
+const gran = q('WXGRANARIES');
+if (!gran || !Array.isArray(gran.stores) || !Array.isArray(gran.seasons)) ng('仓衡三制形状不全');
+else {
+  const gBad = gran.stores.length !== 3 || gran.seasons.length !== 3 || gran.seasons.some(s => !s.moves || s.moves.length !== 3 || !s.audit);
+  gBad ? ng('仓衡三制须为三仓三时，每时三处粮账并有复核') : ok('仓衡三制三仓三时齐备，各仓事有三处粮账与复核');
+  const gDup = new Set(gran.stores.map(s => s.id)).size !== gran.stores.length || new Set(gran.seasons.map(s => s.id)).size !== gran.seasons.length;
+  gDup ? ng('仓制或仓事 id 重复') : ok('仓制与仓事 id 无重复');
+}
 const R = q('WXRELATIONS');
 let rb = 0;
 R.nodes.forEach(n => ['id','name','g','x','y'].forEach(k => { if (!(k in n)) rb++; }));
@@ -313,12 +358,12 @@ trace.forEach(t => {
 });
 dirtyHits.length ? ng('账面露管线 ' + dirtyHits.length + ' 处：' + dirtyHits.slice(0, 6).join('；')) : ok('更新志与溯源簿账面净言：无文件路径、文件名与管线名目');
 
-/* 门面计数：初见笺「十七篇」「十四源」是手写死字，不得与实况脱节 */
+/* 门面计数：初见笺篇数与索引源数须与实况相合 */
 const appSrc = fs.readFileSync(P + 'assets/app.js', 'utf8');
 const srcBlock = (appSrc.match(/var SOURCES = \[([\s\S]*?)\n    \];/) || [0, ''])[1];
 const srcCount = (srcBlock.match(/name: '/g) || []).length;
-const tipOk = html.indexOf('全书十七篇') >= 0 && html.indexOf('索引十四源') >= 0 && secTags === 17 && srcCount === 14;
-tipOk ? ok('初见笺计数与实况一致（十七篇 · 十四源）') : ng('初见笺计数脱节：实况 ' + secTags + ' 篇 · ' + srcCount + ' 源（笺仍写十七·十四）');
+const tipOk = html.indexOf('全书十八篇') >= 0 && html.indexOf('索引十六源') >= 0 && secTags === 18 && srcCount === 16;
+tipOk ? ok('初见笺计数与实况一致（十八篇 · 十六源）') : ng('初见笺计数脱节：实况 ' + secTags + ' 篇 · ' + srcCount + ' 源（笺仍写十八·十六）');
 
 console.log('\n【结论】' + (warn.length ? '需处理 ' + warn.length + ' 项' : '全部通过'));
 warn.forEach(w => console.log('  ✗ ' + w));

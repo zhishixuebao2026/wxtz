@@ -21,7 +21,7 @@
     return document.createElementNS(ns, tag);
   };
 
-  var PAGES = ['home', 'map', 'power', 'beings', 'characters', 'network', 'timeline', 'suiling', 'lexicon', 'shiju', 'find', 'goods', 'stakes', 'organs', 'docs', 'stories', 'updates'];
+  var PAGES = ['home', 'map', 'power', 'trial', 'beings', 'characters', 'network', 'timeline', 'suiling', 'lexicon', 'shiju', 'find', 'goods', 'stakes', 'organs', 'docs', 'stories', 'updates'];
 
   /* 跨页桥：人物志点卡入网聚焦等跨篇互开 */
   var PAGE_HOOKS = {};
@@ -66,12 +66,12 @@
   /* v1.16.0 深链改到启动末尾处理：LAZY 构建会调用 buildStories 等，须待模块级
      var（STORY_LING/STORY_PU/ARC_OF…）赋值全部执行完毕后方可安全触发 */
 
-  /* 「/」任意页直达词库检索；顶栏勾稽进度线 */
+  /* 「/」任意页直达全书索引；顶栏勾稽进度线 */
   document.addEventListener('keydown', function (e) {
     if (e.key === '/' && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) {
       e.preventDefault();
-      show('lexicon');
-      setTimeout(function () { var inp = $('#lexSearch'); if (inp) inp.focus(); }, 160);
+      show('find');
+      setTimeout(function () { var inp = $('#findSearch'); if (inp) inp.focus(); }, 160);
     }
   });
   var __prog = el('div', 'prog');
@@ -173,6 +173,8 @@
       if (typeof WXBEINGS !== 'undefined') parts.push('众生 ' + WXBEINGS.length + ' 众');
       if (typeof WXSUILING !== 'undefined') parts.push('岁令 ' + WXSUILING.months.length + ' 令');
       if (typeof WXUPDATES !== 'undefined') parts.push('更新志 ' + WXUPDATES.length);
+      if (typeof WXTRIALS !== 'undefined') parts.push('试账 ' + WXTRIALS.length + ' 案');
+      if (typeof WXGRANARIES !== 'undefined') parts.push('仓衡 ' + WXGRANARIES.stores.length + ' 制');
       txt(ht, '全书总账：' + parts.join(' · '));
       /* v1.20.0 我架入口：总账行尾立门，收藏的卷回家即见；计数随星而新 */
       var fchip = el('button', 'chip');
@@ -899,6 +901,117 @@
     render();
   }
 
+  /* ---------------- 人间试账（三案皆明示贷方与余账） ---------------- */
+  function buildTrial() {
+    var grid = $('#trialGrid');
+    if (!grid || typeof WXTRIALS === 'undefined') return;
+    txt($('#trialIntro'), '三笔账，三种难处：借来之物从何处取，未知之事怎样落笔，边界退去时谁先被看见。这里不是替世界判善恶，而是把决定的代价摊开。');
+    grid.innerHTML = '';
+    WXTRIALS.forEach(function (c, idx) {
+      var card = el('article', 'trial-card');
+      card.id = 'trial-' + c.id;
+      var head = el('div', 'trial-head');
+      var no = el('span', 'trial-no'); txt(no, '案 ' + c.no); head.appendChild(no);
+      var name = el('h4', 'trial-title'); txt(name, c.title); head.appendChild(name);
+      var place = el('button', 'trial-place'); txt(place, c.place + ' ↗');
+      place.type = 'button'; place.addEventListener('click', function () { show('map'); openCity(c.cityId); });
+      head.appendChild(place); card.appendChild(head);
+      var laws = el('div', 'trial-laws');
+      c.law.forEach(function (law) { laws.appendChild(txt(el('span', 'trial-law'), law)); });
+      card.appendChild(laws);
+      card.appendChild(txt(el('p', 'trial-premise'), c.premise));
+      card.appendChild(txt(el('p', 'trial-question'), c.question));
+      var options = el('div', 'trial-options');
+      var result = el('div', 'trial-result');
+      result.setAttribute('aria-live', 'polite');
+      result.appendChild(txt(el('p', 'trial-idle'), '择一案试账；选项可以反复切换。账面不替你作答，只把来路与余账照亮。'));
+      c.choices.forEach(function (choice) {
+        var btn = el('button', 'trial-choice');
+        btn.type = 'button'; btn.setAttribute('aria-pressed', 'false');
+        btn.appendChild(txt(el('span', 'tc-label'), choice.title));
+        btn.appendChild(txt(el('span', 'tc-cue'), '掀开此案 ↗'));
+        btn.addEventListener('click', function () {
+          $$('.trial-choice', options).forEach(function (b) {
+            var active = b === btn;
+            b.classList.toggle('on', active);
+            b.setAttribute('aria-pressed', active ? 'true' : 'false');
+          });
+          result.innerHTML = '';
+          result.appendChild(txt(el('p', 'tr-verdict'), choice.verdict));
+          var flow = el('div', 'trial-flow');
+          [
+            ['贷方 · 从何处来', choice.credit],
+            ['借方 · 落到何处', choice.debit],
+            ['余账 · 尚待何人承担', choice.remainder]
+          ].forEach(function (item) {
+            var row = el('div', 'tr-line');
+            row.appendChild(txt(el('span', 'tr-key'), item[0]));
+            row.appendChild(txt(el('p', 'tr-value'), item[1]));
+            flow.appendChild(row);
+          });
+          result.appendChild(flow);
+          result.appendChild(txt(el('p', 'tr-note'), choice.note));
+        });
+        options.appendChild(btn);
+      });
+      card.appendChild(options); card.appendChild(result); grid.appendChild(card);
+    });
+  }
+
+  /* ---------------- 仓衡三制（丰收、青黄、水患三种仓事） ---------------- */
+  function buildGranaries() {
+    var modeBox = $('#granaryModes'), panel = $('#granaryPanel'), storesBox = $('#granaryStores');
+    if (!modeBox || !panel || !storesBox || typeof WXGRANARIES === 'undefined') return;
+    txt($('#granaryIntro'), WXGRANARIES.intro);
+    var current = WXGRANARIES.seasons[0].id;
+    function renderMode(id) {
+      var mode = WXGRANARIES.seasons.filter(function (m) { return m.id === id; })[0];
+      if (!mode) return;
+      current = id;
+      $$('.granary-mode', modeBox).forEach(function (b) {
+        var on = b.getAttribute('data-mode') === id;
+        b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+      panel.innerHTML = '';
+      panel.appendChild(txt(el('p', 'gp-summary'), mode.summary));
+      var moves = el('div', 'gp-moves');
+      mode.moves.forEach(function (m, i) {
+        var row = el('article', 'gp-move');
+        row.appendChild(txt(el('span', 'gp-step'), '0' + (i + 1)));
+        row.appendChild(txt(el('h4', 'gp-store'), m.store));
+        row.appendChild(txt(el('p', 'gp-act'), m.act));
+        moves.appendChild(row);
+      });
+      panel.appendChild(moves);
+      panel.appendChild(txt(el('p', 'gp-audit'), '勾稽口 · ' + mode.audit));
+    }
+    modeBox.innerHTML = '';
+    WXGRANARIES.seasons.forEach(function (m) {
+      var b = el('button', 'chip granary-mode');
+      b.type = 'button'; b.setAttribute('data-mode', m.id); b.setAttribute('aria-pressed', 'false');
+      txt(b, m.name); b.addEventListener('click', function () { renderMode(m.id); });
+      modeBox.appendChild(b);
+    });
+    storesBox.innerHTML = '';
+    WXGRANARIES.stores.forEach(function (s, i) {
+      var card = el('article', 'granary-store');
+      card.id = 'grain-store-' + s.id;
+      card.appendChild(txt(el('span', 'gs-mark'), '仓制 · ' + s.mark));
+      card.appendChild(txt(el('h4', 'gs-title'), s.name));
+      card.appendChild(txt(el('p', 'gs-place'), s.place));
+      card.appendChild(txt(el('p', 'gs-role'), s.role));
+      var guard = el('p', 'gs-rule');
+      guard.appendChild(txt(el('b'), '守则　')); guard.appendChild(document.createTextNode(s.guard));
+      card.appendChild(guard);
+      var risk = el('p', 'gs-risk');
+      risk.appendChild(txt(el('b'), '账缝　')); risk.appendChild(document.createTextNode(s.risk));
+      card.appendChild(risk);
+      storesBox.appendChild(card);
+    });
+    window.__wx_setGranaryMode = renderMode;
+    renderMode(current);
+  }
+
   /* 城名 → 城对象：索引与货殖两页共用的图内查 */
   function cityByName(n) {
     for (var i = 0; i < WXCITIES.length; i++) if (WXCITIES[i].name === n) return WXCITIES[i];
@@ -909,13 +1022,13 @@
   function buildFind() {
     var inp = $('#findSearch'), host = $('#findList'), cntEl = $('#findCount');
     if (!inp || !host) return;
-    var stats = $('#findStats');
-    if (stats) txt(stats, '库容——词库 ' + WXLEXICON.length + ' 条 · 异闻 ' + WXSTORIES.length + ' 则 · 人物 '
-      + WXCHARS.length + ' · 十三京 ' + WXCITIES.length + ' · 货殖 ' + (typeof WXGOODS !== 'undefined' ? WXGOODS.length : 0) + ' 物 · 岁令 ' + (typeof WXSUILING !== 'undefined' ? WXSUILING.months.length : 0) + ' 令 · 界桩 ' + (typeof WXSTAKES !== 'undefined' ? WXSTAKES.length : 0) + ' 根 · 公门 ' + (typeof WXORGANS !== 'undefined' ? WXORGANS.length : 0) + ' 署 · 卷线 ' + (typeof WXARCS !== 'undefined' ? WXARCS.length : 0) + ' 条 · 故纸 ' + (typeof WXDOCS !== 'undefined' ? WXDOCS.length : 0) + ' 件 · 谚 ' + ((typeof WXSAYINGS !== 'undefined' ? WXSAYINGS.length : 0) + (typeof WXCITYSAYINGS !== 'undefined' ? WXCITYSAYINGS.length : 0)) + ' 句');
+    var stats = $('#findStats'), sourceBox = $('#findSources'), quickBox = $('#findQuick');
+    var moreBtn = $('#findMore'), clearBtn = $('#findClear');
+    var activeSource = '全部', visibleLimit = 40;
     var SOURCES = [
-      { name: '词库', rows: WXLEXICON.map(function (x) { return { t: x.t, s: x.p + '　' + x.cat + '　' + x.d, goto: 'lexicon', cid: null }; }) },
-      { name: '异闻', rows: WXSTORIES.map(function (x) { return { t: x.no + '《' + x.title + '》', s: x.sub + '　' + x.paras.join('') + '　' + x.tail, goto: 'stories', cid: null }; }) },
-      { name: '人物', rows: WXCHARS.map(function (x) { return { t: x.name + ' · ' + x.title, s: x.place + '　' + x.temper + '　' + x.text, goto: 'characters', cid: null }; }) },
+      { name: '词库', rows: WXLEXICON.map(function (x) { return { t: x.t, s: x.p + '　' + x.cat + '　' + x.d, goto: 'lexicon' }; }) },
+      { name: '异闻', rows: WXSTORIES.map(function (x) { return { t: x.no + '《' + x.title + '》', s: x.sub + '　' + x.paras.join('') + '　' + x.tail, goto: 'stories' }; }) },
+      { name: '人物', rows: WXCHARS.map(function (x) { return { t: x.name + ' · ' + x.title, s: x.place + '　' + x.temper + '　' + x.text, goto: 'characters' }; }) },
       { name: '十三京', rows: WXCITIES.map(function (x) { return { t: x.name + ' · ' + x.tower, s: x.text + '　' + x.hook, goto: 'map', cid: x.id }; }).concat(
         (typeof WXCITYSAYINGS !== 'undefined' ? WXCITYSAYINGS : []).map(function (sy) {
           var p = sy.indexOf('：'), cn = p >= 0 ? sy.slice(0, p) : '';
@@ -926,77 +1039,175 @@
           var cgo = cityByName(x.city);
           return { t: x.n + ' · ' + x.city, s: x.d, goto: 'goods', cid: cgo ? cgo.id : null };
         }) },
-      { name: '界桩', rows: (typeof WXSTAKES !== 'undefined' ? WXSTAKES : []).map(function (x) { return { t: x.name + ' · ' + x.no, s: x.where + '　' + x.state + '　桩面：' + x.face + '　' + x.note, goto: 'stakes', cid: null }; }) },
-      { name: '公门', rows: (typeof WXORGANS !== 'undefined' ? WXORGANS : []).map(function (x) { return { t: x.n + ' · ' + x.role, s: x.seat + '　主事：' + x.head + '　规矩：' + x.law + '　' + (x.ref || ''), goto: 'organs', cid: null }; }) },
-      { name: '卷线', rows: (typeof WXARCS !== 'undefined' ? WXARCS : []).map(function (x) { return { t: x.n + ' · ' + x.s.length + ' 卷', s: x.d + '　' + x.s.join(' '), goto: 'stories', cid: null }; }) },
-      { name: '故纸', rows: (typeof WXDOCS !== 'undefined' ? WXDOCS : []).map(function (x) { return { t: x.n + ' · ' + x.kind, s: x.seat + '　' + x.when + '　' + x.text + '　' + (x.ref || ''), goto: 'docs', cid: null }; }) },
-      { name: '岁令', rows: (typeof WXSUILING !== 'undefined' ? WXSUILING.months : []).map(function (x) { return { t: x.m + ' · ' + x.name, s: x.order + '　' + x.text, goto: 'suiling', cid: null }; }) },
-      { name: '账房谚', rows: (typeof WXSAYINGS !== 'undefined' ? WXSAYINGS : []).map(function (s) { return { t: s, s: '账房谚 · 拾句页可抄', goto: 'shiju', cid: null }; }) },
+      { name: '界桩', rows: (typeof WXSTAKES !== 'undefined' ? WXSTAKES : []).map(function (x) { return { t: x.name + ' · ' + x.no, s: x.where + '　' + x.state + '　桩面：' + x.face + '　' + x.note, goto: 'stakes' }; }) },
+      { name: '公门', rows: (typeof WXORGANS !== 'undefined' ? WXORGANS : []).map(function (x) { return { t: x.n + ' · ' + x.role, s: x.seat + '　主事：' + x.head + '　规矩：' + x.law + '　' + (x.ref || ''), goto: 'organs' }; }) },
+      { name: '卷线', rows: (typeof WXARCS !== 'undefined' ? WXARCS : []).map(function (x) { return { t: x.n + ' · ' + x.s.length + ' 卷', s: x.d + '　' + x.s.join(' '), goto: 'stories' }; }) },
+      { name: '故纸', rows: (typeof WXDOCS !== 'undefined' ? WXDOCS : []).map(function (x) { return { t: x.n + ' · ' + x.kind, s: x.seat + '　' + x.when + '　' + x.text + '　' + (x.ref || ''), goto: 'docs' }; }) },
+      { name: '岁令', rows: (typeof WXSUILING !== 'undefined' ? WXSUILING.months : []).map(function (x) { return { t: x.m + ' · ' + x.name, s: x.order + '　' + x.text, goto: 'suiling' }; }) },
+      { name: '账房谚', rows: (typeof WXSAYINGS !== 'undefined' ? WXSAYINGS : []).map(function (s) { return { t: s, s: '账房谚 · 拾句页可抄', goto: 'shiju' }; }) },
       { name: '众生谱', rows: (typeof WXBEINGS !== 'undefined' ? WXBEINGS : []).map(function (x) { return { t: x.name + ' · ' + x.also, s: x.cat + '　' + x.head + '　' + x.text, goto: 'beings', cid: x.cat }; }) },
-      { name: '历纪', rows: (typeof WXTIMELINE !== 'undefined' && WXTIMELINE.eras ? WXTIMELINE.eras : []).map(function (x) { return { t: x.name + ' · ' + x.no, s: x.events.join('　'), goto: 'timeline', cid: null }; }) },
-      { name: '更新志', rows: (typeof WXUPDATES !== 'undefined' ? WXUPDATES : []).map(function (x) { return { t: x.v + ' · ' + x.title, s: x.items.join('　'), goto: 'updates', cid: null }; }) }
+      { name: '历纪', rows: (typeof WXTIMELINE !== 'undefined' && WXTIMELINE.eras ? WXTIMELINE.eras : []).map(function (x) { return { t: x.name + ' · ' + x.no, s: x.events.join('　'), goto: 'timeline' }; }) },
+      { name: '更新志', rows: (typeof WXUPDATES !== 'undefined' ? WXUPDATES : []).map(function (x) { return { t: x.v + ' · ' + x.title, s: x.items.join('　'), goto: 'updates' }; }) },
+      { name: '试账', rows: (typeof WXTRIALS !== 'undefined' ? WXTRIALS : []).map(function (x) {
+          return { t: '案' + x.no + '《' + x.title + '》 · ' + x.place,
+            s: x.premise + '　' + x.question + '　' + x.choices.map(function (c) { return c.title + ' ' + c.credit + ' ' + c.debit + ' ' + c.remainder + ' ' + c.verdict; }).join('　'),
+            goto: 'trial', caseId: x.id };
+        }) },
+      { name: '仓衡', rows: (typeof WXGRANARIES !== 'undefined' ? WXGRANARIES.stores.map(function (x) {
+          return { t: x.name + ' · ' + x.mark, s: x.place + '　' + x.role + '　' + x.guard + '　' + x.risk, goto: 'goods', targetId: 'grain-store-' + x.id };
+        }).concat(WXGRANARIES.seasons.map(function (x) {
+          return { t: '仓事 · ' + x.name, s: x.summary + '　' + x.moves.map(function (m) { return m.store + '：' + m.act; }).join('　') + '　' + x.audit, goto: 'goods', modeId: x.id };
+        })) : []) }
     ];
-    function snip(s, kw) {
-      var pos = s.indexOf(kw);
-      var a = Math.max(0, pos - 12), b = Math.min(s.length, pos + kw.length + 20);
-      return (a > 0 ? '……' : '') + s.slice(a, b) + (b < s.length ? '……' : '');
+    var totalRows = SOURCES.reduce(function (n, s) { return n + s.rows.length; }, 0);
+    if (stats) txt(stats, '全书 ' + SOURCES.length + ' 源 · ' + totalRows + ' 笔可索；空格分隔多个词，须同时命中。');
+    function setQuick(value) {
+      inp.value = value;
+      visibleLimit = 40;
+      render();
+      inp.focus();
     }
-    function esc(x) { return String(x).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
-    function hlTxt(str, kw) {
-      var s = esc(str);
-      if (!kw) return s;
-      var kq = esc(kw);
-      var i = s.indexOf(kq);
-      if (i < 0) return s;
+    if (sourceBox) {
+      sourceBox.innerHTML = '';
+      ['全部'].concat(SOURCES.map(function (s) { return s.name; })).forEach(function (name) {
+        var btn = el('button', 'chip' + (name === activeSource ? ' on' : ''));
+        btn.type = 'button'; btn.setAttribute('aria-pressed', name === activeSource ? 'true' : 'false');
+        txt(btn, name);
+        btn.addEventListener('click', function () {
+          activeSource = name; visibleLimit = 40;
+          $$('.chip', sourceBox).forEach(function (b) {
+            var active = b.textContent === activeSource;
+            b.classList.toggle('on', active); b.setAttribute('aria-pressed', active ? 'true' : 'false');
+          });
+          render();
+        });
+        sourceBox.appendChild(btn);
+      });
+    }
+    if (quickBox) {
+      quickBox.innerHTML = '';
+      ['灶君', '失页', '晏京', '无字京', '账不平'].forEach(function (word) {
+        var btn = el('button', 'chip find-sample');
+        btn.type = 'button'; txt(btn, word);
+        btn.addEventListener('click', function () { setQuick(word); });
+        quickBox.appendChild(btn);
+      });
+    }
+    function escapeHTML(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+    function highlighter(str, terms) {
+      var ranges = [];
+      var lower = str.toLocaleLowerCase();
+      terms.forEach(function (term) {
+        var token = term.toLocaleLowerCase(), at = 0;
+        while ((at = lower.indexOf(token, at)) >= 0) {
+          ranges.push([at, at + token.length]);
+          at += Math.max(1, token.length);
+        }
+      });
+      if (!ranges.length) return escapeHTML(str);
+      ranges.sort(function (a, b) { return a[0] - b[0] || b[1] - a[1]; });
       var out = '', last = 0;
-      while (i >= 0) {
-        out += s.slice(last, i) + '<span class="hl">' + kq + '</span>';
-        last = i + kq.length;
-        i = s.indexOf(kq, last);
-      }
-      out += s.slice(last);
-      return out;
+      ranges.forEach(function (r) {
+        if (r[1] <= last) return;
+        var start = Math.max(last, r[0]);
+        out += escapeHTML(str.slice(last, start)) + '<span class="hl">' + escapeHTML(str.slice(start, r[1])) + '</span>';
+        last = r[1];
+      });
+      return out + escapeHTML(str.slice(last));
+    }
+    function snip(s, terms) {
+      var lower = s.toLocaleLowerCase(), pos = -1, width = terms[0].length;
+      terms.forEach(function (term) {
+        var i = lower.indexOf(term.toLocaleLowerCase());
+        if (i >= 0 && (pos < 0 || i < pos)) { pos = i; width = term.length; }
+      });
+      if (pos < 0) return s.slice(0, 64) + (s.length > 64 ? '……' : '');
+      var a = Math.max(0, pos - 12), b = Math.min(s.length, pos + width + 32);
+      return (a > 0 ? '……' : '') + s.slice(a, b) + (b < s.length ? '……' : '');
     }
     function render() {
       var kw = inp.value.trim();
+      var terms = kw.split(/\s+/).filter(Boolean);
       host.innerHTML = '';
+      if (moreBtn) moreBtn.hidden = true;
       txt(cntEl, '');
-      if (kw.length < 2) {
-        host.appendChild(txt(el('div', 'empty-tip'), '书上无名，笔下无人——想索全书，先写二字。'));
+      if (!terms.length || terms.join('').length < 2) {
+        host.appendChild(txt(el('div', 'empty-tip'), '书上无名，笔下无人——写下两个字，或点一枚引签试索。'));
         return;
       }
       var hits = [];
-      SOURCES.forEach(function (src) {
-        src.rows.forEach(function (r) {
-          var at = r.t.indexOf(kw);
-          var body = at >= 0 ? null : r.s.indexOf(kw);
-          if (at < 0 && body < 0) return;
-          hits.push({
-            label: src.name, t: r.t,
-            snip: at >= 0 ? r.t : snip(r.s, kw),
-            goto: r.goto, cid: r.cid
-          });
+      SOURCES.forEach(function (src, si) {
+        if (activeSource !== '全部' && src.name !== activeSource) return;
+        src.rows.forEach(function (r, ri) {
+          var title = r.t.toLocaleLowerCase();
+          var body = r.s.toLocaleLowerCase();
+          var all = terms.every(function (term) { var t = term.toLocaleLowerCase(); return title.indexOf(t) >= 0 || body.indexOf(t) >= 0; });
+          if (!all) return;
+          var titleAll = terms.every(function (term) { return title.indexOf(term.toLocaleLowerCase()) >= 0; });
+          var titleExact = terms.every(function (term) { return title === term.toLocaleLowerCase(); });
+          var titlePrefix = terms.every(function (term) { return title.indexOf(term.toLocaleLowerCase()) === 0; });
+          var rank = titleExact ? 0 : titlePrefix ? 1 : titleAll ? 2 : 3;
+          hits.push({ label: src.name, t: r.t, s: r.s, goto: r.goto, cid: r.cid, caseId: r.caseId, targetId: r.targetId, modeId: r.modeId, rank: rank, si: si, ri: ri });
         });
       });
-      hits = hits.slice(0, 28);
-      txt(cntEl, hits.length ? '勾得 ' + cnNum(hits.length) + ' 笔' : '勾得空账　——　再换二字试试。');
-      if (!hits.length) {
+      hits.sort(function (a, b) { return a.rank - b.rank || a.si - b.si || a.ri - b.ri; });
+      var totalHits = hits.length, shown = hits.slice(0, visibleLimit);
+      if (!totalHits) {
+        txt(cntEl, '勾得空账　——　试换词，或点「全部」撤去来源筛选。');
         host.appendChild(txt(el('div', 'empty-tip'), '账上无此条目。'));
         return;
       }
-      hits.forEach(function (h) {
+      txt(cntEl, '勾得 ' + totalHits + ' 笔' + (activeSource !== '全部' ? ' · ' + activeSource : '') + '；当前展 ' + shown.length + ' 笔' + (shown.length < totalHits ? '，余下可续展。' : '。'));
+      shown.forEach(function (h) {
         var row = el('div', 'find-hit');
-        row.setAttribute('tabindex', '0');
+        row.setAttribute('role', 'button'); row.setAttribute('tabindex', '0');
+        row.setAttribute('aria-label', h.label + '：' + h.t + '。按回车打开');
         row.appendChild(txt(el('span', 'fh-kicker'), h.label));
-        var tt = el('div', 'fh-t'); tt.innerHTML = hlTxt(h.t, kw); row.appendChild(tt);
-        var ss = el('div', 'fh-s'); ss.innerHTML = hlTxt(h.snip, kw); row.appendChild(ss);
-        function go() { show(h.goto); if (h.goto === 'goods' && h.cid) { var cit = cityById[h.cid]; var chip = cit ? document.querySelector('#goodsTabs .chip[data-cat="' + cit.name + '"]') : null; if (chip) chip.click(); return; } if (h.goto === 'beings' && h.cid) { var bch = document.querySelector('#beingTabs .chip[data-cat="' + h.cid + '"]'); if (bch) bch.click(); return; } if (h.cid && typeof openCity === 'function') openCity(h.cid); }
+        var tt = el('div', 'fh-t'); tt.innerHTML = highlighter(h.t, terms); row.appendChild(tt);
+        var ss = el('div', 'fh-s'); ss.innerHTML = highlighter(snip(h.s, terms), terms); row.appendChild(ss);
+        function go() {
+          show(h.goto);
+          if (h.goto === 'trial' && h.caseId) {
+            var target = $('#trial-' + h.caseId);
+            if (target) { target.scrollIntoView({ behavior: 'smooth', block: 'start' }); target.classList.add('trial-flash'); setTimeout(function () { target.classList.remove('trial-flash'); }, 1800); }
+            return;
+          }
+          if (h.goto === 'goods' && h.cid) { var cit = cityById[h.cid]; var chip = cit ? document.querySelector('#goodsTabs .chip[data-cat="' + cit.name + '"]') : null; if (chip) chip.click(); return; }
+          if (h.goto === 'goods' && h.modeId && window.__wx_setGranaryMode) {
+            window.__wx_setGranaryMode(h.modeId);
+            var modeTarget = $('#granaryPanel');
+            if (modeTarget) { modeTarget.scrollIntoView({ behavior: 'smooth', block: 'start' }); modeTarget.classList.add('trial-flash'); setTimeout(function () { modeTarget.classList.remove('trial-flash'); }, 1800); }
+            return;
+          }
+          if (h.goto === 'goods' && h.targetId) {
+            var grainTarget = $('#' + h.targetId);
+            if (grainTarget) { grainTarget.scrollIntoView({ behavior: 'smooth', block: 'start' }); grainTarget.classList.add('trial-flash'); setTimeout(function () { grainTarget.classList.remove('trial-flash'); }, 1800); }
+            return;
+          }
+          if (h.goto === 'beings' && h.cid) { var bch = document.querySelector('#beingTabs .chip[data-cat="' + h.cid + '"]'); if (bch) bch.click(); return; }
+          if (h.cid && typeof openCity === 'function') openCity(h.cid);
+        }
         row.addEventListener('click', go);
-        row.addEventListener('keydown', function (e) { if (e.key === 'Enter') go(); });
+        row.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
         host.appendChild(row);
       });
+      if (moreBtn && shown.length < totalHits) {
+        moreBtn.hidden = false;
+        txt(moreBtn, '再展四十笔 · 已展 ' + shown.length + ' / ' + totalHits);
+      }
     }
-    inp.addEventListener('input', render);
+    inp.addEventListener('input', function () { visibleLimit = 40; render(); });
+    inp.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') { inp.value = ''; visibleLimit = 40; render(); }
+      if (e.key === 'Enter') {
+        var first = $('.find-hit', host);
+        if (first) { e.preventDefault(); first.click(); }
+      }
+    });
+    if (clearBtn) clearBtn.addEventListener('click', function () { inp.value = ''; visibleLimit = 40; render(); inp.focus(); });
+    if (moreBtn) moreBtn.addEventListener('click', function () { visibleLimit += 40; render(); });
     render();
   }
 
@@ -1496,8 +1707,13 @@
     var tr = $('#traceList');
     tr.innerHTML = '';
     WXTRACE.forEach(function (t) {
-      var row = el('div', 'tr');
-      row.appendChild(txt(el('div', 'src'), t.src));
+      var row = el('div', 'tr'), source = el('div', 'src');
+      if (t.url) {
+        var link = el('a', 'source-link');
+        txt(link, t.src + ' ↗'); link.href = t.url; link.target = '_blank'; link.rel = 'noopener noreferrer';
+        source.appendChild(link);
+      } else txt(source, t.src);
+      row.appendChild(source);
       row.appendChild(txt(el('div', 'take'), t.take));
       tr.appendChild(row);
     });
@@ -1505,7 +1721,7 @@
   }
 
   /* ---------------- 人物志 ---------------- */
-  var CHARCATS = ['塔主', '公门', '修士', '异物', '邪路', '异闻'];
+  var CHARCATS = ['塔主', '公门', '修士', '邪路', '异闻'];
   function buildCharacters() {
     lrBuild();
     var tabs = $('#charTabs');
@@ -2408,9 +2624,41 @@
     L.push('## 货殖');
     WXGOODS.forEach(function (g) { L.push('- **' + g.n + '**（' + g.city + '）：' + g.d); });
     L.push('');
+    L.push('## 仓衡三制');
+    L.push(WXGRANARIES.intro);
+    L.push('');
+    WXGRANARIES.stores.forEach(function (s) {
+      L.push('### ' + s.name + ' · ' + s.mark + '（' + s.place + '）');
+      L.push('- 本：' + s.role);
+      L.push('- 守：' + s.guard);
+      L.push('- 缝：' + s.risk);
+      L.push('');
+    });
+    WXGRANARIES.seasons.forEach(function (m) {
+      L.push('### 仓事 · ' + m.name);
+      L.push(m.summary);
+      m.moves.forEach(function (x) { L.push('- ' + x.store + '：' + x.act); });
+      L.push('- 勾稽口：' + m.audit);
+      L.push('');
+    });
     L.push('## 故纸');
     WXDOCS.forEach(function (p) { L.push('- **' + p.n + '**（' + p.kind + '｜' + p.seat + '｜' + p.when + '）：' + p.text + (p.ref ? '〔' + p.ref + '〕' : '')); });
     L.push('');
+    L.push('## 人间试账');
+    WXTRIALS.forEach(function (c) {
+      L.push('### 案' + c.no + '《' + c.title + '》 · ' + c.place);
+      L.push(c.premise);
+      L.push('');
+      c.choices.forEach(function (choice) {
+        L.push('- **' + choice.title + '**');
+        L.push('  - 贷方：' + choice.credit);
+        L.push('  - 借方：' + choice.debit);
+        L.push('  - 余账：' + choice.remainder);
+        L.push('  - 判语：' + choice.verdict);
+        L.push('  - 旁注：' + choice.note);
+      });
+      L.push('');
+    });
     L.push('## 卷线');
     WXARCS.forEach(function (a) {
       var nos = a.s.map(function (id) {
@@ -2446,7 +2694,7 @@
       L.push('');
     });
     L.push('## 溯源簿');
-    WXTRACE.forEach(function (t) { L.push('- 出处：' + t.src + '｜取：' + t.take); });
+    WXTRACE.forEach(function (t) { L.push('- 出处：' + t.src + '｜取：' + t.take + (t.url ? '｜原文：' + t.url : '')); });
     L.push('');
     L.push('---');
     L.push(WXNOTE);
@@ -2467,24 +2715,6 @@
     } catch (e) {
       window.alert('抄存未成：' + e.message);
     }
-  }
-
-  /* ---------------- 初见笺（首访三规） ---------------- */
-  function buildGuide() {
-    var g = $('#firstGuide');
-    if (!g) return;
-    var seen = false;
-    try { seen = !!(window.sessionStorage && sessionStorage.getItem('wxtz_seen')); } catch (e) {}
-    if (seen) return;
-    g.hidden = false;
-    g.classList.add('fg-in');
-    function done() {
-      g.classList.remove('fg-in');
-      setTimeout(function () { g.hidden = true; }, 450);
-      try { sessionStorage.setItem('wxtz_seen', '1'); } catch (e) {}
-    }
-    var x = $('#fgClose');
-    if (x) x.addEventListener('click', done);
   }
 
   /* ---------------- 卷引用互开（v1.06.0 历纪接卷）：正文里「卷X」即可点 ---------------- */
@@ -2588,6 +2818,7 @@
   buildHome();
   buildMap();
   buildPower();
+  buildTrial();
   buildJudge();
   buildFour();
   buildBeings();
@@ -2596,11 +2827,11 @@
   /* 词库/异闻/拾句/人物/更新志五本重书已入 LAZY——首入其页才建 */
   buildFind();
   buildGoods();
+  buildGranaries();
   buildStakes();
   buildSuiling();
   buildOrgans();
   buildDocs();
-  buildGuide();
   buildNetwork();
   ['#bibleBtn', '#bibleBtnHome'].forEach(function (sel) {
     var bx = $(sel);
