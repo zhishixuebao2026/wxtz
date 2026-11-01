@@ -23,48 +23,145 @@
 
   var PAGES = ['home', 'map', 'power', 'trial', 'beings', 'characters', 'network', 'timeline', 'suiling', 'lexicon', 'shiju', 'find', 'goods', 'stakes', 'organs', 'docs', 'stories', 'updates'];
 
-  /* 跨页桥：人物志点卡入网聚焦等跨篇互开 */
+  /* 跨页桥：人物志显式点「看关系网」后聚焦对应节点 */
   var PAGE_HOOKS = {};
 
-  /* ---------------- 导航 ---------------- */
-  /* v1.04.0：pushState 让浏览器返回键真正可用；每篇记一页上下位置 */
+  /* ---------------- 导航、返回与阅读记忆 ---------------- */
   var CUR = 'home';
   var SCROLLS = {};
-  /* v1.16.0 按需建册：五本重书首入才开建（函数声明已提升），首屏只扛总纲与图 */
+  var READER_KEY = 'wxtz_reader_v1';
+  var LAST_READING = null;
+  var OPEN_CHARACTERS = {};
+  var CHAR_FILTER = '全部';
+  var NAV_INDEX = 0;
+  try {
+    var cached = JSON.parse(localStorage.getItem(READER_KEY) || 'null');
+    if (cached && PAGES.indexOf(cached.page) >= 0) {
+      LAST_READING = cached;
+      if (cached.scrolls && typeof cached.scrolls === 'object') SCROLLS = cached.scrolls;
+      if (Array.isArray(cached.openCharacters)) cached.openCharacters.forEach(function (id) { OPEN_CHARACTERS[id] = true; });
+      if (typeof cached.characterFilter === 'string') CHAR_FILTER = cached.characterFilter;
+    }
+  } catch (e) {}
+  try {
+    if (history.state && history.state.wxReader) NAV_INDEX = Number(history.state.index) || 0;
+    else if (history.replaceState) history.replaceState({ wxReader: true, page: location.hash.slice(1) || 'home', index: 0, scroll: 0 }, '', location.href);
+  } catch (e) {}
+
+  function pageLabel(id) {
+    var b = document.querySelector('#nav button[data-goto="' + id + '"]');
+    return b ? b.textContent.trim() : '总纲';
+  }
+  function readY() { return window.pageYOffset || document.documentElement.scrollTop || 0; }
+  function scrollRatio() {
+    var root = document.documentElement, span = root.scrollHeight - root.clientHeight;
+    return span > 0 ? Math.max(0, Math.min(1, readY() / span)) : 0;
+  }
+  function updateReaderUI(ratio) {
+    ratio = ratio == null ? scrollRatio() : ratio;
+    var pos = $('#readerPosition'), pct = $('#readerPercent'), fill = $('#readerTrackFill'), resume = $('#readerContinue');
+    if (pos) txt(pos, '正在读 · ' + pageLabel(CUR));
+    if (pct) txt(pct, Math.round(ratio * 100) + '%');
+    if (fill) fill.style.width = (ratio * 100).toFixed(1) + '%';
+    if (resume) {
+      resume.disabled = !LAST_READING;
+      resume.title = LAST_READING ? '续读：' + pageLabel(LAST_READING.page) + ' · ' + Math.round((LAST_READING.ratio || 0) * 100) + '%' : '读过一段后，此处会记下续读位置';
+    }
+  }
+  function persistReading() {
+    var y = readY();
+    SCROLLS[CUR] = y;
+    var root = document.documentElement, span = root.scrollHeight - root.clientHeight;
+    var record = { page: CUR, scroll: y, scrolls: SCROLLS, ratio: span > 0 ? Math.max(0, Math.min(1, y / span)) : 0, openCharacters: Object.keys(OPEN_CHARACTERS), characterFilter: CHAR_FILTER, savedAt: Date.now() };
+    LAST_READING = record;
+    try { localStorage.setItem(READER_KEY, JSON.stringify(record)); } catch (e) {}
+    updateReaderUI(record.ratio);
+  }
+  function show(id, noPush, restoreScroll) {
+    if (PAGES.indexOf(id) < 0) id = 'home';
+    if (LAZY[id]) { var f0 = LAZY[id]; delete LAZY[id]; f0(); }
+    if (id === CUR && restoreScroll == null) return;
+    var currentY = readY();
+    SCROLLS[CUR] = currentY;
+    if (id !== CUR) persistReading();
+    $$('.page').forEach(function (p) { p.classList.remove('on'); });
+    var pg = $('#pg-' + id);
+    if (pg) pg.classList.add('on');
+    $$('#nav button[data-goto]').forEach(function (b) {
+      b.classList.toggle('on', b.getAttribute('data-goto') === id);
+    });
+    CUR = id;
+    var nb = document.querySelector('#nav button[data-goto="' + id + '"]');
+    document.title = (nb ? nb.textContent + ' · ' : '') + '万象天账 · 墨序司异闻籍';
+    if (noPush) {
+      if (history.replaceState) {
+        var state = history.state && history.state.wxReader ? history.state : { wxReader: true, index: NAV_INDEX };
+        NAV_INDEX = Number(state.index) || 0;
+        history.replaceState({ wxReader: true, page: id, index: NAV_INDEX, scroll: restoreScroll == null ? (SCROLLS[id] || 0) : restoreScroll }, '', '#' + id);
+      } else location.hash = id;
+    } else if (history.pushState) {
+      if (history.state && history.state.wxReader) history.replaceState(Object.assign({}, history.state, { scroll: currentY }), '', location.href);
+      NAV_INDEX = (history.state && history.state.wxReader ? Number(history.state.index) || 0 : NAV_INDEX) + 1;
+      history.pushState({ wxReader: true, page: id, index: NAV_INDEX, scroll: 0 }, '', '#' + id);
+    } else location.hash = id;
+    var targetY = restoreScroll == null ? (SCROLLS[id] || 0) : restoreScroll;
+    SCROLLS[id] = targetY;
+    if (restoreScroll != null) {
+      var priorBehavior = document.documentElement.style.scrollBehavior;
+      document.documentElement.style.scrollBehavior = 'auto';
+      window.scrollTo(0, targetY);
+      document.documentElement.style.scrollBehavior = priorBehavior;
+    } else window.scrollTo(0, targetY);
+    persistReading();
+  }
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest ? e.target.closest('[data-goto]') : null;
+    if (t) show(t.getAttribute('data-goto'));
+  });
+  var backButton = $('#readerBack');
+  if (backButton) backButton.addEventListener('click', function () {
+    if (history.state && history.state.wxReader && Number(history.state.index) > 0) history.back();
+    else if (CUR !== 'home') show('home', true, SCROLLS.home || 0);
+    else window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+  var continueButton = $('#readerContinue');
+  if (continueButton) continueButton.addEventListener('click', function () {
+    if (!LAST_READING || PAGES.indexOf(LAST_READING.page) < 0) return;
+    show(LAST_READING.page, true, Number(LAST_READING.scroll) || 0);
+  });
+  window.addEventListener('hashchange', function () {
+    if (history.state && history.state.wxReader) return;
+    show(location.hash.slice(1) || 'home', true);
+  });
+  window.addEventListener('popstate', function (e) {
+    var state = e.state;
+    var target = state && state.wxReader ? state.page : (location.hash.slice(1) || 'home');
+    show(target, true, state && state.wxReader ? Number(state.scroll) || 0 : undefined);
+  });
+  /* 五本重书首入才开建；正文进度另存本机，续读不依赖网络。 */
   var LAZY = {};
   LAZY.lexicon = buildLexicon;
   LAZY.stories = buildStories;
   LAZY.shiju = buildShiju;
   LAZY.characters = buildCharacters;
   LAZY.updates = buildUpdates;
-  function show(id, noPush) {
-    if (PAGES.indexOf(id) < 0) id = 'home';
-    if (LAZY[id]) { var f0 = LAZY[id]; delete LAZY[id]; f0(); }
-    if (id === CUR) return;
-    SCROLLS[CUR] = window.pageYOffset || document.documentElement.scrollTop || 0;
-    $$('.page').forEach(function (p) { p.classList.remove('on'); });
-    var pg = $('#pg-' + id);
-    if (pg) pg.classList.add('on');
-    $$('#nav button').forEach(function (b) {
-      b.classList.toggle('on', b.getAttribute('data-goto') === id);
-    });
-    CUR = id;
-    /* v1.15.0 切页改题：收藏/分享/浏览器历史各见其名 */
-    var nb = document.querySelector('#nav button[data-goto="' + id + '"]');
-    document.title = (nb ? nb.textContent + ' · ' : '') + '万象天账 · 墨序司异闻籍';
-    if (noPush) { if (history.replaceState) history.replaceState(null, '', '#' + id); }
-    else if (history.pushState) history.pushState(null, '', '#' + id);
-    else location.hash = id;
-    window.scrollTo(0, SCROLLS[id] || 0);
-  }
-  document.addEventListener('click', function (e) {
-    var t = e.target.closest ? e.target.closest('[data-goto]') : null;
-    if (t) show(t.getAttribute('data-goto'));
-  });
-  window.addEventListener('hashchange', function () { show(location.hash.slice(1), true); });
-  window.addEventListener('popstate', function () { show(location.hash.slice(1), true); });
-  /* v1.16.0 深链改到启动末尾处理：LAZY 构建会调用 buildStories 等，须待模块级
-     var（STORY_LING/STORY_PU/ARC_OF…）赋值全部执行完毕后方可安全触发 */
+  var __prog = el('div', 'prog');
+  document.body.insertBefore(__prog, document.body.firstChild);
+  (function () {
+    var timer = 0;
+    function onScroll() {
+      var p = scrollRatio();
+      __prog.style.width = (p * 100).toFixed(1) + '%';
+      updateReaderUI(p);
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(persistReading, 320);
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    var initial = scrollRatio();
+    __prog.style.width = (initial * 100).toFixed(1) + '%';
+    updateReaderUI(initial);
+  })();
+  window.addEventListener('pagehide', persistReading);
 
   /* 「/」任意页直达全书索引；顶栏勾稽进度线 */
   document.addEventListener('keydown', function (e) {
@@ -74,18 +171,6 @@
       setTimeout(function () { var inp = $('#findSearch'); if (inp) inp.focus(); }, 160);
     }
   });
-  var __prog = el('div', 'prog');
-  document.body.insertBefore(__prog, document.body.firstChild);
-  (function () {
-    function onScroll() {
-      var h = document.documentElement;
-      var p = h.scrollHeight > h.clientHeight ? h.scrollTop / (h.scrollHeight - h.clientHeight) : 0;
-      __prog.style.width = (p * 100).toFixed(1) + '%';
-    }
-    window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
-  })();
-
   /* ---------------- 总纲 ---------------- */
   function buildHome() {
     txt($('#homeMotto'), WXCORE.motto);
@@ -1258,6 +1343,7 @@
         cur = label;
         $$('#goodsTabs .chip').forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-cat') === label); });
         render(cur);
+        persistReading();
       });
       tabs.appendChild(ch);
     }
@@ -1727,13 +1813,22 @@
     var tabs = $('#charTabs');
     var grid = $('#charGrid');
     grid.addEventListener('click', function (e) {
+      var netButton = e.target.closest ? e.target.closest('[data-character-network]') : null;
+      if (netButton) {
+        e.preventDefault(); e.stopPropagation();
+        var personId = netButton.getAttribute('data-character-network');
+        show('network');
+        if (PAGE_HOOKS.network) PAGE_HOOKS.network(personId);
+        return;
+      }
       var lx = e.target.closest ? e.target.closest('.lx') : null;
       if (lx) lrGo(lx);
     });
     var COL = { '塔主': 'c0', '公门': 'c1', '修士': 'c2', '异物': 'c3', '邪路': 'c4', '异闻': 'c5' };
-    var cur = '全部';
+    var cur = CHARCATS.indexOf(CHAR_FILTER) >= 0 ? CHAR_FILTER : '全部';
+    CHAR_FILTER = cur;
     var tw = WXCHARS.filter(function (c) { return c.cat === '塔主'; }).length;
-    txt($('#charsLead'), cnNum(WXCHARS.length) + ' 人，' + cnNum(tw) + ' 塔主。凡立传者必有账缝——那是灰吏最爱收的地方。');
+    txt($('#charsLead'), cnNum(WXCHARS.length) + ' 人，' + cnNum(tw) + ' 塔主。点姓名展传；「看关系网」才会转入牵连图。');
     function render(cat) {
       grid.innerHTML = '';
       var list = WXCHARS.filter(function (c) { return cat === '全部' || c.cat === cat; });
@@ -1744,34 +1839,64 @@
         return;
       }
       var DEG = {};
-    WXRELATIONS.links.forEach(function (l) { DEG[l.s] = (DEG[l.s] || 0) + 1; DEG[l.t] = (DEG[l.t] || 0) + 1; });
-    list.forEach(function (c) {
-        var card = el('article', 'being char-card');
-        card.setAttribute('tabindex', '0');
+      WXRELATIONS.links.forEach(function (l) { DEG[l.s] = (DEG[l.s] || 0) + 1; DEG[l.t] = (DEG[l.t] || 0) + 1; });
+      list.forEach(function (c) {
+        var card = el('details', 'being char-card' + (c.portrait ? ' has-portrait' : ''));
         card.setAttribute('data-id', c.id);
+        var summary = el('summary', 'char-summary');
+        var info = el('div', 'char-summary-info');
         var top = el('div', 'being-top');
         top.appendChild(txt(el('h4'), c.name));
         top.appendChild(txt(el('span', 'also'), c.title));
-        card.appendChild(top);
-        card.appendChild(txt(el('div', 'place'), c.place));
+        info.appendChild(top);
+        var meta = el('div', 'char-summary-meta');
+        meta.appendChild(txt(el('span', 'place'), c.place));
         var chip = el('span', 'chip ' + (COL[c.cat] || 'c2'));
-        txt(chip, c.cat);
-        card.appendChild(chip);
+        txt(chip, c.cat); meta.appendChild(chip);
         var dg = DEG[c.id] || 0;
-        card.appendChild(txt(el('span', 'net-deg'), dg ? '牵 ' + cnNum(dg) + ' 线' : '账外留白'));
-        card.appendChild(txt(el('p', 'head'), c.temper));
+        meta.appendChild(txt(el('span', 'net-deg'), dg ? '牵 ' + cnNum(dg) + ' 线' : '账外留白'));
+        info.appendChild(meta);
+        info.appendChild(txt(el('p', 'char-peek'), c.temper));
+        summary.appendChild(info);
+        if (c.portrait) {
+          var figure = el('figure', 'char-portrait');
+          var image = el('img');
+          image.src = c.portrait;
+          image.alt = c.name + ' · ' + c.title + '画像';
+          image.loading = 'lazy'; image.decoding = 'async';
+          figure.appendChild(image);
+          summary.appendChild(figure);
+        }
+        card.appendChild(summary);
+        var body = el('div', 'char-body');
+        if (c.portrait) {
+          var banner = el('div', 'char-art');
+          var art = el('img');
+          art.src = c.portrait; art.alt = ''; art.loading = 'lazy'; art.decoding = 'async';
+          banner.appendChild(art); body.appendChild(banner);
+        }
         var tp = el('p', 'text');
         var seenC = {};
         tp.appendChild(lrDecorate(c.text, seenC, false));
-        card.appendChild(tp);
+        body.appendChild(tp);
         var hk = el('div', 'being-hook');
         hk.appendChild(txt(el('b'), '账缝'));
         hk.appendChild(txt(el('span'), c.hook));
-        card.appendChild(hk);
-        card.appendChild(txt(el('span', 'origin'), '出 · ' + c.origin));
-        function goNet() { show('network'); if (PAGE_HOOKS.network) PAGE_HOOKS.network(c.id); }
-        card.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('.lx')) return; goNet(); });
-        card.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); goNet(); } });
+        body.appendChild(hk);
+        var actions = el('div', 'char-actions');
+        var net = el('button', 'char-network-link');
+        net.type = 'button'; net.setAttribute('data-character-network', c.id);
+        net.setAttribute('aria-label', '查看' + c.name + '的人物关系');
+        txt(net, '看关系网 ↗'); actions.appendChild(net);
+        actions.appendChild(txt(el('span', 'origin'), '出 · ' + c.origin));
+        body.appendChild(actions);
+        card.appendChild(body);
+        card.open = !!OPEN_CHARACTERS[c.id];
+        card.addEventListener('toggle', function () {
+          if (card.open) OPEN_CHARACTERS[c.id] = true;
+          else delete OPEN_CHARACTERS[c.id];
+          persistReading();
+        });
         linkVolumes(card);
         grid.appendChild(card);
       });
@@ -1780,14 +1905,20 @@
       var cnt = label === '全部' ? WXCHARS.length : WXCHARS.filter(function (c) { return c.cat === label; }).length;
       var ch = el('button', 'chip' + (label === cur ? ' on' : ''));
       ch.setAttribute('data-cat', label);
+      ch.setAttribute('aria-pressed', label === cur ? 'true' : 'false');
       txt(ch, label + ' · ' + cnt);
       ch.addEventListener('click', function () {
         cur = label;
-        $$('#charTabs .chip').forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-cat') === label); });
+        CHAR_FILTER = label;
+        $$('#charTabs .chip').forEach(function (x) {
+          var selected = x.getAttribute('data-cat') === label;
+          x.classList.toggle('on', selected); x.setAttribute('aria-pressed', selected ? 'true' : 'false');
+        });
         render(cur);
       });
       tabs.appendChild(ch);
     }
+    tabs.innerHTML = '';
     addTab('全部');
     CHARCATS.forEach(addTab);
     render(cur);
@@ -2097,7 +2228,7 @@
       detail.appendChild(txt(el('p', 'dim'), '点左侧一名人，看他在谁账上；点一线，看那一笔的分录。'));
     }
 
-    /* 人物志点卡 → 入网聚焦其人；网上无名者示「留白」 */
+    /* 人物志显式点「看关系网」后聚焦其人；网上无名者示「留白」 */
     PAGE_HOOKS.network = function (id) {
       var n = byId[id];
       if (n) { showNode(n); return; }

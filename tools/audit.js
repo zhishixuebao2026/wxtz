@@ -32,6 +32,11 @@ const remoteFonts = fontRefs.filter(src => /^https?:/i.test(src));
 fontCss && !missingFonts.length && !remoteFonts.length && fs.existsSync(P + 'assets/ledger-atmosphere.webp')
   ? ok('本地字体子集 ' + fontRefs.length + ' 件、原创首页纸景齐备；无远程字体引用')
   : ng('本地视觉资源缺失或含远程字体：' + missingFonts.join('、') + (remoteFonts.length ? '；远程 ' + remoteFonts.join('、') : ''));
+const characterSource = fs.readFileSync(P + 'data/characters.js', 'utf8');
+const portraitRefs = [...characterSource.matchAll(/portrait:\s*['\"]([^'\"]+)['\"]/g)].map(m => m[1]);
+const missingPortraits = portraitRefs.filter(src => !fs.existsSync(P + src));
+missingPortraits.length ? ng('人物画像资源缺失：' + missingPortraits.join('、'))
+  : ok('人物画像 ' + portraitRefs.length + ' 幅，本地资源路径齐备');
 const unicodeRanges = [];
 for (const m of fontCss.matchAll(/unicode-range:\s*([^;}]+)/g)) {
   for (const part of m[1].split(',')) {
