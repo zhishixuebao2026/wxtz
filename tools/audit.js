@@ -4,7 +4,7 @@
 'use strict';
 const fs = require('fs'), vm = require('vm');
 const P = __dirname.replace(/\\/g, '/') + '/../';
-const DATA = ['core','cities','beings','timeline','lexicon','sayings','goods','stories','characters','relations','stakes','suiling','organs','arcs','docs','updates','trials','granaries','relay','daily','observatory'];
+const DATA = ['core','cities','beings','timeline','lexicon','sayings','goods','stories','characters','relations','stakes','suiling','organs','arcs','docs','updates','trials','granaries','relay','daily','observatory','artifacts'];
 const JS = DATA.map(d => 'data/' + d + '.js').concat(['assets/app.js']);
 let warn = [];
 const ok = m => console.log('  ✓ ' + m);
@@ -36,8 +36,9 @@ const swSource = fs.readFileSync(P + 'sw.js', 'utf8');
 const swFontsOk = /fontCss\.text\(\)/.test(swSource) && /cache\.addAll\(fonts\.slice\(/.test(swSource);
 swFontsOk ? ok('离线安装会分批预存 ' + fontRefs.length + ' 个本地字形子集') : ng('离线安装未覆盖本地字体子集');
 /['\"]\.\/data\/relay\.js\?v=\d+['\"]/.test(swSource) ? ok('Service Worker 预缓存信路数据') : ng('Service Worker 漏缓存信路数据');
-/['\"]\.\/data\/daily\.js\?v=167['\"]/.test(swSource) ? ok('Service Worker 预缓存街巷日用篇') : ng('Service Worker 漏缓存街巷日用篇');
-/['\"]\.\/data\/observatory\.js\?v=167['\"]/.test(swSource) ? ok('Service Worker 预缓存三签校时资料') : ng('Service Worker 漏缓存三签校时资料');
+/['\"]\.\/data\/daily\.js\?v=168['\"]/.test(swSource) ? ok('Service Worker 预缓存街巷日用篇') : ng('Service Worker 漏缓存街巷日用篇');
+/['\"]\.\/data\/observatory\.js\?v=168['\"]/.test(swSource) ? ok('Service Worker 预缓存三签校时资料') : ng('Service Worker 漏缓存三签校时资料');
+/['\"]\.\/data\/artifacts\.js\?v=168['\"]/.test(swSource) ? ok('Service Worker 预缓存见物设定') : ng('Service Worker 漏缓存见物设定');
 /['\"]\.\/assets\/three-seal-observatory\.webp['\"]/.test(swSource) ? ok('Service Worker 预缓存原创三签台器物图') : ng('Service Worker 漏缓存三签台器物图');
 const characterSource = fs.readFileSync(P + 'data/characters.js', 'utf8');
 const portraitRefs = [...characterSource.matchAll(/portrait:\s*['\"]([^'\"]+)['\"]/g)].map(m => m[1]);
@@ -174,6 +175,21 @@ else {
   dBad ? ng('街约须完整呈现赠、借、共三签、三笔实录与边界') : ok('街巷日用有赠借共三签、三笔实录与各自止界');
   const dDup = new Set(daily.practices.map(x => x.id)).size !== daily.practices.length;
   dDup ? ng('街约签 id 重复') : ok('街约签 id 无重复');
+}
+const artifactAtlas = q('WXARTIFACTS');
+if (!artifactAtlas || !artifactAtlas.intro || !artifactAtlas.principle || !Array.isArray(artifactAtlas.items)) ng('见物篇设定结构不全');
+else {
+  const ids = new Set(artifactAtlas.items.map(x => x.id));
+  const kinds = new Set(artifactAtlas.items.map(x => x.kind));
+  const badItems = artifactAtlas.items.length !== 10 || ids.size !== artifactAtlas.items.length || kinds.size !== artifactAtlas.items.length ||
+    artifactAtlas.items.some(x => !x.name || !x.kind || !x.place || !x.image || !x.alt || x.alt.length < 12 || !x.scene || !x.use || !x.limit || !x.goto || !x.link);
+  badItems ? ng('见物需十件异域器物，逐件具图、替代文字、所见、用途与止界') : ok('见物十件均有独立门类、图说与证据止界');
+  const missingArt = artifactAtlas.items.filter(x => !fs.existsSync(P + x.image));
+  missingArt.length ? ng('见物图像缺失：' + missingArt.map(x => x.image).join('、')) : ok('十幅见物插图本地资源齐备');
+  const uncachedArt = artifactAtlas.items.filter(x => !swSource.includes("'./" + x.image + "'"));
+  uncachedArt.length ? ng('见物图未进入离线册：' + uncachedArt.map(x => x.image).join('、')) : ok('十幅见物插图全部列入离线缓存');
+  const artifactUi = /id="pg-artifacts"/.test(html) && /data-goto="artifacts"/.test(html) && /id="artifactGrid"/.test(html) && /buildArtifactAtlas/.test(fs.readFileSync(P + 'assets/app.js', 'utf8'));
+  artifactUi ? ok('见物篇有导航、篇面与图文交互入口') : ng('见物篇导航或图文交互未接通');
 }
 const observatory = q('WXOBSERVATORY');
 if (!observatory || !Array.isArray(observatory.instruments) || !Array.isArray(observatory.rules) || !observatory.case || !Array.isArray(observatory.case.events)) ng('三签校时篇形状不全');
@@ -478,8 +494,8 @@ dirtyHits.length ? ng('账面露管线 ' + dirtyHits.length + ' 处：' + dirtyH
 const appSrc = fs.readFileSync(P + 'assets/app.js', 'utf8');
 const srcBlock = (appSrc.match(/var SOURCES = \[([\s\S]*?)\n    \];/) || [0, ''])[1];
 const srcCount = (srcBlock.match(/name: '/g) || []).length;
-const tipOk = html.indexOf('全书二十篇') >= 0 && html.indexOf('索引十九源') >= 0 && secTags === 20 && srcCount === 19 && /data\/daily\.js\?v=167/.test(html) && /data\/daily\.js\?v=167/.test(swSource) && /data\/observatory\.js\?v=167/.test(html) && /data\/observatory\.js\?v=167/.test(swSource);
-tipOk ? ok('初见笺、篇目、索引与离线数据一致（二十篇 · 十九源）') : ng('初见笺计数脱节：实况 ' + secTags + ' 篇 · ' + srcCount + ' 源，或日用/校时资料未纳入离线册');
+const tipOk = html.indexOf('全书二十一篇') >= 0 && html.indexOf('索引二十源') >= 0 && secTags === 21 && srcCount === 20 && /data\/daily\.js\?v=168/.test(html) && /data\/daily\.js\?v=168/.test(swSource) && /data\/observatory\.js\?v=168/.test(html) && /data\/observatory\.js\?v=168/.test(swSource) && /data\/artifacts\.js\?v=168/.test(html) && /data\/artifacts\.js\?v=168/.test(swSource);
+tipOk ? ok('初见笺、篇目、索引与离线数据一致（二十一篇 · 二十源）') : ng('初见笺计数脱节：实况 ' + secTags + ' 篇 · ' + srcCount + ' 源，或日用/校时/见物资料未纳入离线册');
 
 console.log('\n【结论】' + (warn.length ? '需处理 ' + warn.length + ' 项' : '全部通过'));
 warn.forEach(w => console.log('  ✗ ' + w));

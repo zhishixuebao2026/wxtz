@@ -29,7 +29,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%230c0f13'/%3E%3Crect x='8' y='8' width='48' height='48' rx='6' fill='none' stroke='%23c0402e' stroke-width='2'/%3E%3Ctext x='32' y='45' font-size='34' text-anchor='middle' fill='%23c8a35a' font-family='serif'%3E%E8%B4%A6%3C/text%3E%3C/svg%3E">
 <!-- 自托管霞鹜文楷 Lite：页面无需依赖第三方字体/CDN，离线也能正确显示中文 -->
 <link rel="stylesheet" href="assets/fonts/lxgwwenkailite-regular.css">
-<link rel="stylesheet" href="assets/style.css?v=167">
+<link rel="stylesheet" href="assets/style.css?v=168">
 </head>
 <body>
 <a class="skip-link" href="#main">跳至正文</a>
@@ -72,6 +72,7 @@
   <button data-goto="shiju">拾句</button>
   <button data-goto="find" title="全书检索 · 快捷键 /">索引</button>
   <button data-goto="goods">货殖</button>
+  <button data-goto="artifacts">见物</button>
   <button data-goto="life">街巷</button>
   <button data-goto="stakes">界桩</button>
   <button data-goto="organs">公门</button>
@@ -117,11 +118,12 @@
       <button data-goto="map">开天地图</button>
       <button data-goto="lexicon">查词库</button>
       <button data-goto="stories">读异闻</button>
+      <button data-goto="artifacts">看十件器物</button>
       <button data-goto="trial">试一笔账</button>
       <button id="bibleBtnHome">存抄本</button>
     </div>
     <details id="firstGuide" class="first-guide">
-      <summary class="fg-summary"><span>初见笺 · 墨序</span><span class="fg-summary-note">十一条导读 · 点开阅览</span></summary>
+      <summary class="fg-summary"><span>初见笺 · 墨序</span><span class="fg-summary-note">十二条导读 · 点开阅览</span></summary>
       <p class="fg-line">这个世界，凡有点者皆可点：</p>
       <ul>
         <li>正文里字下点金 → 入词库、入人物志、入京卷宗；</li>
@@ -134,9 +136,10 @@
         <li>人间试账三案：逐策看贷方、借方与余账，点京名可回天地图。</li>
         <li>货殖页「仓衡三制」：切换丰年、青黄、水患，看三种仓的粮如何过账。</li>
         <li>街巷日用页切换赠、借、共签：对照巷牌原记与止界，不把人情自动记作欠债。</li>
+        <li>见物页十件器具各归一域：看它留下什么痕，也看它不能替谁作证。</li>
         <li>更新志页「存抄本」——整部书当场抄成一部抄本带走，不经网络。</li>
       </ul>
-      <p class="fg-tip">全书二十篇，索引十九源。收讫入站。</p>
+      <p class="fg-tip">全书二十一篇，索引二十源。收讫入站。</p>
     </details>
     <article class="ns-card" id="newestStory" hidden></article>
     <p class="home-tally" id="homeTally"></p>
@@ -335,6 +338,15 @@
     <div class="granary-stores" id="granaryStores"></div>
   </section>
 
+  <!-- ================= 见物 ================= -->
+  <section id="pg-artifacts" class="page">
+    <h3 class="sec-title"><span>见物</span><em>TEN THINGS, TEN LIMITS</em></h3>
+    <p class="lead artifact-intro" id="artifactLead"></p>
+    <blockquote class="artifact-principle" id="artifactPrinciple"></blockquote>
+    <div class="artifact-grid" id="artifactGrid" role="region" aria-label="十件原创世界观器物"></div>
+    <p class="artifact-colophon">器物各有来处；图为本卷意象，不是证据本身。</p>
+  </section>
+
   <!-- ================= 界桩志================= -->
   <section id="pg-life" class="page">
     <h3 class="sec-title"><span>人间日用</span><em>LIFE BETWEEN LEDGERS</em></h3>
@@ -414,30 +426,31 @@
 <footer class="foot">
   <p class="ticker" id="ticker" aria-live="off"></p>
   <p class="footline">万象天账 · 墨序司异闻籍 ——账不平，天不活。</p>
-  <p class="ver">版本 v1.33.0 · 资源戳 v=167 · 每笔有据，疑处留白。</p>
+  <p class="ver">版本 v1.34.0 · 资源戳 v=168 · 每笔有据，疑处留白。</p>
 </footer>
 
-<script src="data/core.js?v=167"></script>
-<script src="data/cities.js?v=167"></script>
-<script src="data/beings.js?v=167"></script>
-<script src="data/timeline.js?v=167"></script>
-<script src="data/suiling.js?v=167"></script>
-<script src="data/organs.js?v=167"></script>
-<script src="data/arcs.js?v=167"></script>
-<script src="data/docs.js?v=167"></script>
-<script src="data/lexicon.js?v=167"></script>
-  <script src="data/sayings.js?v=167"></script>
-  <script src="data/goods.js?v=167"></script>
-  <script src="data/stakes.js?v=167"></script>
-<script src="data/stories.js?v=167"></script>
-<script src="data/characters.js?v=167"></script>
-<script src="data/relations.js?v=167"></script>
-<script src="data/updates.js?v=167"></script>
-<script src="data/trials.js?v=167"></script>
-<script src="data/granaries.js?v=167"></script>
-<script src="data/relay.js?v=167"></script>
-<script src="data/daily.js?v=167"></script>
-<script src="data/observatory.js?v=167"></script>
-<script src="assets/app.js?v=167"></script>
+<script src="data/core.js?v=168"></script>
+<script src="data/cities.js?v=168"></script>
+<script src="data/beings.js?v=168"></script>
+<script src="data/timeline.js?v=168"></script>
+<script src="data/suiling.js?v=168"></script>
+<script src="data/organs.js?v=168"></script>
+<script src="data/arcs.js?v=168"></script>
+<script src="data/docs.js?v=168"></script>
+<script src="data/lexicon.js?v=168"></script>
+  <script src="data/sayings.js?v=168"></script>
+  <script src="data/goods.js?v=168"></script>
+  <script src="data/stakes.js?v=168"></script>
+<script src="data/stories.js?v=168"></script>
+<script src="data/characters.js?v=168"></script>
+<script src="data/relations.js?v=168"></script>
+<script src="data/updates.js?v=168"></script>
+<script src="data/trials.js?v=168"></script>
+<script src="data/granaries.js?v=168"></script>
+<script src="data/relay.js?v=168"></script>
+<script src="data/daily.js?v=168"></script>
+<script src="data/observatory.js?v=168"></script>
+<script src="data/artifacts.js?v=168"></script>
+<script src="assets/app.js?v=168"></script>
 </body>
 </html>

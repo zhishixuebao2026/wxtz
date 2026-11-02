@@ -21,7 +21,7 @@
     return document.createElementNS(ns, tag);
   };
 
-  var PAGES = ['home', 'map', 'relay', 'power', 'trial', 'beings', 'characters', 'network', 'timeline', 'suiling', 'lexicon', 'shiju', 'find', 'goods', 'life', 'stakes', 'organs', 'docs', 'stories', 'updates'];
+  var PAGES = ['home', 'map', 'relay', 'power', 'trial', 'beings', 'characters', 'network', 'timeline', 'suiling', 'lexicon', 'shiju', 'find', 'goods', 'artifacts', 'life', 'stakes', 'organs', 'docs', 'stories', 'updates'];
 
   /* 跨页桥：人物志显式点「看关系网」后聚焦对应节点 */
   var PAGE_HOOKS = {};
@@ -244,6 +244,7 @@
   LAZY.characters = buildCharacters;
   LAZY.updates = buildUpdates;
   LAZY.life = buildDaily;
+  LAZY.artifacts = buildArtifactAtlas;
   var __prog = el('div', 'prog');
   document.body.insertBefore(__prog, document.body.firstChild);
   (function () {
@@ -361,6 +362,7 @@
       if (typeof WXGRANARIES !== 'undefined') parts.push('仓衡 ' + WXGRANARIES.stores.length + ' 制');
       if (typeof WXDAILY !== 'undefined') parts.push('街约 ' + WXDAILY.practices.length + ' 签');
       if (typeof WXOBSERVATORY !== 'undefined') parts.push('校时 ' + WXOBSERVATORY.instruments.length + ' 签');
+      if (typeof WXARTIFACTS !== 'undefined') parts.push('见物 ' + WXARTIFACTS.items.length + ' 件');
       txt(ht, '全书总账：' + parts.join(' · '));
       /* v1.20.0 我架入口：总账行尾立门，收藏的卷回家即见；计数随星而新 */
       var fchip = el('button', 'chip');
@@ -1461,6 +1463,63 @@
     renderPractice(current);
   }
 
+  /* 十物各归一域；图像作入口，止界作正文。 */
+  function buildArtifactAtlas() {
+    var host = $('#artifactGrid'), lead = $('#artifactLead'), principle = $('#artifactPrinciple');
+    if (!host || typeof WXARTIFACTS === 'undefined') return;
+    if (lead) txt(lead, WXARTIFACTS.intro);
+    if (principle) txt(principle, '「' + WXARTIFACTS.principle + '」');
+    host.innerHTML = '';
+    WXARTIFACTS.items.forEach(function (item, index) {
+      var card = el('article', 'artifact-card');
+      card.id = 'artifact-' + item.id;
+      card.setAttribute('aria-labelledby', 'artifact-title-' + item.id);
+      card.setAttribute('data-kind', item.kind);
+      var figure = el('figure', 'artifact-figure');
+      var image = el('img', 'artifact-image');
+      image.src = item.image;
+      image.alt = item.alt;
+      image.width = 1200;
+      image.height = 800;
+      image.loading = 'lazy';
+      image.decoding = 'async';
+      figure.appendChild(image);
+      var stamp = txt(el('span', 'artifact-number'), '物 ' + cnNum(index + 1).padStart(2, '〇'));
+      stamp.setAttribute('aria-hidden', 'true');
+      figure.appendChild(stamp);
+      var caption = el('figcaption', 'artifact-figcaption');
+      caption.appendChild(txt(el('span', 'artifact-fig-kind'), item.kind));
+      caption.appendChild(txt(el('span', 'artifact-fig-place'), item.place));
+      figure.appendChild(caption);
+      card.appendChild(figure);
+      var body = el('div', 'artifact-copy');
+      body.appendChild(txt(el('p', 'artifact-kicker'), '第 ' + String(index + 1).padStart(2, '0') + ' 件　·　' + item.place));
+      body.appendChild(txt(el('h4', ''), item.name)).id = 'artifact-title-' + item.id;
+      [['所见', item.scene, 'artifact-seen'], ['用处', item.use, 'artifact-use'], ['止界', item.limit, 'artifact-limit']].forEach(function (part) {
+        var block = el('div', part[2]);
+        block.appendChild(txt(el('span', 'artifact-label'), part[0]));
+        block.appendChild(txt(el('p', ''), part[1]));
+        body.appendChild(block);
+      });
+      var actions = el('div', 'artifact-actions');
+      var destination = el('button', 'artifact-link artifact-link-primary');
+      destination.type = 'button';
+      destination.setAttribute('data-goto', item.goto);
+      txt(destination, '入' + pageLabel(item.goto) + ' ↗');
+      actions.appendChild(destination);
+      if (item.ref) {
+        var volume = el('button', 'artifact-link');
+        volume.type = 'button';
+        txt(volume, item.link + ' · ' + item.ref);
+        volume.addEventListener('click', function () { volGo(item.ref); });
+        actions.appendChild(volume);
+      }
+      body.appendChild(actions);
+      card.appendChild(body);
+      host.appendChild(card);
+    });
+  }
+
   /* 城名 → 城对象：索引与货殖两页共用的图内查 */
   function cityByName(n) {
     for (var i = 0; i < WXCITIES.length; i++) if (WXCITIES[i].name === n) return WXCITIES[i];
@@ -1519,7 +1578,12 @@
           s: WXDAILY.lead + '　' + WXDAILY.scene.text + '　' + WXDAILY.scene.records.map(function (r) { return r.kind + ' ' + r.item + ' ' + r.note; }).join('　'), goto: 'life' }].concat(
           WXDAILY.practices.map(function (x) { return { t: x.mark + ' · ' + x.name + ' · ' + x.label,
             s: x.object + '　' + x.rule + '　' + x.receipt + '　' + x.boundary, goto: 'life', modeId: x.id }; })
-        ) : []) }
+        ) : []) },
+      { name: '见物', rows: (typeof WXARTIFACTS !== 'undefined' ? WXARTIFACTS.items.map(function (x, i) {
+          return { t: '物' + cnNum(i + 1) + ' · ' + x.name + ' · ' + x.place,
+            s: x.kind + '　' + x.scene + '　' + x.use + '　止界：' + x.limit,
+            goto: 'artifacts', targetId: 'artifact-' + x.id };
+        }) : []) }
     ];
     var totalRows = SOURCES.reduce(function (n, s) { return n + s.rows.length; }, 0);
     var findLead = $('#findLead');
@@ -1666,6 +1730,11 @@
           if (h.goto === 'goods' && h.targetId) {
             var grainTarget = $('#' + h.targetId);
             if (grainTarget) { grainTarget.scrollIntoView({ behavior: 'smooth', block: 'start' }); grainTarget.classList.add('trial-flash'); setTimeout(function () { grainTarget.classList.remove('trial-flash'); }, 1800); }
+            return;
+          }
+          if (h.goto === 'artifacts' && h.targetId) {
+            var artifactTarget = $('#' + h.targetId);
+            if (artifactTarget) { artifactTarget.scrollIntoView({ behavior: 'smooth', block: 'center' }); artifactTarget.classList.add('artifact-flash'); setTimeout(function () { artifactTarget.classList.remove('artifact-flash'); }, 1800); }
             return;
           }
           if (h.goto === 'beings' && h.cid) { var bch = document.querySelector('#beingTabs .chip[data-cat="' + h.cid + '"]'); if (bch) bch.click(); return; }
@@ -3199,6 +3268,17 @@
     L.push('');
     L.push(WXOBSERVATORY.reference.note + ' ' + WXOBSERVATORY.reference.label + '：' + WXOBSERVATORY.reference.url);
     L.push('');
+    L.push('## 见物 · 十件器物');
+    L.push(WXARTIFACTS.intro);
+    L.push('> ' + WXARTIFACTS.principle);
+    WXARTIFACTS.items.forEach(function (x, i) {
+      L.push('### 物' + cnNum(i + 1) + ' · ' + x.name + '（' + x.kind + ' · ' + x.place + '）');
+      L.push('所见：' + x.scene);
+      L.push('用处：' + x.use);
+      L.push('止界：' + x.limit);
+      if (x.ref) L.push('互见：' + x.link + ' · ' + x.ref);
+      L.push('');
+    });
     L.push('### 甲子账牌');
     L.push(WXTIMELINE.jiazi);
     L.push('');
