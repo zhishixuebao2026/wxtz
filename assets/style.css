@@ -242,6 +242,12 @@ body{
 .cd-kicker{font-size:11px;color:var(--dim);letter-spacing:.4em;margin-bottom:4px;font-family:var(--hei)}
 .cd-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 .cd-head h4{font-size:24px;color:#f0e6cf;letter-spacing:.24em;font-weight:600}
+.cd-scene{grid-column:1/-1;position:relative;isolation:isolate;width:min(100%,780px);aspect-ratio:16/9;margin:5px auto 10px;overflow:hidden;border:1px solid rgba(207,170,103,.38);border-radius:5px;background:#1b222a;box-shadow:0 10px 28px rgba(0,0,0,.24)}
+.cd-scene-image{display:block;width:100%;height:100%;object-fit:cover;object-position:center;filter:saturate(.88) contrast(1.02)}
+.cd-scene::after{content:"";position:absolute;z-index:0;inset:35% 0 0;background:linear-gradient(180deg,transparent,rgba(14,19,25,.82));pointer-events:none}
+.cd-scene-caption{position:absolute;z-index:1;right:14px;bottom:10px;left:14px;display:flex;align-items:end;justify-content:space-between;gap:10px;color:#f0e6cf;text-shadow:0 1px 8px rgba(0,0,0,.8);font:11px/1.55 var(--hei);letter-spacing:.08em}
+.cd-scene-label{color:var(--gold2)}
+.cd-scene-note{color:#e0d9c9;text-align:right}
 .cd-nu{font-family:var(--kai);color:var(--verm2);font-size:14px;letter-spacing:.1em}
 .cd-page{font-size:11.5px;color:var(--golddim);border:1px solid var(--golddim);padding:1px 9px;border-radius:2px;letter-spacing:.14em;font-family:var(--hei)}
 .cd-tower{margin-top:9px;color:var(--silk2);font-size:13.5px;letter-spacing:.08em}
@@ -986,6 +992,9 @@ details.upd:not([open]):hover{opacity:1}
   .mx-layer{flex-wrap:wrap;gap:6px 12px}
   .mx-name{width:auto}
   .city-detail{grid-template-columns:1fr;padding:14px 14px 16px}
+  .cd-scene{grid-column:1;width:100%;aspect-ratio:16/9}
+  .cd-scene-caption{right:10px;bottom:8px;left:10px;flex-direction:column;align-items:flex-start;gap:3px;font-size:10.5px}
+  .cd-scene-note{align-self:flex-end;max-width:100%;padding:1px 6px;border-radius:2px;background:rgba(18,23,29,.76);}
   .cd-links{grid-column:1}
   .cd-text,.cd-goods,.cd-hook,.cd-lat{grid-column:1}
   .cd-head h4{font-size:20px}
@@ -1032,9 +1041,9 @@ details.upd:not([open]):hover{opacity:1}
 }
 /* ===== v1.21.0 案牍与索引：选择有凭、检索可辨、暗字可读 ===== */
 :root{
-  --dim:#89939e;
-  --silk3:#978d78;
-  --golddim:#a88f54;
+  --dim:#9ca7b1;
+  --silk3:#a19781;
+  --golddim:#b29a64;
 }
 :where(.trial-place,.trial-choice,.find-hit,.find-more,.find-clear,.find-sample,.find-sources .chip):focus-visible{
   outline:2px solid var(--gold2);outline-offset:3px

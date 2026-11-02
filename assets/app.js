@@ -841,6 +841,22 @@
     h.appendChild(txt(el('h4'), c.name));
     h.appendChild(txt(el('span', 'cd-page'), c.page));
     box.appendChild(h);
+    if (c.scene) {
+      var sceneFigure = el('figure', 'cd-scene');
+      var sceneImage = el('img', 'cd-scene-image');
+      sceneImage.src = c.scene;
+      sceneImage.alt = c.sceneAlt || (c.name + '城景意象');
+      sceneImage.width = 1440;
+      sceneImage.height = 960;
+      sceneImage.loading = 'lazy';
+      sceneImage.decoding = 'async';
+      sceneFigure.appendChild(sceneImage);
+      var sceneCaption = el('figcaption', 'cd-scene-caption');
+      sceneCaption.appendChild(txt(el('span', 'cd-scene-label'), c.name + ' · ' + (c.sceneCaption || '城景意象')));
+      sceneCaption.appendChild(txt(el('span', 'cd-scene-note'), '画面不作方位、道里凭据'));
+      sceneFigure.appendChild(sceneCaption);
+      box.appendChild(sceneFigure);
+    }
     box.appendChild(txt(el('p', 'cd-tower'), '总账塔 · ' + c.tower));
     box.appendChild(txt(el('blockquote', 'cd-motto'), c.motto));
     if (typeof WXCITYSAYINGS !== 'undefined') {

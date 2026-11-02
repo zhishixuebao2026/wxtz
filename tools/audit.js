@@ -56,9 +56,9 @@ const swSource = fs.readFileSync(P + 'sw.js', 'utf8');
 const swFontsOk = /fontCss\.text\(\)/.test(swSource) && /cache\.addAll\(fonts\.slice\(/.test(swSource);
 swFontsOk ? ok('离线安装会分批预存 ' + fontRefs.length + ' 个本地字形子集') : ng('离线安装未覆盖本地字体子集');
 /['\"]\.\/data\/relay\.js\?v=\d+['\"]/.test(swSource) ? ok('Service Worker 预缓存信路数据') : ng('Service Worker 漏缓存信路数据');
-/['\"]\.\/data\/daily\.js\?v=169['\"]/.test(swSource) ? ok('Service Worker 预缓存街巷日用篇') : ng('Service Worker 漏缓存街巷日用篇');
-/['\"]\.\/data\/observatory\.js\?v=169['\"]/.test(swSource) ? ok('Service Worker 预缓存三签校时资料') : ng('Service Worker 漏缓存三签校时资料');
-/['\"]\.\/data\/artifacts\.js\?v=169['\"]/.test(swSource) ? ok('Service Worker 预缓存见物设定') : ng('Service Worker 漏缓存见物设定');
+/['\"]\.\/data\/daily\.js\?v=170['\"]/.test(swSource) ? ok('Service Worker 预缓存街巷日用篇') : ng('Service Worker 漏缓存街巷日用篇');
+/['\"]\.\/data\/observatory\.js\?v=170['\"]/.test(swSource) ? ok('Service Worker 预缓存三签校时资料') : ng('Service Worker 漏缓存三签校时资料');
+/['\"]\.\/data\/artifacts\.js\?v=170['\"]/.test(swSource) ? ok('Service Worker 预缓存见物设定') : ng('Service Worker 漏缓存见物设定');
 /['\"]\.\/assets\/three-seal-observatory\.webp['\"]/.test(swSource) ? ok('Service Worker 预缓存原创三签台器物图') : ng('Service Worker 漏缓存三签台器物图');
 const characterSource = fs.readFileSync(P + 'data/characters.js', 'utf8');
 const portraitRefs = [...characterSource.matchAll(/portrait:\s*['\"]([^'\"]+)['\"]/g)].map(m => m[1]);
@@ -210,6 +210,23 @@ else {
   uncachedArt.length ? ng('见物图未进入离线册：' + uncachedArt.map(x => x.image).join('、')) : ok('十幅见物插图全部列入离线缓存');
   const artifactUi = /id="pg-artifacts"/.test(html) && /data-goto="artifacts"/.test(html) && /id="artifactGrid"/.test(html) && /buildArtifactAtlas/.test(fs.readFileSync(P + 'assets/app.js', 'utf8'));
   artifactUi ? ok('见物篇有导航、篇面与图文交互入口') : ng('见物篇导航或图文交互未接通');
+}
+const cityScenes = q('WXCITIES').filter(c => c.scene);
+if (cityScenes.length !== 10 || new Set(cityScenes.map(c => c.id)).size !== 10) ng('天地图应有十幅互不重复的京城意象');
+else {
+  const sceneRecordsBad = cityScenes.filter(c => c.scene !== 'assets/cities/' + c.id + '.webp' || !c.sceneAlt || c.sceneAlt.length < 12 || !c.sceneCaption);
+  sceneRecordsBad.length ? ng('京城图说、替代文字或资源名不合：' + sceneRecordsBad.map(c => c.name).join('、')) : ok('十京景意象与城市一一对应，图说和替代文字齐备');
+  const sceneBadAssets = cityScenes.filter(c => {
+    const file = P + c.scene;
+    if (!fs.existsSync(file) || fs.statSync(file).size > 450000) return true;
+    const head = fs.readFileSync(file).subarray(0, 12).toString('ascii');
+    return head.slice(0, 4) !== 'RIFF' || head.slice(8, 12) !== 'WEBP';
+  });
+  sceneBadAssets.length ? ng('京城意象缺图、非 WebP 或体积偏大：' + sceneBadAssets.map(c => c.scene).join('、')) : ok('十幅京城意象为本地轻量 WebP，资源签名正确');
+  const uncachedScenes = cityScenes.filter(c => !swSource.includes("'./" + c.scene + "'"));
+  uncachedScenes.length ? ng('京城意象未纳入离线册：' + uncachedScenes.map(c => c.scene).join('、')) : ok('十幅京城意象全部纳入离线缓存');
+  const citySceneUi = /sceneImage\.alt = c\.sceneAlt/.test(fs.readFileSync(P + 'assets/app.js', 'utf8')) && /cd-scene-caption/.test(fs.readFileSync(P + 'assets/app.js', 'utf8')) && /画面不作方位、道里凭据/.test(fs.readFileSync(P + 'assets/app.js', 'utf8'));
+  citySceneUi ? ok('选京即见城景，替代说明与「不作道里凭据」边界一并呈现') : ng('天地图城景交互、图说或非地图边界缺失');
 }
 const observatory = q('WXOBSERVATORY');
 if (!observatory || !Array.isArray(observatory.instruments) || !Array.isArray(observatory.rules) || !observatory.case || !Array.isArray(observatory.case.events)) ng('三签校时篇形状不全');
@@ -514,7 +531,7 @@ dirtyHits.length ? ng('账面露管线 ' + dirtyHits.length + ' 处：' + dirtyH
 const appSrc = fs.readFileSync(P + 'assets/app.js', 'utf8');
 const srcBlock = (appSrc.match(/var SOURCES = \[([\s\S]*?)\n    \];/) || [0, ''])[1];
 const srcCount = (srcBlock.match(/name: '/g) || []).length;
-const tipOk = html.indexOf('全书二十一篇') >= 0 && html.indexOf('索引二十源') >= 0 && secTags === 21 && srcCount === 20 && /data\/daily\.js\?v=169/.test(html) && /data\/daily\.js\?v=169/.test(swSource) && /data\/observatory\.js\?v=169/.test(html) && /data\/observatory\.js\?v=169/.test(swSource) && /data\/artifacts\.js\?v=169/.test(html) && /data\/artifacts\.js\?v=169/.test(swSource);
+const tipOk = html.indexOf('全书二十一篇') >= 0 && html.indexOf('索引二十源') >= 0 && secTags === 21 && srcCount === 20 && /data\/daily\.js\?v=170/.test(html) && /data\/daily\.js\?v=170/.test(swSource) && /data\/observatory\.js\?v=170/.test(html) && /data\/observatory\.js\?v=170/.test(swSource) && /data\/artifacts\.js\?v=170/.test(html) && /data\/artifacts\.js\?v=170/.test(swSource);
 tipOk ? ok('初见笺、篇目、索引与离线数据一致（二十一篇 · 二十源）') : ng('初见笺计数脱节：实况 ' + secTags + ' 篇 · ' + srcCount + ' 源，或日用/校时/见物资料未纳入离线册');
 
 console.log('\n【结论】' + (warn.length ? '需处理 ' + warn.length + ' 项' : '全部通过'));
