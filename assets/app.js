@@ -21,7 +21,7 @@
     return document.createElementNS(ns, tag);
   };
 
-  var PAGES = ['home', 'map', 'relay', 'power', 'trial', 'beings', 'characters', 'network', 'timeline', 'suiling', 'lexicon', 'shiju', 'find', 'goods', 'stakes', 'organs', 'docs', 'stories', 'updates'];
+  var PAGES = ['home', 'map', 'relay', 'power', 'trial', 'beings', 'characters', 'network', 'timeline', 'suiling', 'lexicon', 'shiju', 'find', 'goods', 'life', 'stakes', 'organs', 'docs', 'stories', 'updates'];
 
   /* 跨页桥：人物志显式点「看关系网」后聚焦对应节点 */
   var PAGE_HOOKS = {};
@@ -96,6 +96,7 @@
       }
     }
   }
+  var mobilePageCount = $('#mobilePageCount');
   if (mobilePicker && mobilePageMenu) {
     PAGES.forEach(function (id, index) {
       var item = el('button', 'mobile-page-option');
@@ -242,6 +243,7 @@
   LAZY.shiju = buildShiju;
   LAZY.characters = buildCharacters;
   LAZY.updates = buildUpdates;
+  LAZY.life = buildDaily;
   var __prog = el('div', 'prog');
   document.body.insertBefore(__prog, document.body.firstChild);
   (function () {
@@ -357,6 +359,7 @@
       if (typeof WXUPDATES !== 'undefined') parts.push('更新志 ' + WXUPDATES.length);
       if (typeof WXTRIALS !== 'undefined') parts.push('试账 ' + WXTRIALS.length + ' 案');
       if (typeof WXGRANARIES !== 'undefined') parts.push('仓衡 ' + WXGRANARIES.stores.length + ' 制');
+      if (typeof WXDAILY !== 'undefined') parts.push('街约 ' + WXDAILY.practices.length + ' 签');
       txt(ht, '全书总账：' + parts.join(' · '));
       /* v1.20.0 我架入口：总账行尾立门，收藏的卷回家即见；计数随星而新 */
       var fchip = el('button', 'chip');
@@ -424,6 +427,7 @@
     var s = (b ? CN_DIG[b] + '百' : '') + (h ? CN_DIG[h] + '十' : '') + (o ? CN_DIG[o] : '');
     return s.indexOf('一十') === 0 ? s.slice(1) : s;
   }
+  if (mobilePageCount) txt(mobilePageCount, '上下滑动 · 共' + cnNum(PAGES.length) + '篇');
   function qPath(a, b, r) {
     var ax = a.pos[0], ay = a.pos[1], bx = b.pos[0], by = b.pos[1];
     var mx = (ax + bx) / 2, my = (ay + by) / 2;
@@ -1297,6 +1301,78 @@
     renderMode(current);
   }
 
+  /* ---------------- 人间日用：记去来，不把赠予自动写成债 ---------------- */
+  function buildDaily() {
+    var sceneBox = $('#dailyScene'), tabs = $('#dailyTabs'), panel = $('#dailyPanel');
+    if (!sceneBox || !tabs || !panel || typeof WXDAILY === 'undefined') return;
+    txt($('#lifeLead'), WXDAILY.lead);
+    txt($('#dailyNote'), WXDAILY.note);
+    sceneBox.innerHTML = '';
+    var scene = WXDAILY.scene;
+    var head = el('div', 'daily-scene-head');
+    head.appendChild(txt(el('span', 'daily-kicker'), scene.place));
+    head.appendChild(txt(el('span', 'daily-date'), scene.time));
+    head.appendChild(txt(el('h4'), scene.title));
+    sceneBox.appendChild(head);
+    sceneBox.appendChild(txt(el('p', 'daily-scene-copy'), scene.text));
+    var ledger = el('div', 'daily-ledger');
+    ledger.setAttribute('aria-label', '槐雨巷三笔日用记录');
+    scene.records.forEach(function (record, i) {
+      var row = el('article', 'daily-ledger-row');
+      row.appendChild(txt(el('span', 'daily-time'), record.time));
+      row.appendChild(txt(el('span', 'daily-kind kind-' + record.kind), record.kind));
+      var detail = el('div', 'daily-ledger-detail');
+      detail.appendChild(txt(el('strong'), record.item));
+      detail.appendChild(txt(el('span'), record.note));
+      row.appendChild(detail);
+      ledger.appendChild(row);
+    });
+    sceneBox.appendChild(ledger);
+    var current = WXDAILY.practices[0].id;
+    function renderPractice(id) {
+      var practice = WXDAILY.practices.filter(function (item) { return item.id === id; })[0];
+      if (!practice) return;
+      current = id;
+      $$('.daily-mode', tabs).forEach(function (button) {
+        var active = button.getAttribute('data-mode') === id;
+        button.classList.toggle('on', active);
+        button.setAttribute('aria-pressed', active ? 'true' : 'false');
+      });
+      panel.innerHTML = '';
+      var card = el('article', 'daily-receipt');
+      var seal = txt(el('div', 'daily-seal kind-' + practice.mark), practice.mark);
+      seal.setAttribute('aria-hidden', 'true');
+      card.appendChild(seal);
+      var copy = el('div', 'daily-receipt-copy');
+      copy.appendChild(txt(el('span', 'daily-kicker'), '槐雨巷 · ' + practice.label));
+      copy.appendChild(txt(el('h4'), practice.name));
+      copy.appendChild(txt(el('p', 'daily-object'), '本笔所涉 · ' + practice.object));
+      copy.appendChild(txt(el('p', 'daily-rule'), practice.rule));
+      var sample = el('blockquote', 'daily-slip');
+      sample.appendChild(txt(el('span', 'daily-slip-label'), '巷牌原记'));
+      sample.appendChild(txt(el('p'), '「' + practice.receipt + '」'));
+      copy.appendChild(sample);
+      var boundary = el('div', 'daily-boundary');
+      boundary.appendChild(txt(el('b'), '止界'));
+      boundary.appendChild(txt(el('p'), practice.boundary));
+      copy.appendChild(boundary);
+      card.appendChild(copy);
+      panel.appendChild(card);
+    }
+    tabs.innerHTML = '';
+    WXDAILY.practices.forEach(function (practice) {
+      var button = el('button', 'chip daily-mode');
+      button.type = 'button';
+      button.setAttribute('data-mode', practice.id);
+      button.setAttribute('aria-pressed', 'false');
+      txt(button, practice.mark + ' · ' + practice.name);
+      button.addEventListener('click', function () { renderPractice(practice.id); });
+      tabs.appendChild(button);
+    });
+    window.__wx_setDailyMode = renderPractice;
+    renderPractice(current);
+  }
+
   /* 城名 → 城对象：索引与货殖两页共用的图内查 */
   function cityByName(n) {
     for (var i = 0; i < WXCITIES.length; i++) if (WXCITIES[i].name === n) return WXCITIES[i];
@@ -1345,9 +1421,16 @@
           return { t: x.name + ' · ' + x.mark, s: x.place + '　' + x.role + '　' + x.guard + '　' + x.risk, goto: 'goods', targetId: 'grain-store-' + x.id };
         }).concat(WXGRANARIES.seasons.map(function (x) {
           return { t: '仓事 · ' + x.name, s: x.summary + '　' + x.moves.map(function (m) { return m.store + '：' + m.act; }).join('　') + '　' + x.audit, goto: 'goods', modeId: x.id };
-        })) : []) }
+        })) : []) },
+      { name: '街巷', rows: (typeof WXDAILY !== 'undefined' ? [{ t: WXDAILY.scene.title + ' · ' + WXDAILY.scene.place,
+          s: WXDAILY.lead + '　' + WXDAILY.scene.text + '　' + WXDAILY.scene.records.map(function (r) { return r.kind + ' ' + r.item + ' ' + r.note; }).join('　'), goto: 'life' }].concat(
+          WXDAILY.practices.map(function (x) { return { t: x.mark + ' · ' + x.name + ' · ' + x.label,
+            s: x.object + '　' + x.rule + '　' + x.receipt + '　' + x.boundary, goto: 'life', modeId: x.id }; })
+        ) : []) }
     ];
     var totalRows = SOURCES.reduce(function (n, s) { return n + s.rows.length; }, 0);
+    var findLead = $('#findLead');
+    if (findLead) txt(findLead, '一索全书 · ' + SOURCES.length + ' 源：' + SOURCES.map(function (source) { return source.name; }).join('、') + '。输入词语或用空格并列检索，点一笔即可回到原处。');
     if (stats) txt(stats, '全书 ' + SOURCES.length + ' 源 · ' + totalRows + ' 笔可索；空格分隔多个词，须同时命中。');
     function setQuick(value) {
       inp.value = value;
@@ -1467,6 +1550,12 @@
             window.__wx_setGranaryMode(h.modeId);
             var modeTarget = $('#granaryPanel');
             if (modeTarget) { modeTarget.scrollIntoView({ behavior: 'smooth', block: 'start' }); modeTarget.classList.add('trial-flash'); setTimeout(function () { modeTarget.classList.remove('trial-flash'); }, 1800); }
+            return;
+          }
+          if (h.goto === 'life' && h.modeId && window.__wx_setDailyMode) {
+            window.__wx_setDailyMode(h.modeId);
+            var lifeTarget = $('#dailyPanel');
+            if (lifeTarget) { lifeTarget.scrollIntoView({ behavior: 'smooth', block: 'start' }); lifeTarget.classList.add('daily-flash'); setTimeout(function () { lifeTarget.classList.remove('daily-flash'); }, 1800); }
             return;
           }
           if (h.goto === 'goods' && h.targetId) {
@@ -3072,6 +3161,23 @@
       L.push('- 勾稽口：' + m.audit);
       L.push('');
     });
+    L.push('## 人间日用 · ' + WXDAILY.scene.place);
+    L.push(WXDAILY.lead);
+    L.push('');
+    L.push('### ' + WXDAILY.scene.title + '（' + WXDAILY.scene.time + '）');
+    L.push(WXDAILY.scene.text);
+    WXDAILY.scene.records.forEach(function (r) { L.push('- ' + r.time + ' · ' + r.kind + ' · ' + r.item + '：' + r.note); });
+    L.push('');
+    WXDAILY.practices.forEach(function (x) {
+      L.push('### ' + x.mark + ' · ' + x.name + '（' + x.label + '）');
+      L.push(x.rule);
+      L.push('> ' + x.receipt);
+      L.push('');
+      L.push('止界：' + x.boundary);
+      L.push('');
+    });
+    L.push(WXDAILY.note);
+    L.push('');
     L.push('## 故纸');
     WXDOCS.forEach(function (p) { L.push('- **' + p.n + '**（' + p.kind + '｜' + p.seat + '｜' + p.when + '）：' + p.text + (p.ref ? '〔' + p.ref + '〕' : '')); });
     L.push('');

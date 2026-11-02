@@ -4,7 +4,7 @@
 'use strict';
 const fs = require('fs'), vm = require('vm');
 const P = __dirname.replace(/\\/g, '/') + '/../';
-const DATA = ['core','cities','beings','timeline','lexicon','sayings','goods','stories','characters','relations','stakes','suiling','organs','arcs','docs','updates','trials','granaries','relay'];
+const DATA = ['core','cities','beings','timeline','lexicon','sayings','goods','stories','characters','relations','stakes','suiling','organs','arcs','docs','updates','trials','granaries','relay','daily'];
 const JS = DATA.map(d => 'data/' + d + '.js').concat(['assets/app.js']);
 let warn = [];
 const ok = m => console.log('  ✓ ' + m);
@@ -36,6 +36,7 @@ const swSource = fs.readFileSync(P + 'sw.js', 'utf8');
 const swFontsOk = /fontCss\.text\(\)/.test(swSource) && /cache\.addAll\(fonts\.slice\(/.test(swSource);
 swFontsOk ? ok('离线安装会分批预存 ' + fontRefs.length + ' 个本地字形子集') : ng('离线安装未覆盖本地字体子集');
 /['\"]\.\/data\/relay\.js\?v=\d+['\"]/.test(swSource) ? ok('Service Worker 预缓存信路数据') : ng('Service Worker 漏缓存信路数据');
+/['\"]\.\/data\/daily\.js\?v=166['\"]/.test(swSource) ? ok('Service Worker 预缓存街巷日用篇') : ng('Service Worker 漏缓存街巷日用篇');
 const characterSource = fs.readFileSync(P + 'data/characters.js', 'utf8');
 const portraitRefs = [...characterSource.matchAll(/portrait:\s*['\"]([^'\"]+)['\"]/g)].map(m => m[1]);
 const missingPortraits = portraitRefs.filter(src => !fs.existsSync(P + src));
@@ -74,6 +75,14 @@ for (const m of html.matchAll(/\b(?:href|src)=[\"']([^\"']+)[\"']/g)) {
   if (file && !fs.existsSync(require('path').resolve(P, file))) badLocalRefs.push(ref);
 }
 badLocalRefs.length ? ng('HTML 本地链接或素材失引：' + badLocalRefs.join('、')) : ok('HTML 本地锚点、脚本、样式、图标与资源均可达');
+const coverMeta = /<meta property="og:image" content="assets\/ledger-cover\.jpg"/.test(html) &&
+  /<meta property="og:image:alt" content="[^"]+"/.test(html) &&
+  /<meta property="og:image:width" content="1200"/.test(html) &&
+  /<meta property="og:image:height" content="630"/.test(html) &&
+  /<meta name="twitter:card" content="summary_large_image"/.test(html) &&
+  /<meta name="twitter:image" content="assets\/ledger-cover\.jpg"/.test(html) &&
+  fs.existsSync(P + 'assets/ledger-cover.jpg') && /assets\/ledger-cover\.jpg/.test(swSource);
+coverMeta ? ok('原创分享封面、Open Graph/Twitter 图文说明齐备') : ng('分享卡片封面或替代说明缺失');
 const mapSvgA11y = /<svg id="mapSvg"[^>]*role="group"[^>]*aria-label="[^"]+"/.test(html);
 const netSvgA11y = /<svg id="netSvg"[^>]*role="group"[^>]*aria-label="[^"]+"/.test(html);
 mapSvgA11y && netSvgA11y ? ok('天地图与关系网标作可交互图组，并各有操作说明') : ng('地图 SVG 的无障碍图组名称或操作说明缺失');
@@ -152,6 +161,16 @@ else {
 const threeCheckDoc = q('WXDOCS').filter(p => p.n === '三照覆籍签 · 沈归')[0];
 if (!threeCheckDoc || !Array.isArray(threeCheckDoc.checks) || threeCheckDoc.checks.map(x => x.key).join('') !== '籍行见' || threeCheckDoc.checks.some(x => !x.title || !x.text)) ng('三照勘签步骤不齐');
 else ok('三照勘签有籍、行、见三步，证源说明齐备');
+const daily = q('WXDAILY');
+if (!daily || !daily.scene || !Array.isArray(daily.scene.records) || !Array.isArray(daily.practices)) ng('街巷日用篇形状不全');
+else {
+  const kinds = daily.practices.map(x => x.mark).sort().join('');
+  const dBad = daily.practices.length !== 3 || kinds !== '借共赠' || daily.scene.records.length !== 3 ||
+    daily.practices.some(x => !x.id || !x.name || !x.rule || !x.receipt || !x.boundary);
+  dBad ? ng('街约须完整呈现赠、借、共三签、三笔实录与边界') : ok('街巷日用有赠借共三签、三笔实录与各自止界');
+  const dDup = new Set(daily.practices.map(x => x.id)).size !== daily.practices.length;
+  dDup ? ng('街约签 id 重复') : ok('街约签 id 无重复');
+}
 const relay = q('WXRELAY');
 if (!relay || !Array.isArray(relay.channels) || relay.channels.length !== 3 || !relay.dispatch || !Array.isArray(relay.dispatch.legs)) ng('信路三式或递送实录形状不全');
 else {
@@ -434,8 +453,8 @@ dirtyHits.length ? ng('账面露管线 ' + dirtyHits.length + ' 处：' + dirtyH
 const appSrc = fs.readFileSync(P + 'assets/app.js', 'utf8');
 const srcBlock = (appSrc.match(/var SOURCES = \[([\s\S]*?)\n    \];/) || [0, ''])[1];
 const srcCount = (srcBlock.match(/name: '/g) || []).length;
-const tipOk = html.indexOf('全书十九篇') >= 0 && html.indexOf('索引十七源') >= 0 && secTags === 19 && srcCount === 17;
-tipOk ? ok('初见笺计数与实况一致（十九篇 · 十七源）') : ng('初见笺计数脱节：实况 ' + secTags + ' 篇 · ' + srcCount + ' 源（笺仍写十九·十七）');
+const tipOk = html.indexOf('全书二十篇') >= 0 && html.indexOf('索引十八源') >= 0 && secTags === 20 && srcCount === 18 && /data\/daily\.js\?v=166/.test(html) && /data\/daily\.js\?v=166/.test(swSource);
+tipOk ? ok('初见笺、篇目、索引与离线数据一致（二十篇 · 十八源）') : ng('初见笺计数脱节：实况 ' + secTags + ' 篇 · ' + srcCount + ' 源，或街巷日用未纳入离线册');
 
 console.log('\n【结论】' + (warn.length ? '需处理 ' + warn.length + ' 项' : '全部通过'));
 warn.forEach(w => console.log('  ✗ ' + w));

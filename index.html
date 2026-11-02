@@ -15,10 +15,21 @@
 <meta property="og:title" content="万象天账 · 墨序司异闻籍">
 <meta property="og:description" content="原创世界观：天不造物，天记账。中界如摊开的账册，十三京星布其上；墨序执三律，灰吏勾天下，修士以性命作票号。">
 <meta property="og:type" content="website">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="assets/ledger-cover.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="星河与远山之间摊开的旧账册，纸上以朱线与金点标记十三京和道路。">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="万象天账 · 墨序司异闻籍">
+<meta name="twitter:description" content="原创世界观：天不造物，天记账。中界如摊开的账册，十三京星布其上。">
+<meta name="twitter:image" content="assets/ledger-cover.jpg">
+<meta name="twitter:image:alt" content="星河与远山之间摊开的旧账册，纸上以朱线与金点标记十三京和道路。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%230c0f13'/%3E%3Crect x='8' y='8' width='48' height='48' rx='6' fill='none' stroke='%23c0402e' stroke-width='2'/%3E%3Ctext x='32' y='45' font-size='34' text-anchor='middle' fill='%23c8a35a' font-family='serif'%3E%E8%B4%A6%3C/text%3E%3C/svg%3E">
 <!-- 自托管霞鹜文楷 Lite：页面无需依赖第三方字体/CDN，离线也能正确显示中文 -->
 <link rel="stylesheet" href="assets/fonts/lxgwwenkailite-regular.css">
-<link rel="stylesheet" href="assets/style.css?v=165">
+<link rel="stylesheet" href="assets/style.css?v=166">
 </head>
 <body>
 <a class="skip-link" href="#main">跳至正文</a>
@@ -61,6 +72,7 @@
   <button data-goto="shiju">拾句</button>
   <button data-goto="find" title="全书检索 · 快捷键 /">索引</button>
   <button data-goto="goods">货殖</button>
+  <button data-goto="life">街巷</button>
   <button data-goto="stakes">界桩</button>
   <button data-goto="organs">公门</button>
   <button data-goto="docs">故纸</button>
@@ -79,7 +91,7 @@
     </button>
     <div class="mobile-page-popover" id="mobilePagePopover" aria-hidden="true">
       <div class="mobile-menu-head">
-        <div><strong>篇目目录</strong><span>上下滑动 · 共十九篇</span></div>
+        <div><strong>篇目目录</strong><span id="mobilePageCount">上下滑动 · 共二十篇</span></div>
         <button type="button" id="mobileMenuClose" aria-label="关闭篇目目录">×</button>
       </div>
       <div class="mobile-page-menu" id="mobilePageMenu" role="menu" aria-label="选择篇目"></div>
@@ -109,7 +121,7 @@
       <button id="bibleBtnHome">存抄本</button>
     </div>
     <details id="firstGuide" class="first-guide">
-      <summary class="fg-summary"><span>初见笺 · 墨序</span><span class="fg-summary-note">十条导读 · 点开阅览</span></summary>
+      <summary class="fg-summary"><span>初见笺 · 墨序</span><span class="fg-summary-note">十一条导读 · 点开阅览</span></summary>
       <p class="fg-line">这个世界，凡有点者皆可点：</p>
       <ul>
         <li>正文里字下点金 → 入词库、入人物志、入京卷宗；</li>
@@ -121,9 +133,10 @@
         <li>卷首 ★ → 收卷入自家架上（存你本机）；卷目旁「我架」一签，只看收过的。</li>
         <li>人间试账三案：逐策看贷方、借方与余账，点京名可回天地图。</li>
         <li>货殖页「仓衡三制」：切换丰年、青黄、水患，看三种仓的粮如何过账。</li>
+        <li>街巷日用页切换赠、借、共签：对照巷牌原记与止界，不把人情自动记作欠债。</li>
         <li>更新志页「存抄本」——整部书当场抄成一部抄本带走，不经网络。</li>
       </ul>
-      <p class="fg-tip">全书十九篇，索引十七源。收讫入站。</p>
+      <p class="fg-tip">全书二十篇，索引十八源。收讫入站。</p>
     </details>
     <article class="ns-card" id="newestStory" hidden></article>
     <p class="home-tally" id="homeTally"></p>
@@ -269,7 +282,7 @@
   <!-- ================= 索引 ================= -->
   <section id="pg-find" class="page">
     <h3 class="sec-title"><span>索引</span><em>THE INDEX</em></h3>
-    <p class="lead">一索全书：十五类旧卷宗，另加人间试账与仓衡三制；输入词语或用空格并列条件，检索词库、异闻、人物、京城、货殖、界桩、公门、信路、卷线、故纸、岁令、谚语、众生谱、历纪与更新志。点一笔即可回到原处。</p>
+    <p class="lead" id="findLead"></p>
     <div class="find-tools">
       <input id="findSearch" type="search" placeholder="搜：灶君 / 失页 / 晏京；空格可并列检索" aria-label="全书检索" autocomplete="off">
       <button class="chip find-clear" id="findClear" type="button" aria-label="清空检索">清空</button>
@@ -296,6 +309,17 @@
   </section>
 
   <!-- ================= 界桩志================= -->
+  <section id="pg-life" class="page">
+    <h3 class="sec-title"><span>人间日用</span><em>LIFE BETWEEN LEDGERS</em></h3>
+    <p class="lead" id="lifeLead"></p>
+    <div class="daily-scene" id="dailyScene"></div>
+    <h3 class="sec-title"><span>巷约三签</span><em>GIFT · LOAN · COMMON WORK</em></h3>
+    <p class="lead daily-lead">把送出的、暂借的、合力做的分开写；记下事实，不替任何人把人情改成债。</p>
+    <div class="chips daily-tabs" id="dailyTabs" role="group" aria-label="选择巷约样式"></div>
+    <div class="daily-panel" id="dailyPanel" aria-live="polite"></div>
+    <p class="daily-note" id="dailyNote"></p>
+  </section>
+
   <section id="pg-stakes" class="page">
     <h3 class="sec-title"><span>界桩志</span><em>STAKES AT THE EDGE</em></h3>
     <p class="lead" id="stakeLead"></p>
@@ -363,28 +387,29 @@
 <footer class="foot">
   <p class="ticker" id="ticker" aria-live="off"></p>
   <p class="footline">万象天账 · 墨序司异闻籍 ——账不平，天不活。</p>
-  <p class="ver">版本 v1.31.0 · 资源戳 v=165 · 每笔有据，疑处留白。</p>
+  <p class="ver">版本 v1.32.0 · 资源戳 v=166 · 每笔有据，疑处留白。</p>
 </footer>
 
-<script src="data/core.js?v=165"></script>
-<script src="data/cities.js?v=165"></script>
-<script src="data/beings.js?v=165"></script>
-<script src="data/timeline.js?v=165"></script>
-<script src="data/suiling.js?v=165"></script>
-<script src="data/organs.js?v=165"></script>
-<script src="data/arcs.js?v=165"></script>
-<script src="data/docs.js?v=165"></script>
-<script src="data/lexicon.js?v=165"></script>
-  <script src="data/sayings.js?v=165"></script>
-  <script src="data/goods.js?v=165"></script>
-  <script src="data/stakes.js?v=165"></script>
-<script src="data/stories.js?v=165"></script>
-<script src="data/characters.js?v=165"></script>
-<script src="data/relations.js?v=165"></script>
-<script src="data/updates.js?v=165"></script>
-<script src="data/trials.js?v=165"></script>
-<script src="data/granaries.js?v=165"></script>
-<script src="data/relay.js?v=165"></script>
-<script src="assets/app.js?v=165"></script>
+<script src="data/core.js?v=166"></script>
+<script src="data/cities.js?v=166"></script>
+<script src="data/beings.js?v=166"></script>
+<script src="data/timeline.js?v=166"></script>
+<script src="data/suiling.js?v=166"></script>
+<script src="data/organs.js?v=166"></script>
+<script src="data/arcs.js?v=166"></script>
+<script src="data/docs.js?v=166"></script>
+<script src="data/lexicon.js?v=166"></script>
+  <script src="data/sayings.js?v=166"></script>
+  <script src="data/goods.js?v=166"></script>
+  <script src="data/stakes.js?v=166"></script>
+<script src="data/stories.js?v=166"></script>
+<script src="data/characters.js?v=166"></script>
+<script src="data/relations.js?v=166"></script>
+<script src="data/updates.js?v=166"></script>
+<script src="data/trials.js?v=166"></script>
+<script src="data/granaries.js?v=166"></script>
+<script src="data/relay.js?v=166"></script>
+<script src="data/daily.js?v=166"></script>
+<script src="assets/app.js?v=166"></script>
 </body>
 </html>

@@ -1260,3 +1260,64 @@ html.standalone-app .install-dialog{padding-top:calc(24px + env(safe-area-inset-
 .doc-check-copy p{margin:0;color:var(--silk2);font:11px/1.7 var(--hei)}
 @media(max-width:720px){.doc-checks{grid-template-columns:1fr;gap:6px}.doc-checks li{min-height:54px;padding:10px 11px}}
 @media print{.doc-checks li{break-inside:avoid;background:#fff;color:#111;border-color:#aaa}.doc-check-key,.doc-check-copy strong,.doc-check-copy p{color:#222}}
+
+/* v1.32 · 街巷日用：账牌与私约同页，纸面层级在小屏仍清楚 */
+.daily-scene{display:grid;grid-template-columns:minmax(220px,.78fr) minmax(0,1.22fr);gap:8px 26px;margin:18px 0 30px;padding:20px 22px;border:1px solid var(--line);border-left:2px solid var(--verm);border-radius:4px;background:linear-gradient(135deg,rgba(192,64,46,.055),rgba(16,21,27,.72) 36%,rgba(200,163,90,.035));}
+.daily-scene-head{grid-row:span 2;align-self:center;min-width:0;padding:4px 0 8px;}
+.daily-kicker{display:block;color:var(--gold2);font:11px var(--hei);letter-spacing:.18em;}
+.daily-date{display:block;margin-top:7px;color:var(--silk3);font:11px var(--hei);letter-spacing:.09em;}
+.daily-scene-head h4,.daily-receipt-copy h4{margin:13px 0 0;color:var(--silk);font:22px var(--kai);font-weight:500;letter-spacing:.12em;}
+.daily-scene-copy{align-self:end;margin:3px 0 0;color:var(--silk2);font-size:14px;line-height:1.95;}
+.daily-ledger{align-self:start;border-top:1px solid var(--line);}
+.daily-ledger-row{display:grid;grid-template-columns:56px 34px minmax(0,1fr);gap:10px;align-items:start;padding:10px 2px;border-bottom:1px solid var(--line);}
+.daily-time{padding-top:2px;color:var(--silk3);font:11px var(--hei);font-variant-numeric:tabular-nums;}
+.daily-kind{display:inline-grid;place-items:center;width:26px;height:26px;border:1px solid var(--golddim);border-radius:50%;color:var(--gold2);font:12px var(--kai);}
+.daily-kind.kind-赠,.daily-seal.kind-赠{border-color:rgba(192,64,46,.65);color:#e8a18e;}
+.daily-kind.kind-借,.daily-seal.kind-借{border-color:rgba(200,163,90,.65);color:var(--gold2);}
+.daily-kind.kind-共,.daily-seal.kind-共{border-color:rgba(119,157,147,.65);color:#a7c2b6;}
+.daily-ledger-detail{min-width:0;}
+.daily-ledger-detail strong{display:block;color:var(--silk);font:14px var(--kai);font-weight:500;letter-spacing:.04em;}
+.daily-ledger-detail span{display:block;margin-top:3px;color:var(--silk3);font-size:12px;line-height:1.65;}
+.daily-lead{margin:0 0 14px;}
+.daily-tabs{gap:8px;margin:16px 0 10px;}
+.daily-mode{min-height:38px;}
+.daily-mode.on{border-color:var(--verm2);background:rgba(192,64,46,.09);color:var(--gold2);}
+.daily-panel{scroll-margin-top:92px;transition:border-color .22s,box-shadow .22s;}
+.daily-panel.daily-flash{border-radius:5px;box-shadow:0 0 0 1px rgba(192,64,46,.25),0 0 24px rgba(192,64,46,.12);}
+.daily-receipt{display:grid;grid-template-columns:58px minmax(0,1fr);gap:18px;margin:10px 0 16px;padding:20px 22px;border:1px solid var(--line);border-radius:4px;background:linear-gradient(115deg,rgba(200,163,90,.045),rgba(16,21,27,.75) 23%,rgba(16,21,27,.56));}
+.daily-seal{display:grid;place-items:center;align-self:start;width:48px;height:48px;border:1px solid var(--golddim);border-radius:50%;color:var(--gold2);font:22px var(--kai);}
+.daily-receipt-copy{min-width:0;}
+.daily-receipt-copy h4{margin:5px 0 8px;font-size:20px;}
+.daily-object{margin:0 0 8px;color:var(--gold2);font:12px var(--hei);letter-spacing:.08em;}
+.daily-rule,.daily-boundary p{margin:0;color:var(--silk2);font-size:14px;line-height:1.9;}
+.daily-slip{margin:14px 0;padding:10px 14px;border-left:2px solid var(--golddim);background:rgba(200,163,90,.045);}
+.daily-slip-label{display:block;color:var(--silk3);font:10px var(--hei);letter-spacing:.16em;}
+.daily-slip p{margin:5px 0 0;color:var(--silk);font:15px/1.8 var(--kai);letter-spacing:.035em;overflow-wrap:anywhere;}
+.daily-boundary{display:grid;grid-template-columns:42px minmax(0,1fr);gap:7px;padding-top:10px;border-top:1px dashed var(--line);}
+.daily-boundary b{color:#e0a28f;font:12px var(--hei);letter-spacing:.1em;}
+.daily-boundary p{font-size:13px;}
+.daily-note{margin:12px 0 24px;padding:10px 14px;border:1px dashed var(--line);color:var(--silk3);font-size:12px;line-height:1.85;}
+@media(max-width:760px){
+  .daily-scene{grid-template-columns:minmax(0,1fr);gap:12px;padding:16px;}
+  .daily-scene-head{grid-row:auto;padding:0;}
+  .daily-scene-head h4{margin-top:9px;font-size:20px;}
+  .daily-scene-copy{margin:0;}
+  .daily-receipt{grid-template-columns:42px minmax(0,1fr);gap:12px;padding:15px 13px;}
+  .daily-seal{width:38px;height:38px;font-size:19px;}
+}
+@media(max-width:380px){
+  .daily-scene{padding:13px;}
+  .daily-ledger-row{grid-template-columns:44px 28px minmax(0,1fr);gap:7px;}
+  .daily-kind{width:24px;height:24px;}
+  .daily-tabs{gap:6px;}
+  .daily-mode{padding:7px 10px;font-size:12px;}
+  .daily-receipt{grid-template-columns:32px minmax(0,1fr);gap:9px;padding:13px 10px;}
+  .daily-seal{width:30px;height:30px;font-size:16px;}
+  .daily-boundary{grid-template-columns:34px minmax(0,1fr);}
+}
+@media(prefers-reduced-motion:reduce){.daily-panel{transition:none}}
+@media print{
+  .daily-tabs{display:none!important;}
+  .daily-scene,.daily-receipt,.daily-note{break-inside:avoid;background:#fff;color:#111;border-color:#999;box-shadow:none;}
+  .daily-scene-copy,.daily-ledger-detail strong,.daily-ledger-detail span,.daily-rule,.daily-slip p,.daily-boundary p,.daily-note{color:#222;}
+}
