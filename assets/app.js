@@ -2605,7 +2605,7 @@
       else dialog.setAttribute('open', '');
     }
 
-    txt($('#charsLead'), cnNum(WXCHARS.length) + ' 人，' + cnNum(WXCHARS.filter(function (c) { return c.cat === '塔主'; }).length) + ' 塔主。点人物看详传；传中可另入关系网，画像可全屏细观。');
+    txt($('#charsLead'), cnNum(WXCHARS.length) + '人，' + cnNum(WXCHARS.filter(function (c) { return c.cat === '塔主'; }).length) + '塔主；' + cnNum(WXCHARS.filter(function (c) { return c.portrait; }).length) + '幅有据画像。三位只见代称或传闻、无可核定相貌者留白。点人物看详传，画像可全屏细观。');
     grid.addEventListener('click', function (e) {
       var profile = e.target.closest ? e.target.closest('[data-character-profile]') : null;
       if (profile) { openProfile(profile.getAttribute('data-character-profile')); return; }

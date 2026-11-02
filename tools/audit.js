@@ -56,17 +56,28 @@ const swSource = fs.readFileSync(P + 'sw.js', 'utf8');
 const swFontsOk = /fontCss\.text\(\)/.test(swSource) && /cache\.addAll\(fonts\.slice\(/.test(swSource);
 swFontsOk ? ok('离线安装会分批预存 ' + fontRefs.length + ' 个本地字形子集') : ng('离线安装未覆盖本地字体子集');
 /['\"]\.\/data\/relay\.js\?v=\d+['\"]/.test(swSource) ? ok('Service Worker 预缓存信路数据') : ng('Service Worker 漏缓存信路数据');
-/['\"]\.\/data\/daily\.js\?v=176['\"]/.test(swSource) ? ok('Service Worker 预缓存街巷日用篇') : ng('Service Worker 漏缓存街巷日用篇');
-/['\"]\.\/data\/observatory\.js\?v=176['\"]/.test(swSource) ? ok('Service Worker 预缓存三签校时资料') : ng('Service Worker 漏缓存三签校时资料');
-/['\"]\.\/data\/artifacts\.js\?v=176['\"]/.test(swSource) ? ok('Service Worker 预缓存见物设定') : ng('Service Worker 漏缓存见物设定');
+/['\"]\.\/data\/daily\.js\?v=177['\"]/.test(swSource) ? ok('Service Worker 预缓存街巷日用篇') : ng('Service Worker 漏缓存街巷日用篇');
+/['\"]\.\/data\/observatory\.js\?v=177['\"]/.test(swSource) ? ok('Service Worker 预缓存三签校时资料') : ng('Service Worker 漏缓存三签校时资料');
+/['\"]\.\/data\/artifacts\.js\?v=177['\"]/.test(swSource) ? ok('Service Worker 预缓存见物设定') : ng('Service Worker 漏缓存见物设定');
 /['\"]\.\/assets\/three-seal-observatory\.webp['\"]/.test(swSource) ? ok('Service Worker 预缓存原创三签台器物图') : ng('Service Worker 漏缓存三签台器物图');
 const characterSource = fs.readFileSync(P + 'data/characters.js', 'utf8');
 const portraitRefs = [...characterSource.matchAll(/portrait:\s*['\"]([^'\"]+)['\"]/g)].map(m => m[1]);
 const missingPortraits = portraitRefs.filter(src => !fs.existsSync(P + src));
+const oversizedPortraits = portraitRefs.filter(src => {
+  const file = P + src;
+  if (!fs.existsSync(file)) return false;
+  const bytes = fs.readFileSync(file);
+  return !src.endsWith('.webp') || bytes.length > 250 * 1024 || bytes.toString('ascii', 0, 4) !== 'RIFF' || bytes.toString('ascii', 8, 12) !== 'WEBP';
+});
 missingPortraits.length ? ng('人物画像资源缺失：' + missingPortraits.join('、'))
   : ok('人物画像 ' + portraitRefs.length + ' 幅，本地资源路径齐备');
+oversizedPortraits.length ? ng('人物画像非轻量 WebP 或超过 250 KiB：' + oversizedPortraits.join('、')) : ok('人物画像均为轻量 WebP（单幅低于 250 KiB）');
 const uncachedPortraits = portraitRefs.filter(src => !swSource.includes("'./" + src + "'"));
 uncachedPortraits.length ? ng('人物画像未预存离线：' + uncachedPortraits.join('、')) : ok('人物画像均纳入离线预缓存');
+portraitRefs.length >= 27 ? ok('人物画像覆盖至少二十七位有据人物') : ng('人物画像覆盖不足：当前 ' + portraitRefs.length + ' 幅');
+const reducedMotionGlobal = /@media \(prefers-reduced-motion: reduce\)[\s\S]*?scroll-behavior: auto !important[\s\S]*?transition-duration: 0\.01ms !important/.test(css);
+reducedMotionGlobal ? ok('全站统一尊重减少动态偏好') : ng('全站缺少减少动态偏好的兜底规则');
+/@media\(max-width:560px\)\{\.shiju-city,#shijuTails\{grid-template-columns:minmax\(0,1fr\)\}\}/.test(css) ? ok('拾句窄屏网格可收缩，320 像素视口不横溢') : ng('拾句京谚或卷尾网格在窄屏仍设固定最小宽度');
 const unicodeRanges = [];
 for (const m of fontCss.matchAll(/unicode-range:\s*([^;}]+)/g)) {
   for (const part of m[1].split(',')) {
@@ -202,6 +213,9 @@ function shape(name, arr, need) {
   bad ? ng(name + ' 缺字段 ' + bad + ' 处') : ok(name + ' 字段齐全（' + arr.length + ' 条）');
 }
 shape('异闻', q('WXSTORIES'), ['id','no','title','sub','paras','tail']);
+const storyIds = q('WXSTORIES').map(x => x.id);
+const storyNos = q('WXSTORIES').map(x => x.no);
+new Set(storyIds).size === storyIds.length && new Set(storyNos).size === storyNos.length ? ok('异闻 id 与卷号均唯一') : ng('异闻 id 或卷号重复');
 shape('词条', q('WXLEXICON'), ['t','p','cat','d']);
 shape('人物', q('WXCHARS'), ['id','name','title','place','cat','temper','text','hook','origin']);
 shape('货殖', q('WXGOODS'), ['n','city','d']);
@@ -238,6 +252,18 @@ const reviewUiSource = fs.readFileSync(P + 'assets/app.js', 'utf8');
 const docIndexTargetOk = /name: '故纸'.*?targetId: 'doc-' \+ i/.test(reviewUiSource) && /card\.id = 'doc-' \+ index/.test(reviewUiSource);
 const storyVolumeNavOk = /el\('details', 'story-volume-nav'\)/.test(reviewUiSource) && /el\('details', 'story-arc-nav'\)/.test(reviewUiSource) && /volumeCurrent/.test(reviewUiSource) && /ARC_LABEL_SYNC/.test(reviewUiSource) && /aria-current', 'location'/.test(reviewUiSource) && /aria-pressed/.test(reviewUiSource) && /story-volume-list/.test(css) && /story-arc-list/.test(css);
 storyVolumeNavOk ? ok('百卷直达与十六线筛签均收进键盘可展卷目') : ng('异闻卷目未完整折叠导航、筛签或当前状态');
+const fourPillars = q('WXFOUR');
+const fourPillarText = JSON.stringify(fourPillars);
+const fourPillarBoundary = fourPillars && fourPillars.pillars && fourPillars.pillars.length === 4 && /待核/.test(fourPillarText) && /不能替代凭据/.test(fourPillarText) && /独立凭据/.test(fourPillarText) && !/视同挪用|前世的债|不认也得认|虚开是贪|漏开是赖/.test(fourPillarText) && /不等同/.test(q('WXLEXICON').filter(x => x.t === '新收')[0].d);
+fourPillarBoundary ? ok('四柱与三律一致：差异待核、不承袭未证之债、不凭差数定过') : ng('四柱仍将未核差异或亲缘推定为债责');
+const clockMyth = q('WXSTORIES').filter(x => x.id === 's8')[0];
+const clockChosen = q('WXSTORIES').filter(x => x.id === 's25')[0];
+const noPrebirthDebt = clockMyth && clockChosen && /不在人名下立借/.test(clockMyth.paras.join(' ')) && /不该生来替一座钟还账/.test(clockMyth.paras.join(' ')) && /不等于命欠了谁/.test(clockChosen.paras.join(' '));
+noPrebirthDebt ? ok('慢钟传说与守钟选择均未把未出生者写成债务人') : ng('慢钟故事仍将先天债责写作事实');
+const blankLedgerStory = q('WXSTORIES').filter(x => x.id === 's93')[0];
+const blankLedgerTerm = q('WXLEXICON').filter(x => x.t === '天账庭')[0];
+const blankLedgerConsistent = blankLedgerStory && blankLedgerTerm && /存一件未决之事/.test(blankLedgerStory.paras[0]) && /不刻人名/.test(blankLedgerStory.paras.join(' ')) && /不预设债务人/.test(blankLedgerTerm.d) && !/来还账的人|格里的名/.test(blankLedgerStory.paras.join(' '));
+blankLedgerConsistent ? ok('天账庭空格只记未决事项，不列待出生或待偿还者') : ng('天账庭空格仍被写成未来债务人名单');
 const lawTwo = q('WXCORE').laws.filter(x => x.id === 'law2')[0];
 const virtualLedger = q('WXLEXICON').filter(x => x.t === '虚账')[0];
 const fifthOrigin = q('WXSTORIES').filter(x => x.id === 's50')[0];
@@ -596,7 +622,7 @@ dirtyHits.length ? ng('账面露管线 ' + dirtyHits.length + ' 处：' + dirtyH
 const appSrc = fs.readFileSync(P + 'assets/app.js', 'utf8');
 const srcBlock = (appSrc.match(/var SOURCES = \[([\s\S]*?)\n    \];/) || [0, ''])[1];
 const srcCount = (srcBlock.match(/name: '/g) || []).length;
-const tipOk = html.indexOf('全书二十一篇') >= 0 && html.indexOf('索引二十一源') >= 0 && pageIds.length === 21 && srcCount === 21 && /data\/daily\.js\?v=176/.test(html) && /data\/daily\.js\?v=176/.test(swSource) && /data\/observatory\.js\?v=176/.test(html) && /data\/observatory\.js\?v=176/.test(swSource) && /data\/artifacts\.js\?v=176/.test(html) && /data\/artifacts\.js\?v=176/.test(swSource);
+const tipOk = html.indexOf('全书二十一篇') >= 0 && html.indexOf('索引二十一源') >= 0 && pageIds.length === 21 && srcCount === 21 && /data\/daily\.js\?v=177/.test(html) && /data\/daily\.js\?v=177/.test(swSource) && /data\/observatory\.js\?v=177/.test(html) && /data\/observatory\.js\?v=177/.test(swSource) && /data\/artifacts\.js\?v=177/.test(html) && /data\/artifacts\.js\?v=177/.test(swSource);
 tipOk ? ok('初见笺、篇目、索引与离线数据一致（二十一篇 · 二十一源）') : ng('初见笺计数脱节：实况 ' + pageIds.length + ' 篇 · ' + srcCount + ' 源，或新增设定未纳入离线册');
 
 console.log('\n【结论】' + (warn.length ? '需处理 ' + warn.length + ' 项' : '全部通过'));

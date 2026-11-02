@@ -835,6 +835,7 @@ body{
 .shiju-city{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px;margin-top:14px}
 #shijuSuiling{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;margin-top:14px}
 #shijuTails{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px;margin-top:14px}
+@media(max-width:560px){.shiju-city,#shijuTails{grid-template-columns:minmax(0,1fr)}}
 .cd-roads{margin-top:8px;padding-top:12px;border-top:1px dashed rgba(200,163,90,.3);display:flex;flex-wrap:wrap;gap:8px;grid-column:1 / -1}
 
 /* v0.17 铺卷：卷宗移列图下，左立（名签/塔/铭/京谚）右文（志/钩子/土产）横排 */
@@ -1523,3 +1524,15 @@ html.standalone-app .install-dialog{padding-top:calc(24px + env(safe-area-inset-
 @media(max-width:620px){.artifact-principle{margin:16px 0 24px;padding:11px 13px}.artifact-grid{grid-template-columns:minmax(0,1fr);gap:15px}.artifact-card{max-width:520px;width:100%;margin-inline:auto}.artifact-copy{padding:15px 15px 17px}.artifact-copy h4{font-size:20px}.artifact-seen p,.artifact-use p,.artifact-limit p{font-size:13.5px}.artifact-link{flex:1 1 140px}.artifact-colophon{text-align:left}}
 @media(prefers-reduced-motion:reduce){.artifact-card,.artifact-image,.artifact-link{transition:none}.artifact-flash{animation:none;border-color:var(--gold2);box-shadow:0 0 0 2px rgba(227,201,141,.28)}}
 @media print{.artifact-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.artifact-card{break-inside:avoid;box-shadow:none;transform:none}.artifact-image{filter:grayscale(.12)}.artifact-actions{display:none}.artifact-copy{padding:10px}.artifact-copy h4{font-size:16px}.artifact-seen p,.artifact-use p,.artifact-limit p{font-size:10pt}}
+
+
+/* 低动态偏好：统一抑制全站非必要滚动、过渡与动画，不影响信息或交互。 */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto !important; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
