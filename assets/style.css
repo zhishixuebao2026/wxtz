@@ -179,6 +179,42 @@ body{
 .mx-status[data-s="悬"]{color:var(--silk2);border-color:var(--line);background:rgba(90,100,110,.08)}
 .mx-text{color:var(--silk2);font-size:14px;padding-top:1px}
 
+/* v1.39.0 · 三条入卷路引：按主题拆开全书，不把目录再摊成一堵墙 */
+.reading-routes{position:relative;margin:30px 0 24px;padding:22px 20px 20px;border:1px solid rgba(178,154,100,.32);border-radius:6px;background:linear-gradient(132deg,rgba(37,46,56,.72),rgba(24,30,38,.86) 62%,rgba(41,34,31,.55));box-shadow:0 12px 30px rgba(0,0,0,.2);scroll-margin-top:90px}
+.reading-routes::before{content:"";position:absolute;inset:0 auto 0 0;width:2px;background:linear-gradient(180deg,var(--verm2),var(--gold2) 48%,transparent);opacity:.8}
+.reading-routes-head{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:17px;padding:0 2px 14px;border-bottom:1px solid rgba(200,163,90,.2)}
+.reading-routes-kicker{display:block;color:var(--golddim);font:10px/1.5 var(--hei);letter-spacing:.2em}
+.reading-routes-head h3{margin-top:2px;color:#f0e6cf;font:600 24px/1.45 var(--kai);letter-spacing:.18em}
+.reading-routes-head>p{max-width:520px;color:var(--silk2);font-size:13.5px;line-height:1.75}
+.reading-route-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:stretch}
+.reading-route-card{display:flex;flex-direction:column;min-width:0;padding:16px 15px 13px;border:1px solid rgba(135,147,158,.22);border-top:2px solid rgba(178,154,100,.54);border-radius:4px;background:linear-gradient(158deg,rgba(17,22,28,.72),rgba(25,31,39,.74));transition:border-color .2s,transform .2s,background .2s}
+.reading-route-card:hover{border-color:rgba(200,163,90,.45);transform:translateY(-2px);background:linear-gradient(158deg,rgba(25,31,39,.88),rgba(33,39,47,.78))}
+.reading-route-tone{color:var(--verm2);font:10px var(--hei);letter-spacing:.18em}
+.reading-route-title{margin-top:4px;color:#f0e6cf;font:600 18px/1.5 var(--kai);letter-spacing:.1em}
+.reading-route-intro{min-height:4.9em;margin-top:6px;color:var(--silk2);font:13px/1.8 var(--song)}
+.reading-route-steps{position:relative;display:grid;gap:4px;margin:10px 0 14px;padding:0;list-style:none}
+.reading-route-steps::before{position:absolute;top:17px;bottom:18px;left:17px;width:1px;background:linear-gradient(var(--golddim),rgba(178,154,100,.12));content:""}
+.reading-route-steps li{position:relative;min-width:0}
+.reading-route-step{position:relative;display:grid;grid-template-columns:30px minmax(0,1fr);align-items:start;gap:8px;width:100%;min-height:50px;padding:7px 6px;border:1px solid transparent;border-radius:3px;background:transparent;color:var(--silk);text-align:left;cursor:pointer;touch-action:manipulation;transition:background .18s,border-color .18s,color .18s}
+.reading-route-step:hover,.reading-route-step.is-current{border-color:rgba(200,163,90,.2);background:rgba(200,163,90,.075)}
+.reading-route-no{z-index:1;display:grid;place-items:center;width:23px;height:23px;border:1px solid rgba(178,154,100,.42);border-radius:50%;background:#202831;color:var(--gold2);font:9px var(--hei);font-variant-numeric:tabular-nums}
+.reading-route-step.is-current .reading-route-no{border-color:var(--verm2);background:rgba(192,64,46,.2);color:#ffd8c6}
+.reading-route-copy{display:grid;gap:2px;min-width:0}
+.reading-route-copy strong{color:#eadbb9;font:13px/1.45 var(--kai);letter-spacing:.035em}
+.reading-route-hint{color:var(--silk3);font:12px/1.6 var(--song)}
+.reading-route-step.is-current .reading-route-hint{color:var(--silk2)}
+.reading-route-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto;padding-top:11px;border-top:1px solid rgba(200,163,90,.15)}
+.reading-route-state{display:grid;gap:6px;min-width:0;color:var(--golddim);font:10px var(--hei);letter-spacing:.07em}
+.reading-route-status{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.reading-route-progress{display:block;width:100%;max-width:128px;height:2px;overflow:hidden;background:rgba(178,154,100,.17)}
+.reading-route-progress i{display:block;width:0;height:100%;background:linear-gradient(90deg,var(--verm2),var(--gold2));transition:width .25s}
+.reading-route-resume{flex:none;min-height:40px;padding:7px 10px;border:1px solid rgba(200,163,90,.42);border-radius:3px;background:rgba(200,163,90,.07);color:var(--gold2);font:11px var(--hei);letter-spacing:.06em;cursor:pointer;touch-action:manipulation;transition:background .18s,border-color .18s}
+.reading-route-resume:hover{border-color:var(--gold2);background:rgba(200,163,90,.14)}
+.route-target-focus{outline:1px solid rgba(227,201,141,.58);outline-offset:5px;box-shadow:0 0 0 7px rgba(200,163,90,.075);transition:outline-color .2s,box-shadow .2s}
+@media(max-width:1050px){.reading-route-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.reading-route-card:last-child{grid-column:1/-1}}
+@media(max-width:640px){.reading-routes{margin:23px 0 20px;padding:17px 13px 14px}.reading-routes-head{display:block;margin-bottom:12px;padding-bottom:11px}.reading-routes-head h3{font-size:21px}.reading-routes-head>p{margin-top:6px;font-size:13px}.reading-route-grid{grid-template-columns:minmax(0,1fr);gap:9px}.reading-route-card:last-child{grid-column:auto}.reading-route-card{padding:13px 12px 11px}.reading-route-title{font-size:17px}.reading-route-intro{min-height:0}.reading-route-steps{margin:7px 0 11px}.reading-route-step{min-height:48px;padding:6px 5px}.reading-route-hint{font-size:13px;line-height:1.6}.reading-route-resume{min-height:44px;padding:8px 10px;font-size:11px}}
+@media(prefers-reduced-motion:reduce){.reading-route-card,.reading-route-step,.reading-route-resume,.reading-route-progress i{transition:none!important}.reading-route-card:hover{transform:none}}
+
 .entry-btns{margin:34px 0 16px;display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
 .entry-btns button,.cd-close{
   padding:12px 34px;cursor:pointer;border:1px solid var(--golddim);border-radius:3px;

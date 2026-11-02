@@ -56,9 +56,9 @@ const swSource = fs.readFileSync(P + 'sw.js', 'utf8');
 const swFontsOk = /fontCss\.text\(\)/.test(swSource) && /cache\.addAll\(fonts\.slice\(/.test(swSource);
 swFontsOk ? ok('离线安装会分批预存 ' + fontRefs.length + ' 个本地字形子集') : ng('离线安装未覆盖本地字体子集');
 /['\"]\.\/data\/relay\.js\?v=\d+['\"]/.test(swSource) ? ok('Service Worker 预缓存信路数据') : ng('Service Worker 漏缓存信路数据');
-/['\"]\.\/data\/daily\.js\?v=173['\"]/.test(swSource) ? ok('Service Worker 预缓存街巷日用篇') : ng('Service Worker 漏缓存街巷日用篇');
-/['\"]\.\/data\/observatory\.js\?v=173['\"]/.test(swSource) ? ok('Service Worker 预缓存三签校时资料') : ng('Service Worker 漏缓存三签校时资料');
-/['\"]\.\/data\/artifacts\.js\?v=173['\"]/.test(swSource) ? ok('Service Worker 预缓存见物设定') : ng('Service Worker 漏缓存见物设定');
+/['\"]\.\/data\/daily\.js\?v=174['\"]/.test(swSource) ? ok('Service Worker 预缓存街巷日用篇') : ng('Service Worker 漏缓存街巷日用篇');
+/['\"]\.\/data\/observatory\.js\?v=174['\"]/.test(swSource) ? ok('Service Worker 预缓存三签校时资料') : ng('Service Worker 漏缓存三签校时资料');
+/['\"]\.\/data\/artifacts\.js\?v=174['\"]/.test(swSource) ? ok('Service Worker 预缓存见物设定') : ng('Service Worker 漏缓存见物设定');
 /['\"]\.\/assets\/three-seal-observatory\.webp['\"]/.test(swSource) ? ok('Service Worker 预缓存原创三签台器物图') : ng('Service Worker 漏缓存三签台器物图');
 const characterSource = fs.readFileSync(P + 'data/characters.js', 'utf8');
 const portraitRefs = [...characterSource.matchAll(/portrait:\s*['\"]([^'\"]+)['\"]/g)].map(m => m[1]);
@@ -139,6 +139,29 @@ const K = Object.keys(ctx).filter(k => k.charAt(0) === 'W').sort();
 ok('全局变量 ' + K.length + ' 个：' + K.join('、'));
 const q = n => ctx[n];
 const cnt = n => { const v = q(n); return Array.isArray(v) ? v.length : null; };
+const routes = q('WXCORE').readingRoutes || [];
+const validPages = new Set(pageIds);
+const validTargets = new Set(staticIds);
+const validStories = new Set(q('WXSTORIES').map(x => x.no));
+const validCityIds = new Set(q('WXCITIES').map(x => x.id));
+const routeBad = routes.length !== 3 || new Set(routes.map(x => x.id)).size !== routes.length ||
+  routes.some(route => !route.title || !route.intro || !route.tone || !Array.isArray(route.steps) || route.steps.length !== 4 ||
+    new Set(route.steps.map(x => x.label)).size !== route.steps.length ||
+    route.steps.some(step => !step.label || !step.hint || !validPages.has(step.page) ||
+      (step.story && (!validStories.has(step.story) || step.page !== 'stories')) ||
+      (step.city && (!validCityIds.has(step.city) || step.page !== 'map')) ||
+      (!step.story && !step.target) || (step.target && !validTargets.has(step.target))));
+routeBad ? ng('三条阅读路引须各有四站，且篇目、卷号、京城与落点全部有效') : ok('三条主题阅读路引各四站，卷目与落点均可勾稽');
+const routeUiOk = /id="readingRouteGrid" role="group" aria-label="三条主题阅读路径"/.test(html) && /function buildReadingRoutes\(/.test(fs.readFileSync(P + 'assets/app.js', 'utf8')) && /wxtz_route_v1/.test(fs.readFileSync(P + 'assets/app.js', 'utf8')) && /\.reading-route-step/.test(css);
+routeUiOk ? ok('路引具可续读交互、逐站直达、本机进度记忆与响应式样式') : ng('阅读路引界面、交互或续读记忆未完整接通');
+const dispatchRoute = routes.filter(x => x.id === 'dispatch')[0];
+const dispatchRecord = q('WXRELAY').dispatch;
+const dispatchLegs = dispatchRecord.legs || [];
+const dispatchCities = dispatchLegs.length ? [dispatchLegs[0].from].concat(dispatchLegs.map(x => x.to)) : [];
+const dispatchJourneyOk = dispatchRoute && dispatchRoute.title.indexOf('四京') >= 0 && dispatchCities.length === 4 &&
+  dispatchCities[0] === dispatchRoute.steps[0].city && dispatchCities.every(id => validCityIds.has(id)) &&
+  dispatchRoute.steps.some(step => step.story === dispatchRecord.ref && step.page === 'stories');
+dispatchJourneyOk ? ok('四京信路路引与三段递送实录、卷玖拾玖互相勾稽') : ng('行路路引的京数、递送实录或回卷失配');
 const review = q('WXCORE').review;
 const reviewBad = !review || !review.title || !review.intro || !review.boundary || !Array.isArray(review.steps) || review.steps.length !== 4 ||
   new Set((review.steps || []).map(x => x.name)).size !== 4 ||
@@ -562,7 +585,7 @@ dirtyHits.length ? ng('账面露管线 ' + dirtyHits.length + ' 处：' + dirtyH
 const appSrc = fs.readFileSync(P + 'assets/app.js', 'utf8');
 const srcBlock = (appSrc.match(/var SOURCES = \[([\s\S]*?)\n    \];/) || [0, ''])[1];
 const srcCount = (srcBlock.match(/name: '/g) || []).length;
-const tipOk = html.indexOf('全书二十一篇') >= 0 && html.indexOf('索引二十一源') >= 0 && pageIds.length === 21 && srcCount === 21 && /data\/daily\.js\?v=173/.test(html) && /data\/daily\.js\?v=173/.test(swSource) && /data\/observatory\.js\?v=173/.test(html) && /data\/observatory\.js\?v=173/.test(swSource) && /data\/artifacts\.js\?v=173/.test(html) && /data\/artifacts\.js\?v=173/.test(swSource);
+const tipOk = html.indexOf('全书二十一篇') >= 0 && html.indexOf('索引二十一源') >= 0 && pageIds.length === 21 && srcCount === 21 && /data\/daily\.js\?v=174/.test(html) && /data\/daily\.js\?v=174/.test(swSource) && /data\/observatory\.js\?v=174/.test(html) && /data\/observatory\.js\?v=174/.test(swSource) && /data\/artifacts\.js\?v=174/.test(html) && /data\/artifacts\.js\?v=174/.test(swSource);
 tipOk ? ok('初见笺、篇目、索引与离线数据一致（二十一篇 · 二十一源）') : ng('初见笺计数脱节：实况 ' + pageIds.length + ' 篇 · ' + srcCount + ' 源，或新增设定未纳入离线册');
 
 console.log('\n【结论】' + (warn.length ? '需处理 ' + warn.length + ' 项' : '全部通过'));

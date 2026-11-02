@@ -271,6 +271,124 @@
       setTimeout(function () { var inp = $('#findSearch'); if (inp) inp.focus(); }, 160);
     }
   });
+  function routeTarget(targetId) {
+    var target = targetId ? $('#' + targetId) : null;
+    if (!target) return;
+    var stickyBar = $('#mobileNav') && getComputedStyle($('#mobileNav')).display !== 'none' ? $('#mobileNav') : $('#nav');
+    var stickyOffset = stickyBar && getComputedStyle(stickyBar).position === 'sticky' ? stickyBar.getBoundingClientRect().height + 18 : 18;
+    var targetY = Math.max(0, readY() + target.getBoundingClientRect().top - stickyOffset);
+    var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    window.scrollTo({ top: targetY, behavior: reduced ? 'auto' : 'smooth' });
+    target.classList.add('route-target-focus');
+    var hadTabindex = target.hasAttribute('tabindex');
+    if (!hadTabindex) target.setAttribute('tabindex', '-1');
+    try { target.focus({ preventScroll: true }); } catch (e) { target.focus(); }
+    window.setTimeout(function () {
+      target.classList.remove('route-target-focus');
+      if (!hadTabindex && target.getAttribute('tabindex') === '-1') target.removeAttribute('tabindex');
+    }, 2200);
+  }
+
+  function openReadingStep(step) {
+    show(step.page);
+    if (step.story) {
+      if (WX_FAV_ONLY) { WX_FAV_ONLY = false; favLabelRefresh(); STORY_RENDER(); }
+      volGo(step.story);
+      var story = $$('#storyList article').filter(function (article) { return article.getAttribute('data-no') === step.story; })[0];
+      if (story) {
+        story.id = story.id || 'route-story-' + step.story;
+        routeTarget(story.id);
+      }
+      return;
+    }
+    if (step.city) openCity(step.city);
+    if (step.target) routeTarget(step.target);
+  }
+
+  function buildReadingRoutes() {
+    var host = $('#readingRouteGrid');
+    if (!host || !Array.isArray(WXCORE.readingRoutes)) return;
+    host.textContent = '';
+    var routes = WXCORE.readingRoutes;
+    var state = { id: '', step: 0 };
+    try {
+      var saved = JSON.parse(localStorage.getItem('wxtz_route_v1') || 'null');
+      var savedRoute = saved && routes.filter(function (route) { return route.id === saved.id; })[0];
+      if (savedRoute && Number.isInteger(saved.step) && saved.step >= 0 && saved.step < savedRoute.steps.length) state = saved;
+    } catch (e) {}
+
+    function sync() {
+      routes.forEach(function (route) {
+        var card = host.querySelector('[data-route-card="' + route.id + '"]');
+        if (!card) return;
+        var current = state.id === route.id;
+        var status = card.querySelector('.reading-route-status');
+        var progress = card.querySelector('.reading-route-progress i');
+        var resume = card.querySelector('.reading-route-resume');
+        if (status) txt(status, current ? '路标已存 · 第 ' + (state.step + 1) + ' / ' + route.steps.length + ' 站' : '未起步 · 共 ' + route.steps.length + ' 站');
+        if (progress) progress.style.width = (current ? ((state.step + 1) / route.steps.length * 100) : 0) + '%';
+        if (resume) txt(resume, current ? '续此路 · 第 ' + (state.step + 1) + ' 站' : '从首站开卷');
+        Array.prototype.forEach.call(card.querySelectorAll('.reading-route-step'), function (button) {
+          var active = current && Number(button.getAttribute('data-step')) === state.step;
+          button.classList.toggle('is-current', active);
+          if (active) button.setAttribute('aria-current', 'step'); else button.removeAttribute('aria-current');
+        });
+      });
+    }
+
+    routes.forEach(function (route, routeIndex) {
+      var card = el('article', 'reading-route-card');
+      card.setAttribute('data-route-card', route.id);
+      card.appendChild(txt(el('span', 'reading-route-tone'), String(routeIndex + 1).padStart(2, '0') + ' · ' + route.tone));
+      card.appendChild(txt(el('h4', 'reading-route-title'), route.title));
+      card.appendChild(txt(el('p', 'reading-route-intro'), route.intro));
+      var list = el('ol', 'reading-route-steps');
+      list.setAttribute('aria-label', route.title + '，' + route.steps.length + ' 站');
+      route.steps.forEach(function (step, stepIndex) {
+        var li = el('li');
+        var button = el('button', 'reading-route-step');
+        button.type = 'button';
+        button.setAttribute('data-step', String(stepIndex));
+        button.setAttribute('aria-label', '第 ' + (stepIndex + 1) + ' 站：' + step.label + '。' + step.hint);
+        button.appendChild(txt(el('span', 'reading-route-no'), String(stepIndex + 1).padStart(2, '0')));
+        var copy = el('span', 'reading-route-copy');
+        copy.appendChild(txt(el('strong'), step.label));
+        copy.appendChild(txt(el('span', 'reading-route-hint'), step.hint));
+        button.appendChild(copy);
+        button.addEventListener('click', function () {
+          state = { id: route.id, step: stepIndex };
+          try { localStorage.setItem('wxtz_route_v1', JSON.stringify(state)); } catch (e) {}
+          sync();
+          openReadingStep(step);
+        });
+        li.appendChild(button);
+        list.appendChild(li);
+      });
+      card.appendChild(list);
+      var foot = el('div', 'reading-route-foot');
+      var statusWrap = el('div', 'reading-route-state');
+      statusWrap.appendChild(txt(el('span', 'reading-route-status'), '未起步 · 共 ' + route.steps.length + ' 站'));
+      var bar = el('span', 'reading-route-progress');
+      bar.setAttribute('aria-hidden', 'true');
+      bar.appendChild(el('i'));
+      statusWrap.appendChild(bar);
+      foot.appendChild(statusWrap);
+      var resume = el('button', 'reading-route-resume');
+      resume.type = 'button';
+      resume.addEventListener('click', function () {
+        var index = state.id === route.id ? state.step : 0;
+        state = { id: route.id, step: index };
+        try { localStorage.setItem('wxtz_route_v1', JSON.stringify(state)); } catch (e) {}
+        sync();
+        openReadingStep(route.steps[index]);
+      });
+      foot.appendChild(resume);
+      card.appendChild(foot);
+      host.appendChild(card);
+    });
+    sync();
+  }
+
   /* ---------------- 总纲 ---------------- */
   function buildHome() {
     txt($('#homeMotto'), WXCORE.motto);
@@ -328,6 +446,8 @@
       row.appendChild(txt(el('p', 'mx-text'), ly.text));
       mx.appendChild(row);
     });
+
+    buildReadingRoutes();
 
     if (typeof WXFOUR !== 'undefined') {
       var hf = el('div', 'home-four');

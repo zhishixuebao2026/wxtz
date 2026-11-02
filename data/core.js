@@ -9,6 +9,38 @@ var WXCORE = {
   title: '万象天账',
   sub: '墨序司 · 异闻籍',
   motto: '账不平，天不活。',
+  readingRoutes: [
+    {
+      id: 'ledger', title: '先懂账，再看人', tone: '立规',
+      intro: '从世界的记账法走到人间怎样纠错：先看边界，再看一笔账如何被留下。',
+      steps: [
+        { label: '三律', hint: '天地记去来，不代人判善恶。', page: 'home', target: 'laws' },
+        { label: '四柱清册', hint: '旧管、新收、开除、实在，看看一生如何成账。', page: 'power', target: 'fourBox' },
+        { label: '卷拾 · 合龙门', hint: '总账只差十一文，众人是否还会继续查？', page: 'stories', story: '卷拾' },
+        { label: '留格复账', hint: '争议只挂一行；已证的账照结，旧记不抹。', page: 'home', target: 'reviewPanel' }
+      ]
+    },
+    {
+      id: 'dispatch', title: '循一封信，走过四京', tone: '行路',
+      intro: '循着澜江汛签，从地图、递送与回执读懂：抵达一封信，不等于证实信中所言。',
+      steps: [
+        { label: '澜京', hint: '先在天地图认出江路、港口与城景。', page: 'map', city: 'lan', target: 'cityDetail' },
+        { label: '信路实录', hint: '封牒、搭票、背话各有用途，也各有止界。', page: 'relay', target: 'relayCase' },
+        { label: '卷玖拾玖 · 两刻', hint: '水尺记水位，时辰记时；所见与抵达各有一刻。', page: 'stories', story: '卷玖拾玖' },
+        { label: '人间试账', hint: '把凭据摊开；交接、目击与核实不要混成一笔。', page: 'trial', target: 'trialGrid' }
+      ]
+    },
+    {
+      id: 'missing-page', title: '追一页失踪的名字', tone: '追线',
+      intro: '沿失页与补页人的旧痕，读到卷末同名案：线索相连，不代表人物必是同一个。',
+      steps: [
+        { label: '卷拾伍 · 失页', hint: '总账第一页被撕，目击者却没看清撕页人的脸。', page: 'stories', story: '卷拾伍' },
+        { label: '卷拾捌 · 磨剑', hint: '灰廊口有人守着一块石头，等一个未必会回来的人。', page: 'stories', story: '卷拾捌' },
+        { label: '卷玖拾柒 · 线', hint: '小录事把旧卷牵成十六条线，线索仍须分别核实。', page: 'stories', story: '卷玖拾柒' },
+        { label: '卷壹佰 · 同名', hint: '姓名相同不足以并籍；同底抄本也不算多份证言。', page: 'stories', story: '卷壹佰' }
+      ]
+    }
+  ],
   era: '第七账期 · 未结',
   preamble: [
     '天不造物，天记账。',
