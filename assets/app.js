@@ -985,8 +985,8 @@
       var sceneImage = el('img', 'cd-scene-image');
       sceneImage.src = c.scene;
       sceneImage.alt = c.sceneAlt || (c.name + '城景意象');
-      sceneImage.width = 1440;
-      sceneImage.height = 960;
+      sceneImage.width = c.sceneWidth || 1440;
+      sceneImage.height = c.sceneHeight || 960;
       sceneImage.loading = 'lazy';
       sceneImage.decoding = 'async';
       sceneFigure.appendChild(sceneImage);
