@@ -56,9 +56,9 @@ const swSource = fs.readFileSync(P + 'sw.js', 'utf8');
 const swFontsOk = /fontCss\.text\(\)/.test(swSource) && /cache\.addAll\(fonts\.slice\(/.test(swSource);
 swFontsOk ? ok('离线安装会分批预存 ' + fontRefs.length + ' 个本地字形子集') : ng('离线安装未覆盖本地字体子集');
 /['\"]\.\/data\/relay\.js\?v=\d+['\"]/.test(swSource) ? ok('Service Worker 预缓存信路数据') : ng('Service Worker 漏缓存信路数据');
-/['\"]\.\/data\/daily\.js\?v=172['\"]/.test(swSource) ? ok('Service Worker 预缓存街巷日用篇') : ng('Service Worker 漏缓存街巷日用篇');
-/['\"]\.\/data\/observatory\.js\?v=172['\"]/.test(swSource) ? ok('Service Worker 预缓存三签校时资料') : ng('Service Worker 漏缓存三签校时资料');
-/['\"]\.\/data\/artifacts\.js\?v=172['\"]/.test(swSource) ? ok('Service Worker 预缓存见物设定') : ng('Service Worker 漏缓存见物设定');
+/['\"]\.\/data\/daily\.js\?v=173['\"]/.test(swSource) ? ok('Service Worker 预缓存街巷日用篇') : ng('Service Worker 漏缓存街巷日用篇');
+/['\"]\.\/data\/observatory\.js\?v=173['\"]/.test(swSource) ? ok('Service Worker 预缓存三签校时资料') : ng('Service Worker 漏缓存三签校时资料');
+/['\"]\.\/data\/artifacts\.js\?v=173['\"]/.test(swSource) ? ok('Service Worker 预缓存见物设定') : ng('Service Worker 漏缓存见物设定');
 /['\"]\.\/assets\/three-seal-observatory\.webp['\"]/.test(swSource) ? ok('Service Worker 预缓存原创三签台器物图') : ng('Service Worker 漏缓存三签台器物图');
 const characterSource = fs.readFileSync(P + 'data/characters.js', 'utf8');
 const portraitRefs = [...characterSource.matchAll(/portrait:\s*['\"]([^'\"]+)['\"]/g)].map(m => m[1]);
@@ -202,6 +202,14 @@ reviewStory && reviewStory.paras.some(t => t.indexOf('留格牒') >= 0) && revie
   : ng('卷壹佰未能演示具体一行的复核与年结止界');
 const reviewUiSource = fs.readFileSync(P + 'assets/app.js', 'utf8');
 const docIndexTargetOk = /name: '故纸'.*?targetId: 'doc-' \+ i/.test(reviewUiSource) && /card\.id = 'doc-' \+ index/.test(reviewUiSource);
+const storyVolumeNavOk = /el\('details', 'story-volume-nav'\)/.test(reviewUiSource) && /el\('details', 'story-arc-nav'\)/.test(reviewUiSource) && /volumeCurrent/.test(reviewUiSource) && /ARC_LABEL_SYNC/.test(reviewUiSource) && /aria-current', 'location'/.test(reviewUiSource) && /aria-pressed/.test(reviewUiSource) && /story-volume-list/.test(css) && /story-arc-list/.test(css);
+storyVolumeNavOk ? ok('百卷直达与十六线筛签均收进键盘可展卷目') : ng('异闻卷目未完整折叠导航、筛签或当前状态');
+const lawTwo = q('WXCORE').laws.filter(x => x.id === 'law2')[0];
+const virtualLedger = q('WXLEXICON').filter(x => x.t === '虚账')[0];
+const fifthOrigin = q('WXSTORIES').filter(x => x.id === 's50')[0];
+const fifthAnnual = q('WXSTORIES').filter(x => x.id === 's67')[0];
+const reviewBoundaryOk = lawTwo && /未经验证/.test(lawTwo.text) && /不推定主张者作伪/.test(lawTwo.text) && /不生债/.test(lawTwo.text) && /不加倍冲销/.test(lawTwo.text) && /异源凭据/.test(lawTwo.text) && !/若强行施用，依虚账论处，年结时加倍冲销/.test(lawTwo.text) && virtualLedger && /不自动生债/.test(virtualLedger.d) && fifthOrigin && fifthOrigin.paras.some(t => /只核主张/.test(t)) && fifthOrigin.paras.some(t => /不等于/.test(t)) && fifthAnnual && fifthAnnual.paras.some(t => /待不是罪/.test(t) && /不许用来冲销/.test(t)) && !/自承为贼|年结时按虚额加倍冲销/.test(reviewUiSource);
+reviewBoundaryOk ? ok('证伪律、鉴真判语与《五问》《第五问》统一为未证待核、不以缺证定罪') : ng('力量分级仍把未证主张推定作伪、负债或冲销');
 /var review = WXCORE\.review/.test(reviewUiSource) && /review\.steps\.forEach/.test(reviewUiSource) && /home-focus/.test(reviewUiSource) && docIndexTargetOk
   ? ok('总纲与故纸索引可直达对应条目并短时标记')
   : ng('留格复账未完整接入总纲或故纸索引');
@@ -554,7 +562,7 @@ dirtyHits.length ? ng('账面露管线 ' + dirtyHits.length + ' 处：' + dirtyH
 const appSrc = fs.readFileSync(P + 'assets/app.js', 'utf8');
 const srcBlock = (appSrc.match(/var SOURCES = \[([\s\S]*?)\n    \];/) || [0, ''])[1];
 const srcCount = (srcBlock.match(/name: '/g) || []).length;
-const tipOk = html.indexOf('全书二十一篇') >= 0 && html.indexOf('索引二十一源') >= 0 && pageIds.length === 21 && srcCount === 21 && /data\/daily\.js\?v=172/.test(html) && /data\/daily\.js\?v=172/.test(swSource) && /data\/observatory\.js\?v=172/.test(html) && /data\/observatory\.js\?v=172/.test(swSource) && /data\/artifacts\.js\?v=172/.test(html) && /data\/artifacts\.js\?v=172/.test(swSource);
+const tipOk = html.indexOf('全书二十一篇') >= 0 && html.indexOf('索引二十一源') >= 0 && pageIds.length === 21 && srcCount === 21 && /data\/daily\.js\?v=173/.test(html) && /data\/daily\.js\?v=173/.test(swSource) && /data\/observatory\.js\?v=173/.test(html) && /data\/observatory\.js\?v=173/.test(swSource) && /data\/artifacts\.js\?v=173/.test(html) && /data\/artifacts\.js\?v=173/.test(swSource);
 tipOk ? ok('初见笺、篇目、索引与离线数据一致（二十一篇 · 二十一源）') : ng('初见笺计数脱节：实况 ' + pageIds.length + ' 篇 · ' + srcCount + ' 源，或新增设定未纳入离线册');
 
 console.log('\n【结论】' + (warn.length ? '需处理 ' + warn.length + ' 项' : '全部通过'));

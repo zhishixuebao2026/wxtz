@@ -782,7 +782,7 @@
         sv('circle', { cx: ex.pos[0], cy: ex.pos[1], r: 2.4, fill: '#5c241b' }, g);
         sv('text', { 'class': 'exl', x: ex.pos[0], y: ex.pos[1] + 40, 'text-anchor': 'middle', text: ex.name, fill: '#8a5a3c' }, g);
         var tip1 = sv('title', {}, g);
-        tip1.textContent = '冲销坑 · 年结对不上账者坠入之待核巨窟，边上生白草。';
+        tip1.textContent = '冲销坑 · 总账年结未平且异源复核未成者暂入待核巨窟；单一争议行不得牵连全账或整个人。';
       } else if (ex.type === 'sea') {
         var g2 = sv('g', { tabindex: '0' }, svg);
         var wave = '';
@@ -2114,32 +2114,55 @@
     var keys = Object.keys(lore).sort(function (a, b) { return b.length - a.length; });
     var RX = keys.length ? new RegExp('(' + keys.map(function (s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }).join('|') + ')', 'g') : null;
     var plain = false;
-    /* 卷目滚监：翻到哪卷，卷目上哪卷亮 */
-    var spy = null;
+    /* 卷目滚监：翻到哪卷，折叠卷目也同步报出 */
+    var spy = null, volumeCurrent = null;
     if (typeof IntersectionObserver !== 'undefined') {
       spy = new IntersectionObserver(function (ents) {
         ents.forEach(function (en) {
           if (!en.isIntersecting) return;
           var no = en.target.getAttribute('data-no');
-          $$('#storyTools .tch').forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-no') === no); });
+          $$('#storyTools .tch').forEach(function (x) {
+            var current = x.getAttribute('data-no') === no;
+            x.classList.toggle('on', current);
+            if (current) x.setAttribute('aria-current', 'location'); else x.removeAttribute('aria-current');
+          });
+          if (volumeCurrent) txt(volumeCurrent, '当前 · ' + no);
         });
       }, { rootMargin: '-20% 0px -70% 0px' });
     }
     /* STORY_PU 已升模块级（v1.13.0 是谱有卷） */
-    /* v1.07.0 展线机制已升模块级（ARC_OF/ARCSET/arcFilter 重建式过滤）；卷线签行在此挂载 */
+    /* 卷线筛签折入原生卷目，不让十六条线与百卷按钮长期占据首屏 */
     (function () {
       var row = $('#arcChips');
       if (!row || typeof WXARCS === 'undefined') return;
       row.innerHTML = '';
-      row.appendChild(txt(el('span', 'arc-lab'), '卷线十六'));
+      var details = el('details', 'story-arc-nav');
+      ARC_NAV = details;
+      var summary = el('summary', 'story-arc-summary');
+      summary.appendChild(txt(el('span', 'story-arc-label'), '卷线筛选'));
+      var current = txt(el('span', 'story-arc-current'), '全部卷');
+      summary.appendChild(current);
+      summary.appendChild(txt(el('span', 'story-arc-count'), WXARCS.length + ' 线'));
+      details.appendChild(summary);
+      var list = el('div', 'story-arc-list');
+      list.setAttribute('role', 'group');
+      list.setAttribute('aria-label', '按十六条异闻卷线筛选');
       WXARCS.forEach(function (a) {
         var c = el('button', 'chip');
+        c.type = 'button';
         c.setAttribute('data-arc', a.n);
+        c.setAttribute('aria-pressed', 'false');
         txt(c, a.n + ' × ' + a.s.length);
         c.setAttribute('title', a.d);
         c.addEventListener('click', function () { arcFilter(a.n); });
-        row.appendChild(c);
+        list.appendChild(c);
       });
+      details.appendChild(list);
+      row.appendChild(details);
+      ARC_LABEL_SYNC = function () {
+        txt(current, WX_CUR_ARC ? '当前 · ' + WX_CUR_ARC : '全部卷');
+      };
+      ARC_LABEL_SYNC();
     })();
     var favs = [];
     try { favs = JSON.parse(localStorage.getItem('wx_favs') || '[]'); } catch (e) {}
@@ -2299,21 +2322,45 @@
         render();
       });
       tools.appendChild(fv);
+      var volumeNav = el('details', 'story-volume-nav');
+      var volumeHead = el('summary', 'story-volume-summary');
+      volumeHead.appendChild(txt(el('span', 'story-volume-label'), '逐卷直达'));
+      volumeCurrent = txt(el('span', 'story-volume-current'), '当前 · ' + WXSTORIES[0].no);
+      volumeHead.appendChild(volumeCurrent);
+      volumeHead.appendChild(txt(el('span', 'story-volume-count'), WXSTORIES.length + ' 卷'));
+      volumeNav.appendChild(volumeHead);
+      var volumeList = el('div', 'story-volume-list');
+      volumeList.setAttribute('role', 'group');
+      volumeList.setAttribute('aria-label', '异闻卷目，选择卷号直达');
       WXSTORIES.forEach(function (s) {
         var ch = el('button', 'chip tch');
+        ch.type = 'button';
         ch.setAttribute('data-no', s.no);
+        ch.setAttribute('aria-label', '直达' + s.no + '《' + s.title + '》');
+        ch.title = s.title;
         txt(ch, s.no);
         ch.addEventListener('click', function () {
           if (WX_CUR_ARC && !ARCSET[WX_CUR_ARC][s.id]) arcClear();
           var art = document.querySelector('#storyList article[data-no="' + s.no + '"]');
           if (!art) return;
-          $$('#storyTools .tch').forEach(function (x) { x.classList.toggle('on', x === ch); });
-          art.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          $$('#storyTools .tch').forEach(function (x) {
+            var current = x === ch;
+            x.classList.toggle('on', current);
+            if (current) x.setAttribute('aria-current', 'location'); else x.removeAttribute('aria-current');
+          });
+          if (volumeCurrent) txt(volumeCurrent, '当前 · ' + s.no);
+          volumeNav.open = false;
+          var stickyBar = $('#mobileNav') && getComputedStyle($('#mobileNav')).display !== 'none' ? $('#mobileNav') : $('#nav');
+          var stickyOffset = stickyBar && getComputedStyle(stickyBar).position === 'sticky' ? stickyBar.getBoundingClientRect().height + 12 : 12;
+          var targetY = Math.max(0, readY() + art.getBoundingClientRect().top - stickyOffset);
+          window.scrollTo({ top: targetY, behavior: 'smooth' });
           art.classList.add('story-flash');
           setTimeout(function () { art.classList.remove('story-flash'); }, 2400);
         });
-        tools.appendChild(ch);
+        volumeList.appendChild(ch);
       });
+      volumeNav.appendChild(volumeList);
+      tools.appendChild(volumeNav);
     }
     var wrap2 = $('#storyList');
     wrap2.addEventListener('click', function (e) {
@@ -2512,28 +2559,28 @@
   /* ---------------- 落账判语（五问验算） ---------------- */
   function buildJudge() {
     var qi = 0;
-    var PROV = ['牛皮吹破天，账上见真章。', '既不敢上秤，何必称重。', '查无可查者，皆是虚账。', '有借必有贷，借贷必相等。'];
+    var PROV = ['主张可以很大，证据须逐条。', '既未证，不先作结。', '查无凭据，先记待核。', '账目要平，人心不由秤代判。'];
     var SCOPES = [
       { re: /多元|无限盒子|诸天万界|维度|次元/, out: true, wb: '多元级', lv: '' },
       { re: /宇宙/, out: true, wb: '宇宙结构级', lv: '' },
       { re: /星系|星河/, out: true, wb: '星系级', lv: '' },
-      { re: /恒星|太阳|烈日/, out: false, wb: '爆恒星级', lv: '抚宁' },
-      { re: /星|行星|月球/, out: false, wb: '爆星级', lv: '抚宁' },
-      { re: /大陆|洲|地表/, out: false, wb: '爆大陆级', lv: '平章' },
-      { re: /国|山|海|湖/, out: false, wb: '爆国级', lv: '柱国' },
-      { re: /城/, out: false, wb: '爆城级', lv: '柱国' },
-      { re: /街|坊|村|镇/, out: false, wb: '爆街级', lv: '把总' },
-      { re: /楼|屋|房|人|树|墙/, out: false, wb: '爆楼级', lv: '掌笔' }
+      { re: /恒星|太阳|烈日/, out: false, wb: '恒星范围级', lv: '抚宁' },
+      { re: /星|行星|月球/, out: false, wb: '行星范围级', lv: '抚宁' },
+      { re: /大陆|洲|地表/, out: false, wb: '大陆范围级', lv: '平章' },
+      { re: /国|山|海|湖/, out: false, wb: '国家或山海范围级', lv: '柱国' },
+      { re: /城/, out: false, wb: '城市范围级', lv: '柱国' },
+      { re: /街|坊|村|镇/, out: false, wb: '坊镇范围级', lv: '把总' },
+      { re: /楼|屋|房|人|树|墙/, out: false, wb: '单体范围级', lv: '掌笔' }
     ];
     var HOLLOW = [
-      { re: /无尽/, note: '无尽而无疆界者，账上立不住（第二问）。' },
-      { re: /无限/, note: '无限即无底，无底即无账（第三问）。' },
-      { re: /无穷/, note: '穷与不尽，皆非计量之词（第三问）。' },
-      { re: /万法不侵/, note: '不侵者先自证其贷方（第一问）。' },
-      { re: /取之不竭|永不枯竭/, note: '拒核余力者，虚账无疑（第四问）。' },
-      { re: /无敌|不可战胜|绝对/, note: '天外有天，账上有账（第五问）。' },
-      { re: /死|亡|写活|还魂|起死/, note: '与生死对账，须白面同行——自写生死，视同改账（第三律）。' },
-      { re: /天机|不可说|泄|泄露/, note: '天机不是不能说，是说了要缴税——说破须缴泄账税（问天，先问税）。' }
+      { re: /无尽/, note: '范围无可界定，暂不能分级；不据此断言真假（第二问）。' },
+      { re: /无限/, note: '缺少可复核的边界，先记待核（第三问）。' },
+      { re: /无穷/, note: '此词不提供量尺，须转为可说明的范围（第三问）。' },
+      { re: /万法不侵/, note: '「不可受损」仍是待核主张，须先列出判据（第一问）。' },
+      { re: /取之不竭|永不枯竭/, note: '不能或不愿受核只使等级未定，不推定虚假或作伪（第四问）。' },
+      { re: /无敌|不可战胜|绝对/, note: '绝对称谓不能直接分级，先列可复核的边界（第五问）。' },
+      { re: /死|亡|写活|还魂|起死/, note: '涉及生死须有独立、明确且自愿的复核；不以术者自述替代证据（第三律）。' },
+      { re: /天机|不可说|泄|泄露/, note: '涉及天机者先说明可公开的边界；不因缄口推定其人有罪。' }
     ];
     var samples = ['我一拳能打爆整座城', '我法力无尽，万法不侵', '我能用眼神熄灭太阳', '我记的账，比石头还实', '我能把一页账抄进亡人心里', '我一觉睡了十二年，要讨回来', '我存的昼，能借人三刻', '我跑遍了整条江', '我不欠任何人的账'];
     function runJudge(claim) {
@@ -2558,26 +2605,24 @@
       box.appendChild(cl);
       if (hw.length) {
         vd.className = 'j-verdict j-hollow';
-        if (sc && sc.out) {
-          txt(vd, '判语：虚账，且为界外宣称。基数不实，落档免谈；坊间或呼【' + sc.wb + '】。');
-        } else {
-          txt(vd, '判语：虚账。先按最低可证之档【掌笔】入账，能证之数为账，不能证之数为虚；年结时按虚额加倍冲销。');
-        }
+        txt(vd, sc && sc.out
+          ? '判语：此范围超出本表，暂不分级；既不据此判真，也不据此否认主张者。'
+          : '判语：这项主张尚不能定级，先记「待核」。以下疑点只是复核入口，不是虚假、罪责或债务认定。');
         var li = el('ul', 'j-notes');
-        hw.forEach(function (n) { li.appendChild(txt(el('li'), '勾　' + n)); });
+        hw.forEach(function (n) { li.appendChild(txt(el('li'), '待核　' + n)); });
         box.appendChild(vd);
         box.appendChild(li);
       } else if (!sc) {
         vd.className = 'j-verdict j-dim';
-        txt(vd, '判语：落不了档。既无范围，便无账可记——天上有云，地上无雨，此秤不收云。');
+        txt(vd, '判语：范围未明，暂不能估级。补充对象、尺度或已知边界即可重问；本秤不据此作真假判断。');
         box.appendChild(vd);
       } else if (sc.out) {
         vd.className = 'j-verdict j-void';
-        txt(vd, '判语：界外宣称。墨序账页之外另有海——鉴真司不落账、不冲销、亦不受理。坊间或呼之【' + sc.wb + '】。');
+        txt(vd, '判语：此量级超出本表可评范围，暂不分级；不代表主张为真或为假，更不对主张者作判断。坊间估称【' + sc.wb + '】。');
         box.appendChild(vd);
       } else {
         vd.className = 'j-verdict j-ok';
-        vd.appendChild(document.createTextNode('判语：可上账。坊间口径约【' + sc.wb + '】，本界九阶拟落【'));
+        vd.appendChild(document.createTextNode('判语：按所述范围，可先估入【' + sc.wb + '】，本界九阶约【'));
         var lvb = el('button', 'lv-jump');
         txt(lvb, sc.lv);
         lvb.setAttribute('title', '点之看这一阶的牌');
@@ -2590,7 +2635,7 @@
           setTimeout(function () { hit.classList.remove('lv-flash'); }, 2600);
         });
         vd.appendChild(lvb);
-        vd.appendChild(document.createTextNode('】档——但须出示贷方；查无可查，仍作虚账。'));
+        vd.appendChild(document.createTextNode('】阶。这只是量级估算，不是核真结论；来源、边界或复核结果未齐，只记待核，不生债、不作冲销。'));
         box.appendChild(vd);
       }
       box.appendChild(pv);
@@ -3536,6 +3581,8 @@
   var WX_CUR_ARC = null;
   var WX_FAV_ONLY = false;
   var STORY_RENDER = function () {};
+  var ARC_NAV = null;
+  var ARC_LABEL_SYNC = function () {};
   var favLabelRefresh = function () {};
   function favCountNow() {
     try { return JSON.parse(localStorage.getItem('wx_favs') || '[]').length; } catch (e) { return 0; }
@@ -3543,14 +3590,22 @@
   function arcClear() {
     if (!WX_CUR_ARC) return;
     WX_CUR_ARC = null;
-    $$('#arcChips .chip').forEach(function (c) { c.classList.remove('on'); });
+    $$('#arcChips .chip').forEach(function (c) { c.classList.remove('on'); c.setAttribute('aria-pressed', 'false'); });
     var tp = $('#arcTip');
     if (tp) txt(tp, '');
+    ARC_LABEL_SYNC();
+    if (ARC_NAV) ARC_NAV.open = false;
     STORY_RENDER();
   }
   function arcFilter(name) {
     WX_CUR_ARC = (WX_CUR_ARC === name) ? null : name;
-    $$('#arcChips .chip').forEach(function (c) { c.classList.toggle('on', c.getAttribute('data-arc') === WX_CUR_ARC); });
+    $$('#arcChips .chip').forEach(function (c) {
+      var current = c.getAttribute('data-arc') === WX_CUR_ARC;
+      c.classList.toggle('on', current);
+      c.setAttribute('aria-pressed', current ? 'true' : 'false');
+    });
+    ARC_LABEL_SYNC();
+    if (ARC_NAV) ARC_NAV.open = false;
     var tip = $('#arcTip');
     if (tip) {
       if (WX_CUR_ARC) {
