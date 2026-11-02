@@ -963,8 +963,10 @@ details.upd:not([open]):hover{opacity:1}
   .mobile-menu-head span{color:var(--silk3);font:10px var(--hei);letter-spacing:.06em}
   .mobile-menu-head button{flex:none;width:32px;height:32px;border:1px solid rgba(200,163,90,.22);border-radius:50%;background:rgba(255,255,255,.025);color:var(--silk2);font:20px/1 var(--hei);cursor:pointer}
   .mobile-menu-head button:hover{color:var(--gold2);border-color:var(--gold)}
-  .mobile-page-menu{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:5px 1px 1px}
-  .mobile-page-option{display:grid;grid-template-columns:30px minmax(0,1fr) 18px;align-items:center;gap:9px;width:100%;min-height:46px;padding:7px 10px;border:0;border-bottom:1px solid rgba(200,163,90,.1);border-radius:3px;background:transparent;color:var(--silk);font:14px var(--hei);letter-spacing:.06em;text-align:left;cursor:pointer;transition:background .16s,color .16s}
+  .mobile-page-menu{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;scrollbar-width:thin;scrollbar-color:rgba(200,163,90,.48) transparent;padding:5px 1px 1px}
+  .mobile-page-menu::-webkit-scrollbar{width:4px}
+  .mobile-page-menu::-webkit-scrollbar-thumb{border-radius:4px;background:rgba(200,163,90,.42)}
+  .mobile-page-option{display:grid;grid-template-columns:30px minmax(0,1fr) 18px;align-items:center;gap:9px;width:100%;min-height:46px;padding:7px 10px;border:0;border-bottom:1px solid rgba(200,163,90,.1);border-radius:3px;background:transparent;color:var(--silk);font:14px var(--hei);letter-spacing:.06em;text-align:left;cursor:pointer;touch-action:manipulation;transition:background .16s,color .16s}
   .mobile-page-option:last-child{border-bottom:0}
   .mobile-page-option:hover,.mobile-page-option:focus-visible{background:rgba(200,163,90,.08);color:var(--gold2)}
   .mobile-page-option:focus-visible{outline:2px solid var(--gold2);outline-offset:-2px}

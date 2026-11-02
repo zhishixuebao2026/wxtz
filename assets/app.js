@@ -83,7 +83,10 @@
     mobilePagePopover.setAttribute('aria-hidden', 'false');
     var current = mobilePageItems.filter(function (item) { return item.getAttribute('aria-checked') === 'true'; })[0] || mobilePageItems[0];
     if (current) {
-      current.scrollIntoView({ block: 'nearest' });
+      var listBox = mobilePageMenu.getBoundingClientRect();
+      var itemBox = current.getBoundingClientRect();
+      var wantedScroll = mobilePageMenu.scrollTop + itemBox.top - listBox.top + itemBox.height / 2 - mobilePageMenu.clientHeight / 2;
+      mobilePageMenu.scrollTop = Math.max(0, Math.min(wantedScroll, mobilePageMenu.scrollHeight - mobilePageMenu.clientHeight));
       if (focusItem) {
         if (mobileFocusTimer) clearTimeout(mobileFocusTimer);
         mobileFocusTimer = setTimeout(function () {
