@@ -18,7 +18,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%230c0f13'/%3E%3Crect x='8' y='8' width='48' height='48' rx='6' fill='none' stroke='%23c0402e' stroke-width='2'/%3E%3Ctext x='32' y='45' font-size='34' text-anchor='middle' fill='%23c8a35a' font-family='serif'%3E%E8%B4%A6%3C/text%3E%3C/svg%3E">
 <!-- 自托管霞鹜文楷 Lite：页面无需依赖第三方字体/CDN，离线也能正确显示中文 -->
 <link rel="stylesheet" href="assets/fonts/lxgwwenkailite-regular.css">
-<link rel="stylesheet" href="assets/style.css?v=162">
+<link rel="stylesheet" href="assets/style.css?v=163">
 </head>
 <body>
 <a class="skip-link" href="#main">跳至正文</a>
@@ -49,6 +49,7 @@
 <nav class="nav" id="nav" aria-label="篇目">
   <button data-goto="home" class="on">总纲</button>
   <button data-goto="map">天地图</button>
+  <button data-goto="relay">信路</button>
   <button data-goto="power">力量等级</button>
   <button data-goto="trial">人间试账</button>
   <button data-goto="beings">众生谱</button>
@@ -78,7 +79,7 @@
     </button>
     <div class="mobile-page-popover" id="mobilePagePopover" aria-hidden="true">
       <div class="mobile-menu-head">
-        <div><strong>篇目目录</strong><span>上下滑动 · 共十八篇</span></div>
+        <div><strong>篇目目录</strong><span>上下滑动 · 共十九篇</span></div>
         <button type="button" id="mobileMenuClose" aria-label="关闭篇目目录">×</button>
       </div>
       <div class="mobile-page-menu" id="mobilePageMenu" role="menu" aria-label="选择篇目"></div>
@@ -108,11 +109,12 @@
       <button id="bibleBtnHome">存抄本</button>
     </div>
     <details id="firstGuide" class="first-guide">
-      <summary class="fg-summary"><span>初见笺 · 墨序</span><span class="fg-summary-note">九条导读 · 点开阅览</span></summary>
+      <summary class="fg-summary"><span>初见笺 · 墨序</span><span class="fg-summary-note">十条导读 · 点开阅览</span></summary>
       <p class="fg-line">这个世界，凡有点者皆可点：</p>
       <ul>
         <li>正文里字下点金 → 入词库、入人物志、入京卷宗；</li>
         <li>图上点京、点道、点桩 → 就地开卷宗桩签；</li>
+        <li>信路页辨封牒、搭票、背话：回执能证交接，不替来文作真；</li>
         <li>人物卡点开弹出详传；传内另点「看关系网」，画像可全屏细看；</li>
         <li>异闻卷尾三签：岁令、谱、线——点「线」只展这一条线的卷；</li>
         <li>公门与故纸里的卷号 → 直回该桩公案；</li>
@@ -121,7 +123,7 @@
         <li>货殖页「仓衡三制」：切换丰年、青黄、水患，看三种仓的粮如何过账。</li>
         <li>更新志页「存抄本」——整部书当场抄成一部抄本带走，不经网络。</li>
       </ul>
-      <p class="fg-tip">全书十八篇，索引十六源。收讫入站。</p>
+      <p class="fg-tip">全书十九篇，索引十七源。收讫入站。</p>
     </details>
     <article class="ns-card" id="newestStory" hidden></article>
     <p class="home-tally" id="homeTally"></p>
@@ -142,11 +144,25 @@
     <div class="map-legend" id="mapLegend"></div>
   </section>
 
+  <!-- ================= 信路 ================= -->
+  <section id="pg-relay" class="page">
+    <h3 class="sec-title"><span>信路</span><em>MESSAGES IN MOTION</em></h3>
+    <p class="lead" id="relayLead"></p>
+    <div class="relay-tabs" id="relayTabs" role="group" aria-label="选择递信方式"></div>
+    <div class="relay-panel" id="relayPanel" aria-live="polite"></div>
+    <h3 class="sec-title"><span>一封汛签</span><em>THE HAND-TO-HAND ROUTE</em></h3>
+    <p class="lead" id="relayCaseLead"></p>
+    <div class="relay-case" id="relayCase"></div>
+    <p class="relay-after" id="relayAfter"></p>
+    <p class="relay-case-link" id="relayCaseLink"></p>
+  </section>
+
   <!-- ================= 关系网================= -->
   <section id="pg-network" class="page">
     <h3 class="sec-title"><span>关系网</span><em>THE DEBT WEB</em></h3>
     <p class="lead" id="networkLead"></p>
     <div class="net-flex">
+      <p class="net-scroll-note"><span aria-hidden="true">↔</span>横向滑动，查看整张关系网</p>
       <div class="net-wrap">
         <svg id="netSvg" viewBox="0 0 1000 760" role="img" aria-label="人物关系网：坐标与天地图同格"></svg>
       </div>
@@ -253,7 +269,7 @@
   <!-- ================= 索引 ================= -->
   <section id="pg-find" class="page">
     <h3 class="sec-title"><span>索引</span><em>THE INDEX</em></h3>
-    <p class="lead">一索全书：十四类旧卷宗，加上人间试账与仓衡三制；输入词语或用空格并列条件，检索词库、异闻、人物、京城、货殖、仓衡、界桩、公门、卷线、故纸、岁令、谚语、众生谱、历纪与更新志。点一笔即可回到原处。</p>
+    <p class="lead">一索全书：十五类旧卷宗，另加人间试账与仓衡三制；输入词语或用空格并列条件，检索词库、异闻、人物、京城、货殖、界桩、公门、信路、卷线、故纸、岁令、谚语、众生谱、历纪与更新志。点一笔即可回到原处。</p>
     <div class="find-tools">
       <input id="findSearch" type="search" placeholder="搜：灶君 / 失页 / 晏京；空格可并列检索" aria-label="全书检索" autocomplete="off">
       <button class="chip find-clear" id="findClear" type="button" aria-label="清空检索">清空</button>
@@ -347,27 +363,28 @@
 <footer class="foot">
   <p class="ticker" id="ticker" aria-live="off"></p>
   <p class="footline">万象天账 · 墨序司异闻籍 ——账不平，天不活。</p>
-  <p class="ver">版本 v1.28.0 · 资源戳 v=162 · 主屏独立开卷，离线亦可读。</p>
+  <p class="ver">版本 v1.29.0 · 资源戳 v=163 · 信有来路，话有凭据。</p>
 </footer>
 
-<script src="data/core.js?v=162"></script>
-<script src="data/cities.js?v=162"></script>
-<script src="data/beings.js?v=162"></script>
-<script src="data/timeline.js?v=162"></script>
-<script src="data/suiling.js?v=162"></script>
-<script src="data/organs.js?v=162"></script>
-<script src="data/arcs.js?v=162"></script>
-<script src="data/docs.js?v=162"></script>
-<script src="data/lexicon.js?v=162"></script>
-  <script src="data/sayings.js?v=162"></script>
-  <script src="data/goods.js?v=162"></script>
-  <script src="data/stakes.js?v=162"></script>
-<script src="data/stories.js?v=162"></script>
-<script src="data/characters.js?v=162"></script>
-<script src="data/relations.js?v=162"></script>
-<script src="data/updates.js?v=162"></script>
-<script src="data/trials.js?v=162"></script>
-<script src="data/granaries.js?v=162"></script>
-<script src="assets/app.js?v=162"></script>
+<script src="data/core.js?v=163"></script>
+<script src="data/cities.js?v=163"></script>
+<script src="data/beings.js?v=163"></script>
+<script src="data/timeline.js?v=163"></script>
+<script src="data/suiling.js?v=163"></script>
+<script src="data/organs.js?v=163"></script>
+<script src="data/arcs.js?v=163"></script>
+<script src="data/docs.js?v=163"></script>
+<script src="data/lexicon.js?v=163"></script>
+  <script src="data/sayings.js?v=163"></script>
+  <script src="data/goods.js?v=163"></script>
+  <script src="data/stakes.js?v=163"></script>
+<script src="data/stories.js?v=163"></script>
+<script src="data/characters.js?v=163"></script>
+<script src="data/relations.js?v=163"></script>
+<script src="data/updates.js?v=163"></script>
+<script src="data/trials.js?v=163"></script>
+<script src="data/granaries.js?v=163"></script>
+<script src="data/relay.js?v=163"></script>
+<script src="assets/app.js?v=163"></script>
 </body>
 </html>

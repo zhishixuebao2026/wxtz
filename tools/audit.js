@@ -4,7 +4,7 @@
 'use strict';
 const fs = require('fs'), vm = require('vm');
 const P = __dirname.replace(/\\/g, '/') + '/../';
-const DATA = ['core','cities','beings','timeline','lexicon','sayings','goods','stories','characters','relations','stakes','suiling','organs','arcs','docs','updates','trials','granaries'];
+const DATA = ['core','cities','beings','timeline','lexicon','sayings','goods','stories','characters','relations','stakes','suiling','organs','arcs','docs','updates','trials','granaries','relay'];
 const JS = DATA.map(d => 'data/' + d + '.js').concat(['assets/app.js']);
 let warn = [];
 const ok = m => console.log('  ✓ ' + m);
@@ -32,6 +32,10 @@ const remoteFonts = fontRefs.filter(src => /^https?:/i.test(src));
 fontCss && !missingFonts.length && !remoteFonts.length && fs.existsSync(P + 'assets/ledger-atmosphere.webp')
   ? ok('本地字体子集 ' + fontRefs.length + ' 件、原创首页纸景齐备；无远程字体引用')
   : ng('本地视觉资源缺失或含远程字体：' + missingFonts.join('、') + (remoteFonts.length ? '；远程 ' + remoteFonts.join('、') : ''));
+const swSource = fs.readFileSync(P + 'sw.js', 'utf8');
+const swFontsOk = /fontCss\.text\(\)/.test(swSource) && /cache\.addAll\(fonts\.slice\(/.test(swSource);
+swFontsOk ? ok('离线安装会分批预存 ' + fontRefs.length + ' 个本地字形子集') : ng('离线安装未覆盖本地字体子集');
+/['\"]\.\/data\/relay\.js\?v=\d+['\"]/.test(swSource) ? ok('Service Worker 预缓存信路数据') : ng('Service Worker 漏缓存信路数据');
 const characterSource = fs.readFileSync(P + 'data/characters.js', 'utf8');
 const portraitRefs = [...characterSource.matchAll(/portrait:\s*['\"]([^'\"]+)['\"]/g)].map(m => m[1]);
 const missingPortraits = portraitRefs.filter(src => !fs.existsSync(P + src));
@@ -115,6 +119,24 @@ else {
   gBad ? ng('仓衡三制须为三仓三时，每时三处粮账并有复核') : ok('仓衡三制三仓三时齐备，各仓事有三处粮账与复核');
   const gDup = new Set(gran.stores.map(s => s.id)).size !== gran.stores.length || new Set(gran.seasons.map(s => s.id)).size !== gran.seasons.length;
   gDup ? ng('仓制或仓事 id 重复') : ok('仓制与仓事 id 无重复');
+}
+const relay = q('WXRELAY');
+if (!relay || !Array.isArray(relay.channels) || relay.channels.length !== 3 || !relay.dispatch || !Array.isArray(relay.dispatch.legs)) ng('信路三式或递送实录形状不全');
+else {
+  const rDup = new Set(relay.channels.map(x => x.id)).size !== relay.channels.length;
+  const rBad = relay.channels.some(x => !x.name || !x.mark || !x.purpose || !x.advantage || !x.limit || !Array.isArray(x.steps) || x.steps.length !== 3);
+  const roadMap = new Map(q('WXMAP').roads.map(x => [x.road, x]));
+  let miles = 0;
+  const legBad = relay.dispatch.legs.filter((leg, i) => {
+    const road = roadMap.get(leg.road);
+    if (!road) return true;
+    miles += road.li;
+    const endpoints = [road.a, road.b];
+    return !endpoints.includes(leg.from) || !endpoints.includes(leg.to) || leg.from === leg.to ||
+      (i > 0 && relay.dispatch.legs[i - 1].to !== leg.from);
+  });
+  rDup || rBad ? ng('信路三式缺字段、步骤有缺或 id 重复') : ok('信路三式字段齐备，逐式各三步且互不重号');
+  legBad.length || miles !== 200 ? ng('信路汛签里程/接续与天地图不合：' + miles + '里') : ok('汛签三段接续天地图道路，去程二百里');
 }
 const R = q('WXRELATIONS');
 let rb = 0;
@@ -259,6 +281,8 @@ kBadCid.length ? ng('界桩所辖京失实：' + kBadCid.join('、')) : ok('界�
 const kBadPos = K2.filter(k => !Array.isArray(k.pos) || k.pos[0] < 0 || k.pos[0] > 1000 || k.pos[1] < 0 || k.pos[1] > 760).map(k => k.no);
 kBadPos.length ? ng('界桩坐标越界：' + kBadPos.join('、')) : ok('界桩坐标全部在 1000×760 内');
 const volSet = new Set(q('WXSTORIES').map(s => s.no));
+const relayRef = q('WXRELAY') && q('WXRELAY').dispatch.ref;
+relayRef && volSet.has(relayRef) ? ok('信路递送实录有卷可回：' + relayRef) : ng('信路递送实录失引：' + relayRef);
 const kBadRef = K2.filter(k => !k.ref || !volSet.has(k.ref)).map(k => k.no);
 kBadRef.length ? ng('界桩正卷缺失或失引：' + kBadRef.join('、')) : ok('界桩十二根桩桩有正卷，卷号全部属实');
 
@@ -367,8 +391,8 @@ dirtyHits.length ? ng('账面露管线 ' + dirtyHits.length + ' 处：' + dirtyH
 const appSrc = fs.readFileSync(P + 'assets/app.js', 'utf8');
 const srcBlock = (appSrc.match(/var SOURCES = \[([\s\S]*?)\n    \];/) || [0, ''])[1];
 const srcCount = (srcBlock.match(/name: '/g) || []).length;
-const tipOk = html.indexOf('全书十八篇') >= 0 && html.indexOf('索引十六源') >= 0 && secTags === 18 && srcCount === 16;
-tipOk ? ok('初见笺计数与实况一致（十八篇 · 十六源）') : ng('初见笺计数脱节：实况 ' + secTags + ' 篇 · ' + srcCount + ' 源（笺仍写十八·十六）');
+const tipOk = html.indexOf('全书十九篇') >= 0 && html.indexOf('索引十七源') >= 0 && secTags === 19 && srcCount === 17;
+tipOk ? ok('初见笺计数与实况一致（十九篇 · 十七源）') : ng('初见笺计数脱节：实况 ' + secTags + ' 篇 · ' + srcCount + ' 源（笺仍写十九·十七）');
 
 console.log('\n【结论】' + (warn.length ? '需处理 ' + warn.length + ' 项' : '全部通过'));
 warn.forEach(w => console.log('  ✗ ' + w));

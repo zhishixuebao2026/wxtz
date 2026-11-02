@@ -1,31 +1,32 @@
 /* 万象天账 · 离线册 */
 'use strict';
 
-const CACHE_NAME = 'wxtz-app-v1.28.0';
+const CACHE_NAME = 'wxtz-app-v1.29.0';
 const SHELL = [
   './index.html',
   './site.webmanifest',
-  './assets/style.css?v=162',
+  './assets/style.css?v=163',
   './assets/fonts/lxgwwenkailite-regular.css',
-  './assets/app.js?v=162',
-  './data/core.js?v=162',
-  './data/cities.js?v=162',
-  './data/beings.js?v=162',
-  './data/timeline.js?v=162',
-  './data/suiling.js?v=162',
-  './data/organs.js?v=162',
-  './data/arcs.js?v=162',
-  './data/docs.js?v=162',
-  './data/lexicon.js?v=162',
-  './data/sayings.js?v=162',
-  './data/goods.js?v=162',
-  './data/stakes.js?v=162',
-  './data/stories.js?v=162',
-  './data/characters.js?v=162',
-  './data/relations.js?v=162',
-  './data/updates.js?v=162',
-  './data/trials.js?v=162',
-  './data/granaries.js?v=162',
+  './assets/app.js?v=163',
+  './data/core.js?v=163',
+  './data/cities.js?v=163',
+  './data/beings.js?v=163',
+  './data/timeline.js?v=163',
+  './data/suiling.js?v=163',
+  './data/organs.js?v=163',
+  './data/arcs.js?v=163',
+  './data/docs.js?v=163',
+  './data/lexicon.js?v=163',
+  './data/sayings.js?v=163',
+  './data/goods.js?v=163',
+  './data/stakes.js?v=163',
+  './data/stories.js?v=163',
+  './data/characters.js?v=163',
+  './data/relations.js?v=163',
+  './data/updates.js?v=163',
+  './data/trials.js?v=163',
+  './data/granaries.js?v=163',
+  './data/relay.js?v=163',
   './assets/ledger-atmosphere.webp',
   './assets/icons/app-192.png',
   './assets/icons/app-512.png',
@@ -44,7 +45,18 @@ const SHELL = [
 ];
 
 self.addEventListener('install', event => {
-  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(SHELL)).then(() => self.skipWaiting()));
+  event.waitUntil(caches.open(CACHE_NAME).then(async cache => {
+    await cache.addAll(SHELL);
+    const fontCssUrl = new URL('./assets/fonts/lxgwwenkailite-regular.css', self.registration.scope);
+    const fontCss = await cache.match(fontCssUrl);
+    if (fontCss) {
+      const css = await fontCss.text();
+      const fonts = Array.from(css.matchAll(/url\((['"]?)([^)'"]+)\1\)/g))
+        .map(match => new URL(match[2], fontCssUrl).href)
+        .filter(url => new URL(url).origin === self.location.origin);
+      for (let i = 0; i < fonts.length; i += 16) await cache.addAll(fonts.slice(i, i + 16));
+    }
+  }).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', event => {
