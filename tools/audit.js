@@ -56,9 +56,9 @@ const swSource = fs.readFileSync(P + 'sw.js', 'utf8');
 const swFontsOk = /fontCss\.text\(\)/.test(swSource) && /cache\.addAll\(fonts\.slice\(/.test(swSource);
 swFontsOk ? ok('离线安装会分批预存 ' + fontRefs.length + ' 个本地字形子集') : ng('离线安装未覆盖本地字体子集');
 /['\"]\.\/data\/relay\.js\?v=\d+['\"]/.test(swSource) ? ok('Service Worker 预缓存信路数据') : ng('Service Worker 漏缓存信路数据');
-/['\"]\.\/data\/daily\.js\?v=170['\"]/.test(swSource) ? ok('Service Worker 预缓存街巷日用篇') : ng('Service Worker 漏缓存街巷日用篇');
-/['\"]\.\/data\/observatory\.js\?v=170['\"]/.test(swSource) ? ok('Service Worker 预缓存三签校时资料') : ng('Service Worker 漏缓存三签校时资料');
-/['\"]\.\/data\/artifacts\.js\?v=170['\"]/.test(swSource) ? ok('Service Worker 预缓存见物设定') : ng('Service Worker 漏缓存见物设定');
+/['\"]\.\/data\/daily\.js\?v=172['\"]/.test(swSource) ? ok('Service Worker 预缓存街巷日用篇') : ng('Service Worker 漏缓存街巷日用篇');
+/['\"]\.\/data\/observatory\.js\?v=172['\"]/.test(swSource) ? ok('Service Worker 预缓存三签校时资料') : ng('Service Worker 漏缓存三签校时资料');
+/['\"]\.\/data\/artifacts\.js\?v=172['\"]/.test(swSource) ? ok('Service Worker 预缓存见物设定') : ng('Service Worker 漏缓存见物设定');
 /['\"]\.\/assets\/three-seal-observatory\.webp['\"]/.test(swSource) ? ok('Service Worker 预缓存原创三签台器物图') : ng('Service Worker 漏缓存三签台器物图');
 const characterSource = fs.readFileSync(P + 'data/characters.js', 'utf8');
 const portraitRefs = [...characterSource.matchAll(/portrait:\s*['\"]([^'\"]+)['\"]/g)].map(m => m[1]);
@@ -139,6 +139,11 @@ const K = Object.keys(ctx).filter(k => k.charAt(0) === 'W').sort();
 ok('全局变量 ' + K.length + ' 个：' + K.join('、'));
 const q = n => ctx[n];
 const cnt = n => { const v = q(n); return Array.isArray(v) ? v.length : null; };
+const review = q('WXCORE').review;
+const reviewBad = !review || !review.title || !review.intro || !review.boundary || !Array.isArray(review.steps) || review.steps.length !== 4 ||
+  new Set((review.steps || []).map(x => x.name)).size !== 4 ||
+  (review.steps || []).some(x => !x.mark || !x.name || !x.text);
+reviewBad ? ng('留格复账须具四步、独立原录/复核与明确止界') : ok('留格复账四步齐备，争议不等于有罪或免账');
 const publicCredit = String(q('WXCORE').falsify.credit || '');
 /[A-Z]:[\\/](?!\/)|\b[\w.-]+\.(?:md|txt|docx)\b/i.test(publicCredit)
   ? ng('总纲可见署注暴露本地路径或素材文件名')
@@ -183,6 +188,23 @@ else {
   const gDup = new Set(gran.stores.map(s => s.id)).size !== gran.stores.length || new Set(gran.seasons.map(s => s.id)).size !== gran.seasons.length;
   gDup ? ng('仓制或仓事 id 重复') : ok('仓制与仓事 id 无重复');
 }
+const reviewDoc = q('WXDOCS').filter(p => p.n === '留格复账牒 · 司录式')[0];
+const docs = q('WXDOCS');
+const docsBad = docs.length !== 19 || new Set(docs.map(p => p.n)).size !== docs.length ||
+  docs.some(p => !p.n || !p.kind || !p.seat || !p.when || !p.text || !p.ref);
+docsBad ? ng('故纸须十九件，逐件具名、类型、席位、年月、原文与卷号') : ok('故纸十九件均有来源席位、原文与回卷');
+reviewDoc && /不收钱/.test(reviewDoc.text) && /原记不擦/.test(reviewDoc.text) && /不得独核/.test(reviewDoc.text) && /余账照结/.test(reviewDoc.text)
+  ? ok('留格复账牒具免费申诉、原记留存、复核分离与余账照结')
+  : ng('留格复账牒遗漏关键权利或裁处边界');
+const reviewStory = q('WXSTORIES').filter(s => s.id === 's100')[0];
+reviewStory && reviewStory.paras.some(t => t.indexOf('留格牒') >= 0) && reviewStory.paras.some(t => t.indexOf('只把重复计出的那一行记作「存疑」') >= 0 && t.indexOf('其余账照结') >= 0 && t.indexOf('不拿来冲销沈归') >= 0)
+  ? ok('卷壹佰以实际渡费争议演示留格，不另造重复角色或支线')
+  : ng('卷壹佰未能演示具体一行的复核与年结止界');
+const reviewUiSource = fs.readFileSync(P + 'assets/app.js', 'utf8');
+const docIndexTargetOk = /name: '故纸'.*?targetId: 'doc-' \+ i/.test(reviewUiSource) && /card\.id = 'doc-' \+ index/.test(reviewUiSource);
+/var review = WXCORE\.review/.test(reviewUiSource) && /review\.steps\.forEach/.test(reviewUiSource) && /home-focus/.test(reviewUiSource) && docIndexTargetOk
+  ? ok('总纲与故纸索引可直达对应条目并短时标记')
+  : ng('留格复账未完整接入总纲或故纸索引');
 const threeCheckDoc = q('WXDOCS').filter(p => p.n === '三照覆籍签 · 沈归')[0];
 if (!threeCheckDoc || !Array.isArray(threeCheckDoc.checks) || threeCheckDoc.checks.map(x => x.key).join('') !== '籍行见' || threeCheckDoc.checks.some(x => !x.title || !x.text)) ng('三照勘签步骤不齐');
 else ok('三照勘签有籍、行、见三步，证源说明齐备');
@@ -342,7 +364,8 @@ const readme = fs.readFileSync(P + 'README.md', 'utf8');
   ['人物', q('WXCHARS').length, '人'],
   ['账房谚', q('WXSAYINGS').length, '则'],
   ['京谚', q('WXCITYSAYINGS').length, '则'],
-  ['货殖', q('WXGOODS').length, '物']
+  ['货殖', q('WXGOODS').length, '物'],
+  ['故纸', q('WXDOCS').length, '件']
 ].forEach(([n, c, u]) => {
   const D = ['零','一','二','三','四','五','六','七','八','九'];
   const zh = [];
@@ -531,8 +554,8 @@ dirtyHits.length ? ng('账面露管线 ' + dirtyHits.length + ' 处：' + dirtyH
 const appSrc = fs.readFileSync(P + 'assets/app.js', 'utf8');
 const srcBlock = (appSrc.match(/var SOURCES = \[([\s\S]*?)\n    \];/) || [0, ''])[1];
 const srcCount = (srcBlock.match(/name: '/g) || []).length;
-const tipOk = html.indexOf('全书二十一篇') >= 0 && html.indexOf('索引二十源') >= 0 && secTags === 21 && srcCount === 20 && /data\/daily\.js\?v=170/.test(html) && /data\/daily\.js\?v=170/.test(swSource) && /data\/observatory\.js\?v=170/.test(html) && /data\/observatory\.js\?v=170/.test(swSource) && /data\/artifacts\.js\?v=170/.test(html) && /data\/artifacts\.js\?v=170/.test(swSource);
-tipOk ? ok('初见笺、篇目、索引与离线数据一致（二十一篇 · 二十源）') : ng('初见笺计数脱节：实况 ' + secTags + ' 篇 · ' + srcCount + ' 源，或日用/校时/见物资料未纳入离线册');
+const tipOk = html.indexOf('全书二十一篇') >= 0 && html.indexOf('索引二十一源') >= 0 && pageIds.length === 21 && srcCount === 21 && /data\/daily\.js\?v=172/.test(html) && /data\/daily\.js\?v=172/.test(swSource) && /data\/observatory\.js\?v=172/.test(html) && /data\/observatory\.js\?v=172/.test(swSource) && /data\/artifacts\.js\?v=172/.test(html) && /data\/artifacts\.js\?v=172/.test(swSource);
+tipOk ? ok('初见笺、篇目、索引与离线数据一致（二十一篇 · 二十一源）') : ng('初见笺计数脱节：实况 ' + pageIds.length + ' 篇 · ' + srcCount + ' 源，或新增设定未纳入离线册');
 
 console.log('\n【结论】' + (warn.length ? '需处理 ' + warn.length + ' 项' : '全部通过'));
 warn.forEach(w => console.log('  ✗ ' + w));

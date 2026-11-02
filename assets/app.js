@@ -297,6 +297,23 @@
       laws.appendChild(card);
     });
 
+    var review = WXCORE.review;
+    if (review) {
+      txt($('#reviewIntro'), review.intro);
+      txt($('#reviewBoundary'), review.boundary);
+      var reviewFlow = $('#reviewFlow');
+      reviewFlow.innerHTML = '';
+      review.steps.forEach(function (step) {
+        var item = el('li', 'review-step');
+        var top = el('div', 'review-step-top');
+        top.appendChild(txt(el('span', 'review-step-mark'), step.mark));
+        top.appendChild(txt(el('h4'), step.name));
+        item.appendChild(top);
+        item.appendChild(txt(el('p'), step.text));
+        reviewFlow.appendChild(item);
+      });
+    }
+
     var mx = $('#moxu');
     mx.innerHTML = '';
     mx.appendChild(txt(el('p', 'mx-head'), WXCORE.moxu.head));
@@ -314,6 +331,7 @@
 
     if (typeof WXFOUR !== 'undefined') {
       var hf = el('div', 'home-four');
+      hf.id = 'homeFour';
       hf.appendChild(txt(el('h4'), '四柱 · ' + WXFOUR.formula));
       var ul = el('div', 'hf-row');
       WXFOUR.pillars.forEach(function (p) {
@@ -1549,7 +1567,15 @@
     var stats = $('#findStats'), sourceBox = $('#findSources'), quickBox = $('#findQuick');
     var moreBtn = $('#findMore'), clearBtn = $('#findClear');
     var activeSource = '全部', visibleLimit = 40;
+    var coreRows = [{ t: WXCORE.title + ' · 总纲', s: WXCORE.preamble.join('　'), goto: 'home', targetId: 'homePre' }];
+    WXCORE.laws.forEach(function (x) { coreRows.push({ t: x.name + ' · ' + x.also, s: x.text + '　' + x.proverb, goto: 'home', targetId: 'laws' }); });
+    WXCORE.review.steps.forEach(function (x) { coreRows.push({ t: '留格复账 · ' + x.name, s: WXCORE.review.intro + '　' + x.text + '　' + WXCORE.review.boundary, goto: 'home', targetId: 'reviewPanel' }); });
+    WXCORE.moxu.layers.forEach(function (x) { coreRows.push({ t: '墨序五层 · ' + x.name, s: x.status + '　' + x.text, goto: 'home', targetId: 'moxu' }); });
+    WXCORE.levels.list.forEach(function (x) { coreRows.push({ t: '境界' + x.numeral + ' · ' + x.name, s: x.test + '　' + x.note, goto: 'power', targetId: 'levels' }); });
+    WXCORE.falsify.qs.forEach(function (x) { coreRows.push({ t: '鉴真五问 · ' + x.q, s: x.a, goto: 'power', targetId: 'falsify' }); });
+    if (typeof WXFOUR !== 'undefined') coreRows.push({ t: '四柱清册 · ' + WXFOUR.formula, s: WXFOUR.intro + '　' + WXFOUR.pillars.map(function (x) { return x.name + ' ' + x.text; }).join('　'), goto: 'home', targetId: 'homeFour' });
     var SOURCES = [
+      { name: '总纲', rows: coreRows },
       { name: '词库', rows: WXLEXICON.map(function (x) { return { t: x.t, s: x.p + '　' + x.cat + '　' + x.d, goto: 'lexicon' }; }) },
       { name: '异闻', rows: WXSTORIES.map(function (x) { return { t: x.no + '《' + x.title + '》', s: x.sub + '　' + x.paras.join('') + '　' + x.tail, goto: 'stories' }; }) },
       { name: '人物', rows: WXCHARS.map(function (x) { return { t: x.name + ' · ' + x.title, s: x.place + '　' + x.temper + '　' + x.text, goto: 'characters' }; }) },
@@ -1566,7 +1592,7 @@
       { name: '界桩', rows: (typeof WXSTAKES !== 'undefined' ? WXSTAKES : []).map(function (x) { return { t: x.name + ' · ' + x.no, s: x.where + '　' + x.state + '　桩面：' + x.face + '　' + x.note, goto: 'stakes' }; }) },
       { name: '公门', rows: (typeof WXORGANS !== 'undefined' ? WXORGANS : []).map(function (x) { return { t: x.n + ' · ' + x.role, s: x.seat + '　主事：' + x.head + '　规矩：' + x.law + '　' + (x.ref || ''), goto: 'organs' }; }) },
       { name: '卷线', rows: (typeof WXARCS !== 'undefined' ? WXARCS : []).map(function (x) { return { t: x.n + ' · ' + x.s.length + ' 卷', s: x.d + '　' + x.s.join(' '), goto: 'stories' }; }) },
-      { name: '故纸', rows: (typeof WXDOCS !== 'undefined' ? WXDOCS : []).map(function (x) { return { t: x.n + ' · ' + x.kind, s: x.seat + '　' + x.when + '　' + x.text + '　' + (x.ref || ''), goto: 'docs' }; }) },
+      { name: '故纸', rows: (typeof WXDOCS !== 'undefined' ? WXDOCS : []).map(function (x, i) { return { t: x.n + ' · ' + x.kind, s: x.seat + '　' + x.when + '　' + x.text + '　' + (x.ref || ''), goto: 'docs', targetId: 'doc-' + i }; }) },
       { name: '岁令', rows: (typeof WXSUILING !== 'undefined' ? WXSUILING.months : []).map(function (x) { return { t: x.m + ' · ' + x.name, s: x.order + '　' + x.text, goto: 'suiling' }; }) },
       { name: '账房谚', rows: (typeof WXSAYINGS !== 'undefined' ? WXSAYINGS : []).map(function (s) { return { t: s, s: '账房谚 · 拾句页可抄', goto: 'shiju' }; }) },
       { name: '众生谱', rows: (typeof WXBEINGS !== 'undefined' ? WXBEINGS : []).map(function (x) { return { t: x.name + ' · ' + x.also, s: x.cat + '　' + x.head + '　' + x.text, goto: 'beings', cid: x.cat }; }) },
@@ -1754,6 +1780,18 @@
             return;
           }
           if (h.goto === 'beings' && h.cid) { var bch = document.querySelector('#beingTabs .chip[data-cat="' + h.cid + '"]'); if (bch) bch.click(); return; }
+          if (h.targetId) {
+            var indexedTarget = $('#' + h.targetId);
+            if (indexedTarget) {
+              var stickyBar = $('#mobileNav') && getComputedStyle($('#mobileNav')).display !== 'none' ? $('#mobileNav') : $('#nav');
+              var stickyOffset = stickyBar && getComputedStyle(stickyBar).position === 'sticky' ? stickyBar.getBoundingClientRect().height + 16 : 16;
+              var targetY = readY() + indexedTarget.getBoundingClientRect().top - stickyOffset;
+              window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
+              indexedTarget.classList.add('home-focus');
+              setTimeout(function () { indexedTarget.classList.remove('home-focus'); }, 1800);
+            }
+            return;
+          }
           if (h.cid && typeof openCity === 'function') openCity(h.cid);
         }
         row.addEventListener('click', go);
@@ -2017,8 +2055,9 @@
       if (lx) lrGo(lx);
     });
     grid.innerHTML = '';
-    WXDOCS.forEach(function (paper) {
+    WXDOCS.forEach(function (paper, index) {
       var card = el('article', 'document-card doc-card');
+      card.id = 'doc-' + index;
       var top = el('header', 'dc-top');
       top.appendChild(txt(el('span', 'dc-kind'), paper.kind));
       top.appendChild(txt(el('h4'), paper.n));
@@ -3231,6 +3270,12 @@
       L.push('谚曰：' + w.proverb);
       L.push('');
     });
+    L.push('### 留格复账');
+    L.push(WXCORE.review.intro);
+    L.push('');
+    WXCORE.review.steps.forEach(function (step) { L.push('- **' + step.mark + ' · ' + step.name + '**：' + step.text); });
+    L.push('> ' + WXCORE.review.boundary);
+    L.push('');
     L.push('### 墨序五层');
     L.push(WXCORE.moxu.head);
     L.push('');
