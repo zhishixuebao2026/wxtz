@@ -29,7 +29,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%230c0f13'/%3E%3Crect x='8' y='8' width='48' height='48' rx='6' fill='none' stroke='%23c0402e' stroke-width='2'/%3E%3Ctext x='32' y='45' font-size='34' text-anchor='middle' fill='%23c8a35a' font-family='serif'%3E%E8%B4%A6%3C/text%3E%3C/svg%3E">
 <!-- 自托管霞鹜文楷 Lite：页面无需依赖第三方字体/CDN，离线也能正确显示中文 -->
 <link rel="stylesheet" href="assets/fonts/lxgwwenkailite-regular.css">
-<link rel="stylesheet" href="assets/style.css?v=166">
+<link rel="stylesheet" href="assets/style.css?v=167">
 </head>
 <body>
 <a class="skip-link" href="#main">跳至正文</a>
@@ -136,7 +136,7 @@
         <li>街巷日用页切换赠、借、共签：对照巷牌原记与止界，不把人情自动记作欠债。</li>
         <li>更新志页「存抄本」——整部书当场抄成一部抄本带走，不经网络。</li>
       </ul>
-      <p class="fg-tip">全书二十篇，索引十八源。收讫入站。</p>
+      <p class="fg-tip">全书二十篇，索引十九源。收讫入站。</p>
     </details>
     <article class="ns-card" id="newestStory" hidden></article>
     <p class="home-tally" id="homeTally"></p>
@@ -237,6 +237,33 @@
     <h3 class="sec-title"><span>历纪</span><em>ERAS</em></h3>
     <p class="lead unit" id="tlUnit"></p>
     <div class="tl" id="tlList"></div>
+    <h3 class="sec-title"><span>三签校时</span><em>OBSERVATION · CLOCK · STAR</em></h3>
+    <p class="lead" id="observatoryLead"></p>
+    <div class="observatory-feature" id="observatoryFeature">
+      <figure class="observatory-figure">
+        <img src="assets/three-seal-observatory.webp" alt="原创三签台校时构想图：左侧照影环、中央星球仪、右侧平水漏与小钟铃分别示意三类读数，并非一具统一总钟。" width="1536" height="1024" loading="lazy" decoding="async">
+        <figcaption>三签台校时机理合绘 · 非统一总钟</figcaption>
+      </figure>
+      <div class="observatory-reader">
+        <p class="observatory-motto" id="observatoryMotto"></p>
+        <div class="chips observatory-tabs" id="observatoryTabs" role="group" aria-label="查看三种观时签"></div>
+        <article class="observatory-panel" id="observatoryPanel" aria-live="polite"></article>
+      </div>
+    </div>
+    <div class="observatory-rules" id="observatoryRules"></div>
+    <div class="observatory-case" id="observatoryCase">
+      <div class="observatory-case-head">
+        <div><span class="daily-kicker">案牍对读 · 卷玖拾玖《两刻》</span><h4 id="observatoryCaseTitle"></h4></div>
+        <span class="observatory-case-place" id="observatoryCasePlace"></span>
+      </div>
+      <p class="observatory-case-intro" id="observatoryCaseIntro"></p>
+      <div class="chips observatory-case-steps" id="observatoryCaseSteps" role="group" aria-label="选择汛情时序记录"></div>
+      <article class="observatory-case-panel" id="observatoryCasePanel" aria-live="polite"></article>
+      <p class="observatory-conclusion" id="observatoryConclusion"></p>
+      <button class="office-link observatory-volume-link" id="observatoryVolumeLink" type="button"></button>
+    </div>
+    <p class="observatory-boundary" id="observatoryBoundary"></p>
+    <p class="observatory-source" id="observatorySource"></p>
     <h3 class="sec-title"><span>甲子账牌</span><em>THE SIXTY TALLIES</em></h3>
     <p class="lead" id="jiaziLead"></p>
     <div class="jiazi-box" id="jiaziBox"></div>
@@ -387,29 +414,30 @@
 <footer class="foot">
   <p class="ticker" id="ticker" aria-live="off"></p>
   <p class="footline">万象天账 · 墨序司异闻籍 ——账不平，天不活。</p>
-  <p class="ver">版本 v1.32.0 · 资源戳 v=166 · 每笔有据，疑处留白。</p>
+  <p class="ver">版本 v1.33.0 · 资源戳 v=167 · 每笔有据，疑处留白。</p>
 </footer>
 
-<script src="data/core.js?v=166"></script>
-<script src="data/cities.js?v=166"></script>
-<script src="data/beings.js?v=166"></script>
-<script src="data/timeline.js?v=166"></script>
-<script src="data/suiling.js?v=166"></script>
-<script src="data/organs.js?v=166"></script>
-<script src="data/arcs.js?v=166"></script>
-<script src="data/docs.js?v=166"></script>
-<script src="data/lexicon.js?v=166"></script>
-  <script src="data/sayings.js?v=166"></script>
-  <script src="data/goods.js?v=166"></script>
-  <script src="data/stakes.js?v=166"></script>
-<script src="data/stories.js?v=166"></script>
-<script src="data/characters.js?v=166"></script>
-<script src="data/relations.js?v=166"></script>
-<script src="data/updates.js?v=166"></script>
-<script src="data/trials.js?v=166"></script>
-<script src="data/granaries.js?v=166"></script>
-<script src="data/relay.js?v=166"></script>
-<script src="data/daily.js?v=166"></script>
-<script src="assets/app.js?v=166"></script>
+<script src="data/core.js?v=167"></script>
+<script src="data/cities.js?v=167"></script>
+<script src="data/beings.js?v=167"></script>
+<script src="data/timeline.js?v=167"></script>
+<script src="data/suiling.js?v=167"></script>
+<script src="data/organs.js?v=167"></script>
+<script src="data/arcs.js?v=167"></script>
+<script src="data/docs.js?v=167"></script>
+<script src="data/lexicon.js?v=167"></script>
+  <script src="data/sayings.js?v=167"></script>
+  <script src="data/goods.js?v=167"></script>
+  <script src="data/stakes.js?v=167"></script>
+<script src="data/stories.js?v=167"></script>
+<script src="data/characters.js?v=167"></script>
+<script src="data/relations.js?v=167"></script>
+<script src="data/updates.js?v=167"></script>
+<script src="data/trials.js?v=167"></script>
+<script src="data/granaries.js?v=167"></script>
+<script src="data/relay.js?v=167"></script>
+<script src="data/daily.js?v=167"></script>
+<script src="data/observatory.js?v=167"></script>
+<script src="assets/app.js?v=167"></script>
 </body>
 </html>

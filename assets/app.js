@@ -360,6 +360,7 @@
       if (typeof WXTRIALS !== 'undefined') parts.push('试账 ' + WXTRIALS.length + ' 案');
       if (typeof WXGRANARIES !== 'undefined') parts.push('仓衡 ' + WXGRANARIES.stores.length + ' 制');
       if (typeof WXDAILY !== 'undefined') parts.push('街约 ' + WXDAILY.practices.length + ' 签');
+      if (typeof WXOBSERVATORY !== 'undefined') parts.push('校时 ' + WXOBSERVATORY.instruments.length + ' 签');
       txt(ht, '全书总账：' + parts.join(' · '));
       /* v1.20.0 我架入口：总账行尾立门，收藏的卷回家即见；计数随星而新 */
       var fchip = el('button', 'chip');
@@ -1138,6 +1139,93 @@
       era.appendChild(ul);
       wrap.appendChild(era);
     });
+    buildObservatory();
+  }
+
+  /* ---------------- 三签校时：每种读数各留原签 ---------------- */
+  function buildObservatory() {
+    var data = typeof WXOBSERVATORY !== 'undefined' ? WXOBSERVATORY : null;
+    var tabs = $('#observatoryTabs'), panel = $('#observatoryPanel');
+    if (!data || !tabs || !panel) return;
+    txt($('#observatoryLead'), data.intro);
+    txt($('#observatoryMotto'), data.motto);
+    txt($('#observatoryCaseTitle'), data.case.title);
+    txt($('#observatoryCasePlace'), data.case.place);
+    txt($('#observatoryCaseIntro'), data.case.intro);
+    txt($('#observatoryConclusion'), data.case.conclusion);
+    txt($('#observatoryBoundary'), data.boundary);
+    var ref = $('#observatoryVolumeLink');
+    txt(ref, '回看原卷 · ' + data.case.ref + '《两刻》 ↗');
+    ref.onclick = function () { volGo(data.case.ref); };
+    var sources = $('#observatorySource');
+    sources.innerHTML = '';
+    sources.appendChild(txt(el('span', 'observatory-source-note'), data.reference.note + ' '));
+    var sourceLink = el('a');
+    sourceLink.href = data.reference.url;
+    sourceLink.target = '_blank';
+    sourceLink.rel = 'noopener noreferrer';
+    txt(sourceLink, data.reference.label + ' ↗');
+    sources.appendChild(sourceLink);
+    function makeModes(items, host, select, className, labelText) {
+      host.innerHTML = '';
+      items.forEach(function (item) {
+        var button = el('button', 'chip ' + className);
+        button.type = 'button';
+        button.setAttribute('data-mode', item.id);
+        button.setAttribute('aria-pressed', 'false');
+        txt(button, labelText(item));
+        button.addEventListener('click', function () { select(item.id); });
+        host.appendChild(button);
+      });
+    }
+    function showInstrument(id) {
+      var instrument = data.instruments.filter(function (item) { return item.id === id; })[0];
+      if (!instrument) return;
+      $$('.observatory-mode', tabs).forEach(function (button) {
+        var active = button.getAttribute('data-mode') === id;
+        button.classList.toggle('on', active);
+        button.setAttribute('aria-pressed', active ? 'true' : 'false');
+      });
+      panel.innerHTML = '';
+      panel.appendChild(txt(el('span', 'observatory-kicker'), instrument.place + ' · ' + instrument.mark + '签'));
+      panel.appendChild(txt(el('h4'), instrument.name));
+      panel.appendChild(txt(el('p', 'observatory-work'), instrument.work));
+      panel.appendChild(txt(el('p', 'observatory-record'), instrument.record));
+      var limit = el('p', 'observatory-limit');
+      limit.appendChild(txt(el('b'), '失准边界'));
+      limit.appendChild(document.createTextNode(instrument.limit));
+      panel.appendChild(limit);
+    }
+    makeModes(data.instruments, tabs, showInstrument, 'observatory-mode', function (item) { return item.mark + ' · ' + item.name; });
+    window.__wx_setObservatoryMode = showInstrument;
+    showInstrument(data.instruments[0].id);
+
+    var steps = $('#observatoryCaseSteps'), casePanel = $('#observatoryCasePanel');
+    function showCase(id) {
+      var event = data.case.events.filter(function (item) { return item.id === id; })[0];
+      if (!event) return;
+      $$('.observatory-case-step', steps).forEach(function (button) {
+        var active = button.getAttribute('data-mode') === id;
+        button.classList.toggle('on', active);
+        button.setAttribute('aria-pressed', active ? 'true' : 'false');
+      });
+      casePanel.innerHTML = '';
+      var top = el('div', 'observatory-event-top');
+      top.appendChild(txt(el('span', 'observatory-event-time'), event.time));
+      top.appendChild(txt(el('span', 'observatory-event-mark'), event.mark));
+      casePanel.appendChild(top);
+      casePanel.appendChild(txt(el('h5'), event.title));
+      casePanel.appendChild(txt(el('p'), event.text));
+    }
+    makeModes(data.case.events, steps, showCase, 'observatory-case-step', function (item) { return item.time + ' · ' + item.title; });
+    window.__wx_setObservatoryCase = showCase;
+    showCase(data.case.events[0].id);
+    var ruleHost = $('#observatoryRules');
+    ruleHost.innerHTML = '';
+    ruleHost.appendChild(txt(el('h4'), '三条校验规程'));
+    var ruleList = el('ol');
+    data.rules.forEach(function (rule) { ruleList.appendChild(txt(el('li'), rule)); });
+    ruleHost.appendChild(ruleList);
   }
 
   /* ---------------- 词库 ---------------- */
@@ -1408,6 +1496,11 @@
       { name: '账房谚', rows: (typeof WXSAYINGS !== 'undefined' ? WXSAYINGS : []).map(function (s) { return { t: s, s: '账房谚 · 拾句页可抄', goto: 'shiju' }; }) },
       { name: '众生谱', rows: (typeof WXBEINGS !== 'undefined' ? WXBEINGS : []).map(function (x) { return { t: x.name + ' · ' + x.also, s: x.cat + '　' + x.head + '　' + x.text, goto: 'beings', cid: x.cat }; }) },
       { name: '历纪', rows: (typeof WXTIMELINE !== 'undefined' && WXTIMELINE.eras ? WXTIMELINE.eras : []).map(function (x) { return { t: x.name + ' · ' + x.no, s: x.events.join('　'), goto: 'timeline' }; }) },
+      { name: '时签', rows: (typeof WXOBSERVATORY !== 'undefined' ? WXOBSERVATORY.instruments.map(function (x) {
+          return { t: x.mark + ' · ' + x.name + ' · ' + x.place, s: x.work + '　' + x.record + '　' + x.limit, goto: 'timeline', obsInstrument: x.id };
+        }).concat(WXOBSERVATORY.case.events.map(function (x) {
+          return { t: WXOBSERVATORY.case.title + ' · ' + x.time + ' · ' + x.title, s: x.mark + '　' + x.text, goto: 'timeline', obsEvent: x.id };
+        })) : []) },
       { name: '更新志', rows: (typeof WXUPDATES !== 'undefined' ? WXUPDATES : []).map(function (x) { return { t: x.v + ' · ' + x.title, s: x.items.join('　'), goto: 'updates' }; }) },
       { name: '试账', rows: (typeof WXTRIALS !== 'undefined' ? WXTRIALS : []).map(function (x) {
           return { t: '案' + x.no + '《' + x.title + '》 · ' + x.place,
@@ -1520,7 +1613,7 @@
           var titleExact = terms.every(function (term) { return title === term.toLocaleLowerCase(); });
           var titlePrefix = terms.every(function (term) { return title.indexOf(term.toLocaleLowerCase()) === 0; });
           var rank = titleExact ? 0 : titlePrefix ? 1 : titleAll ? 2 : 3;
-          hits.push({ label: src.name, t: r.t, s: r.s, goto: r.goto, cid: r.cid, caseId: r.caseId, targetId: r.targetId, modeId: r.modeId, rank: rank, si: si, ri: ri });
+          hits.push({ label: src.name, t: r.t, s: r.s, goto: r.goto, cid: r.cid, caseId: r.caseId, targetId: r.targetId, modeId: r.modeId, obsInstrument: r.obsInstrument, obsEvent: r.obsEvent, rank: rank, si: si, ri: ri });
         });
       });
       hits.sort(function (a, b) { return a.rank - b.rank || a.si - b.si || a.ri - b.ri; });
@@ -1556,6 +1649,18 @@
             window.__wx_setDailyMode(h.modeId);
             var lifeTarget = $('#dailyPanel');
             if (lifeTarget) { lifeTarget.scrollIntoView({ behavior: 'smooth', block: 'start' }); lifeTarget.classList.add('daily-flash'); setTimeout(function () { lifeTarget.classList.remove('daily-flash'); }, 1800); }
+            return;
+          }
+          if (h.goto === 'timeline' && h.obsInstrument && window.__wx_setObservatoryMode) {
+            window.__wx_setObservatoryMode(h.obsInstrument);
+            var observatoryTarget = $('#observatoryFeature');
+            if (observatoryTarget) { observatoryTarget.scrollIntoView({ behavior: 'smooth', block: 'start' }); observatoryTarget.classList.add('observatory-flash'); setTimeout(function () { observatoryTarget.classList.remove('observatory-flash'); }, 1800); }
+            return;
+          }
+          if (h.goto === 'timeline' && h.obsEvent && window.__wx_setObservatoryCase) {
+            window.__wx_setObservatoryCase(h.obsEvent);
+            var caseTarget = $('#observatoryCase');
+            if (caseTarget) { caseTarget.scrollIntoView({ behavior: 'smooth', block: 'start' }); caseTarget.classList.add('observatory-flash'); setTimeout(function () { caseTarget.classList.remove('observatory-flash'); }, 1800); }
             return;
           }
           if (h.goto === 'goods' && h.targetId) {
@@ -3070,6 +3175,30 @@
       e.events.forEach(function (v) { L.push('- ' + v); });
       L.push('');
     });
+    L.push('### 三签校时 · ' + WXOBSERVATORY.title);
+    L.push(WXOBSERVATORY.intro);
+    L.push('');
+    L.push('> ' + WXOBSERVATORY.motto);
+    WXOBSERVATORY.instruments.forEach(function (x) {
+      L.push('#### ' + x.mark + '签 · ' + x.name + '（' + x.place + '）');
+      L.push(x.work);
+      L.push('记录：' + x.record);
+      L.push('失准边界：' + x.limit);
+      L.push('');
+    });
+    L.push('校时规程：');
+    WXOBSERVATORY.rules.forEach(function (x) { L.push('- ' + x); });
+    L.push('');
+    L.push('#### ' + WXOBSERVATORY.case.title + ' · ' + WXOBSERVATORY.case.place);
+    L.push(WXOBSERVATORY.case.intro);
+    WXOBSERVATORY.case.events.forEach(function (x) { L.push('- ' + x.time + ' · ' + x.mark + ' · ' + x.title + '：' + x.text); });
+    L.push('');
+    L.push(WXOBSERVATORY.case.conclusion);
+    L.push('');
+    L.push(WXOBSERVATORY.boundary);
+    L.push('');
+    L.push(WXOBSERVATORY.reference.note + ' ' + WXOBSERVATORY.reference.label + '：' + WXOBSERVATORY.reference.url);
+    L.push('');
     L.push('### 甲子账牌');
     L.push(WXTIMELINE.jiazi);
     L.push('');

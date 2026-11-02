@@ -1321,3 +1321,66 @@ html.standalone-app .install-dialog{padding-top:calc(24px + env(safe-area-inset-
   .daily-scene,.daily-receipt,.daily-note{break-inside:avoid;background:#fff;color:#111;border-color:#999;box-shadow:none;}
   .daily-scene-copy,.daily-ledger-detail strong,.daily-ledger-detail span,.daily-rule,.daily-slip p,.daily-boundary p,.daily-note{color:#222;}
 }
+
+/* v1.33 · 三签校时：图示机器，正文分签，不让装饰压过证据 */
+.observatory-feature{display:grid;grid-template-columns:minmax(0,1.03fr) minmax(0,.97fr);gap:20px;margin:18px 0;padding:15px;border:1px solid var(--line);border-radius:5px;background:linear-gradient(135deg,rgba(200,163,90,.045),rgba(16,21,27,.78) 44%,rgba(192,64,46,.035));scroll-margin-top:88px;transition:border-color .2s,box-shadow .2s;}
+.observatory-feature.observatory-flash,.observatory-case.observatory-flash{border-color:var(--verm2);box-shadow:0 0 0 1px rgba(192,64,46,.2),0 0 24px rgba(192,64,46,.12);}
+.observatory-figure{min-width:0;align-self:start;overflow:hidden;border:1px solid var(--line2);border-radius:4px;background:#080a0d;}
+.observatory-figure img{display:block;width:100%;height:auto;aspect-ratio:3/2;object-fit:cover;}
+.observatory-figure figcaption{padding:7px 10px;color:var(--silk3);font:11px var(--hei);letter-spacing:.11em;text-align:right;}
+.observatory-reader{min-width:0;display:flex;flex-direction:column;justify-content:center;}
+.observatory-motto{padding:0 0 12px;color:var(--gold2);font:15px/1.85 var(--kai);letter-spacing:.08em;}
+.observatory-tabs{gap:7px;margin:0 0 10px;}
+.observatory-mode.on,.observatory-case-step.on{border-color:var(--verm2);background:rgba(192,64,46,.09);color:var(--gold2);}
+.observatory-panel{min-height:235px;padding:15px;border:1px solid var(--line2);border-left:2px solid var(--golddim);border-radius:3px;background:rgba(8,11,15,.68);scroll-margin-top:90px;}
+.observatory-kicker{display:block;color:var(--silk3);font:10px var(--hei);letter-spacing:.13em;}
+.observatory-panel h4{margin:4px 0 9px;color:var(--silk);font:20px var(--kai);font-weight:500;letter-spacing:.12em;}
+.observatory-work,.observatory-record{margin:0 0 8px;color:var(--silk2);font-size:13.5px;line-height:1.85;}
+.observatory-limit{margin-top:10px;padding:8px 10px;border-top:1px dashed var(--line);color:var(--silk3);font-size:12px;line-height:1.75;}
+.observatory-limit b{margin-right:8px;color:#e0a28f;font:11px var(--hei);letter-spacing:.08em;}
+.observatory-rules{display:grid;grid-template-columns:180px minmax(0,1fr);gap:18px;align-items:start;margin:14px 0 28px;padding:15px 18px;border-left:2px solid var(--golddim);background:rgba(200,163,90,.035);}
+.observatory-rules h4{color:var(--gold2);font:14px var(--kai);font-weight:500;letter-spacing:.1em;}
+.observatory-rules ol{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 18px;padding-left:22px;color:var(--silk2);font-size:12.5px;line-height:1.8;}
+.observatory-rules li{padding-left:3px;}
+.observatory-case{margin:16px 0;padding:18px 20px;border:1px solid var(--line);border-top:2px solid var(--verm);border-radius:4px;background:linear-gradient(145deg,rgba(192,64,46,.04),rgba(16,21,27,.74) 30%,rgba(16,21,27,.54));scroll-margin-top:90px;transition:border-color .2s,box-shadow .2s;}
+.observatory-case-head{display:flex;align-items:end;justify-content:space-between;gap:14px;}
+.observatory-case-head h4{margin-top:5px;color:var(--silk);font:20px var(--kai);font-weight:500;letter-spacing:.1em;}
+.observatory-case-place{flex:none;color:var(--silk3);font:11px var(--hei);letter-spacing:.08em;}
+.observatory-case-intro{max-width:850px;margin:8px 0 12px;color:var(--silk2);font-size:13px;line-height:1.85;}
+.observatory-case-steps{display:flex;gap:7px;margin:10px 0;}
+.observatory-case-step{flex:1 1 0;min-height:38px;padding:7px 9px;font-size:12px;}
+.observatory-case-panel{min-height:118px;margin:10px 0;padding:13px 15px;border:1px solid var(--line2);border-radius:3px;background:rgba(8,11,15,.58);}
+.observatory-event-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.observatory-event-time{color:var(--gold2);font:14px var(--hei);font-variant-numeric:tabular-nums;}
+.observatory-event-mark{padding:2px 7px;border:1px solid var(--line);border-radius:2px;color:var(--silk3);font:10px var(--hei);letter-spacing:.05em;}
+.observatory-case-panel h5{margin:6px 0 2px;color:var(--silk);font:16px var(--kai);font-weight:500;}
+.observatory-case-panel p{color:var(--silk2);font-size:13px;line-height:1.8;}
+.observatory-conclusion{margin:10px 0;color:var(--silk2);font:14px/1.9 var(--kai);}
+.observatory-volume-link{margin:2px 0 0;}
+.observatory-boundary{margin:12px 0;padding:10px 13px;border:1px dashed var(--line);color:var(--silk3);font-size:12px;line-height:1.85;}
+.observatory-source{margin:8px 0 26px;color:var(--silk3);font-size:11px;line-height:1.8;}
+.observatory-source a{color:var(--gold2);text-decoration-color:var(--golddim);text-underline-offset:3px;}
+.observatory-source a:hover{color:var(--paper);}
+@media(max-width:850px){
+  .observatory-feature{grid-template-columns:minmax(0,1fr);}
+  .observatory-figure{max-width:640px;margin:0 auto;width:100%;}
+  .observatory-panel{min-height:0;}
+  .observatory-rules{grid-template-columns:1fr;gap:8px;}
+}
+@media(max-width:560px){
+  .observatory-feature{gap:12px;padding:10px;}
+  .observatory-motto{font-size:14px;}
+  .observatory-rules{padding:12px;}
+  .observatory-rules ol{grid-template-columns:minmax(0,1fr);gap:7px;}
+  .observatory-case{padding:14px 12px;}
+  .observatory-case-head{align-items:start;flex-direction:column;gap:4px;}
+  .observatory-case-head h4{font-size:18px;}
+  .observatory-case-steps .observatory-case-step{flex:1 1 calc(50% - 7px);}
+  .observatory-case-panel{padding:11px;}
+}
+@media(prefers-reduced-motion:reduce){.observatory-feature,.observatory-case{transition:none}}
+@media print{
+  .observatory-feature,.observatory-case,.observatory-rules,.observatory-boundary{break-inside:avoid;background:#fff;color:#111;border-color:#999;box-shadow:none;}
+  .observatory-tabs{display:none!important;}
+  .observatory-work,.observatory-record,.observatory-rules ol,.observatory-case-intro,.observatory-case-panel p,.observatory-conclusion,.observatory-boundary{color:#222;}
+}

@@ -4,7 +4,7 @@
 'use strict';
 const fs = require('fs'), vm = require('vm');
 const P = __dirname.replace(/\\/g, '/') + '/../';
-const DATA = ['core','cities','beings','timeline','lexicon','sayings','goods','stories','characters','relations','stakes','suiling','organs','arcs','docs','updates','trials','granaries','relay','daily'];
+const DATA = ['core','cities','beings','timeline','lexicon','sayings','goods','stories','characters','relations','stakes','suiling','organs','arcs','docs','updates','trials','granaries','relay','daily','observatory'];
 const JS = DATA.map(d => 'data/' + d + '.js').concat(['assets/app.js']);
 let warn = [];
 const ok = m => console.log('  ✓ ' + m);
@@ -36,7 +36,9 @@ const swSource = fs.readFileSync(P + 'sw.js', 'utf8');
 const swFontsOk = /fontCss\.text\(\)/.test(swSource) && /cache\.addAll\(fonts\.slice\(/.test(swSource);
 swFontsOk ? ok('离线安装会分批预存 ' + fontRefs.length + ' 个本地字形子集') : ng('离线安装未覆盖本地字体子集');
 /['\"]\.\/data\/relay\.js\?v=\d+['\"]/.test(swSource) ? ok('Service Worker 预缓存信路数据') : ng('Service Worker 漏缓存信路数据');
-/['\"]\.\/data\/daily\.js\?v=166['\"]/.test(swSource) ? ok('Service Worker 预缓存街巷日用篇') : ng('Service Worker 漏缓存街巷日用篇');
+/['\"]\.\/data\/daily\.js\?v=167['\"]/.test(swSource) ? ok('Service Worker 预缓存街巷日用篇') : ng('Service Worker 漏缓存街巷日用篇');
+/['\"]\.\/data\/observatory\.js\?v=167['\"]/.test(swSource) ? ok('Service Worker 预缓存三签校时资料') : ng('Service Worker 漏缓存三签校时资料');
+/['\"]\.\/assets\/three-seal-observatory\.webp['\"]/.test(swSource) ? ok('Service Worker 预缓存原创三签台器物图') : ng('Service Worker 漏缓存三签台器物图');
 const characterSource = fs.readFileSync(P + 'data/characters.js', 'utf8');
 const portraitRefs = [...characterSource.matchAll(/portrait:\s*['\"]([^'\"]+)['\"]/g)].map(m => m[1]);
 const missingPortraits = portraitRefs.filter(src => !fs.existsSync(P + src));
@@ -75,6 +77,8 @@ for (const m of html.matchAll(/\b(?:href|src)=[\"']([^\"']+)[\"']/g)) {
   if (file && !fs.existsSync(require('path').resolve(P, file))) badLocalRefs.push(ref);
 }
 badLocalRefs.length ? ng('HTML 本地链接或素材失引：' + badLocalRefs.join('、')) : ok('HTML 本地锚点、脚本、样式、图标与资源均可达');
+const observatoryAssetOk = /src="assets\/three-seal-observatory\.webp"/.test(html) && /alt="原创三签台[^"]+"/.test(html) && fs.existsSync(P + 'assets/three-seal-observatory.webp') && /assets\/three-seal-observatory\.webp/.test(swSource);
+observatoryAssetOk ? ok('三签台原创插图有替代文本并入离线册') : ng('三签台插图、替代文本或离线缓存缺失');
 const coverMeta = /<meta property="og:image" content="assets\/ledger-cover\.jpg"/.test(html) &&
   /<meta property="og:image:alt" content="[^"]+"/.test(html) &&
   /<meta property="og:image:width" content="1200"/.test(html) &&
@@ -171,6 +175,27 @@ else {
   const dDup = new Set(daily.practices.map(x => x.id)).size !== daily.practices.length;
   dDup ? ng('街约签 id 重复') : ok('街约签 id 无重复');
 }
+const observatory = q('WXOBSERVATORY');
+if (!observatory || !Array.isArray(observatory.instruments) || !Array.isArray(observatory.rules) || !observatory.case || !Array.isArray(observatory.case.events)) ng('三签校时篇形状不全');
+else {
+  const stationIds = new Set(observatory.instruments.map(x => x.id));
+  const eventIds = new Set(observatory.case.events.map(x => x.id));
+  const eventOrder = observatory.case.events.map(x => x.id).join(',');
+  const oBad = observatory.instruments.length !== 3 || !['shadow','water','star'].every(id => stationIds.has(id)) ||
+    observatory.case.events.length !== 4 || eventOrder !== 'first-sight,changed,voice-arrival,letter-arrival' ||
+    observatory.rules.length !== 3 || observatory.instruments.some(x => !x.name || !x.place || !x.work || !x.record || !x.limit) ||
+    observatory.case.events.some(x => !x.time || !x.mark || !x.title || !x.text);
+  oBad ? ng('三签校时须含影漏星三站、三条规程与顺序正确的四笔时序') : ok('三签校时影漏星三站、三规程与四笔时序齐全');
+  const oDup = stationIds.size !== observatory.instruments.length || eventIds.size !== observatory.case.events.length;
+  oDup ? ng('三签或汛情时序 id 重复') : ok('三签与汛情时序 id 无重复');
+  observatory.reference && /^https:\/\//.test(observatory.reference.url) && observatory.reference.note ? ok('三签校时网络参照有可回访出处与原创边界') : ng('三签校时缺少可回访资料出处或原创声明');
+}
+const floodStory = q('WXSTORIES').filter(x => x.id === 's99')[0];
+const MiShouchang = q('WXCHARS').filter(x => x.id === 'mishouchang')[0];
+const timeWords = floodStory ? floodStory.paras.join('') : '';
+const timeClarity = timeWords.includes('第二道红线') && timeWords.includes('第三道红线') && timeWords.includes('消息时序分栏') &&
+  !timeWords.includes('水尺越了第二刻') && !timeWords.includes('第三刻仍在') && !timeWords.includes('所见在几刻') && MiShouchang && MiShouchang.hook.includes('哪道线');
+timeClarity ? ok('《两刻》水尺线与时辰分明，米守常人物钩子相互印证') : ng('汛情卷与米守常条目对水位/时辰的区分不一致');
 const relay = q('WXRELAY');
 if (!relay || !Array.isArray(relay.channels) || relay.channels.length !== 3 || !relay.dispatch || !Array.isArray(relay.dispatch.legs)) ng('信路三式或递送实录形状不全');
 else {
@@ -453,8 +478,8 @@ dirtyHits.length ? ng('账面露管线 ' + dirtyHits.length + ' 处：' + dirtyH
 const appSrc = fs.readFileSync(P + 'assets/app.js', 'utf8');
 const srcBlock = (appSrc.match(/var SOURCES = \[([\s\S]*?)\n    \];/) || [0, ''])[1];
 const srcCount = (srcBlock.match(/name: '/g) || []).length;
-const tipOk = html.indexOf('全书二十篇') >= 0 && html.indexOf('索引十八源') >= 0 && secTags === 20 && srcCount === 18 && /data\/daily\.js\?v=166/.test(html) && /data\/daily\.js\?v=166/.test(swSource);
-tipOk ? ok('初见笺、篇目、索引与离线数据一致（二十篇 · 十八源）') : ng('初见笺计数脱节：实况 ' + secTags + ' 篇 · ' + srcCount + ' 源，或街巷日用未纳入离线册');
+const tipOk = html.indexOf('全书二十篇') >= 0 && html.indexOf('索引十九源') >= 0 && secTags === 20 && srcCount === 19 && /data\/daily\.js\?v=167/.test(html) && /data\/daily\.js\?v=167/.test(swSource) && /data\/observatory\.js\?v=167/.test(html) && /data\/observatory\.js\?v=167/.test(swSource);
+tipOk ? ok('初见笺、篇目、索引与离线数据一致（二十篇 · 十九源）') : ng('初见笺计数脱节：实况 ' + secTags + ' 篇 · ' + srcCount + ' 源，或日用/校时资料未纳入离线册');
 
 console.log('\n【结论】' + (warn.length ? '需处理 ' + warn.length + ' 项' : '全部通过'));
 warn.forEach(w => console.log('  ✗ ' + w));
