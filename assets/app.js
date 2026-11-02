@@ -50,13 +50,95 @@
     var b = document.querySelector('#nav button[data-goto="' + id + '"]');
     return b ? b.textContent.trim() : '总纲';
   }
-  var mobilePageSelect = $('#mobilePageSelect');
-  if (mobilePageSelect) {
-    PAGES.forEach(function (id) {
-      var option = document.createElement('option'); option.value = id; option.textContent = pageLabel(id);
-      mobilePageSelect.appendChild(option);
+  var mobilePicker = $('#mobilePicker');
+  var mobilePageTrigger = $('#mobilePageTrigger');
+  var mobilePageCurrent = $('#mobilePageCurrent');
+  var mobilePagePopover = $('#mobilePagePopover');
+  var mobilePageMenu = $('#mobilePageMenu');
+  var mobilePageItems = [];
+  var mobileFocusTimer = 0;
+
+  function syncMobilePicker(id) {
+    if (!mobilePicker) return;
+    if (mobilePageCurrent) txt(mobilePageCurrent, pageLabel(id));
+    if (mobilePageTrigger) mobilePageTrigger.setAttribute('aria-label', '选择篇目，当前为' + pageLabel(id));
+    mobilePageItems.forEach(function (item) {
+      var active = item.getAttribute('data-page') === id;
+      item.setAttribute('aria-checked', active ? 'true' : 'false');
+      item.classList.toggle('is-current', active);
     });
-    mobilePageSelect.addEventListener('change', function () { show(mobilePageSelect.value); });
+  }
+  function closeMobileMenu(returnFocus) {
+    if (!mobilePicker || !mobilePicker.classList.contains('is-open')) return;
+    mobilePicker.classList.remove('is-open');
+    if (mobileFocusTimer) { clearTimeout(mobileFocusTimer); mobileFocusTimer = 0; }
+    mobilePageTrigger.setAttribute('aria-expanded', 'false');
+    mobilePagePopover.setAttribute('aria-hidden', 'true');
+    if (returnFocus) mobilePageTrigger.focus({ preventScroll: true });
+  }
+  function openMobileMenu(focusItem) {
+    if (!mobilePicker) return;
+    mobilePicker.classList.add('is-open');
+    mobilePageTrigger.setAttribute('aria-expanded', 'true');
+    mobilePagePopover.setAttribute('aria-hidden', 'false');
+    var current = mobilePageItems.filter(function (item) { return item.getAttribute('aria-checked') === 'true'; })[0] || mobilePageItems[0];
+    if (current) {
+      current.scrollIntoView({ block: 'nearest' });
+      if (focusItem) {
+        if (mobileFocusTimer) clearTimeout(mobileFocusTimer);
+        mobileFocusTimer = setTimeout(function () {
+          mobileFocusTimer = 0;
+          if (mobilePicker.classList.contains('is-open')) current.focus({ preventScroll: true });
+        }, 210);
+      }
+    }
+  }
+  if (mobilePicker && mobilePageMenu) {
+    PAGES.forEach(function (id, index) {
+      var item = el('button', 'mobile-page-option');
+      item.type = 'button'; item.setAttribute('role', 'menuitemradio'); item.setAttribute('aria-checked', 'false'); item.setAttribute('data-page', id);
+      item.appendChild(txt(el('span', 'mobile-page-number'), String(index + 1).padStart(2, '0')));
+      item.appendChild(txt(el('span', 'mobile-page-option-name'), pageLabel(id)));
+      item.appendChild(txt(el('span', 'mobile-page-check'), '✓'));
+      item.addEventListener('click', function () {
+        closeMobileMenu(false);
+        show(id);
+        mobilePageTrigger.focus({ preventScroll: true });
+      });
+      mobilePageMenu.appendChild(item); mobilePageItems.push(item);
+    });
+    syncMobilePicker(CUR);
+    mobilePageTrigger.addEventListener('click', function () {
+      if (mobilePicker.classList.contains('is-open')) closeMobileMenu(false);
+      else openMobileMenu(false);
+    });
+    mobilePageTrigger.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && mobilePicker.classList.contains('is-open')) {
+        e.preventDefault(); closeMobileMenu(true);
+      } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openMobileMenu(true);
+      }
+    });
+    mobilePagePopover.addEventListener('keydown', function (e) {
+      var index = mobilePageItems.indexOf(document.activeElement);
+      if (e.key === 'Escape') { e.preventDefault(); closeMobileMenu(true); }
+      else if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Home' || e.key === 'End') {
+        e.preventDefault();
+        if (index < 0) index = Math.max(0, mobilePageItems.findIndex(function (item) { return item.getAttribute('aria-checked') === 'true'; }));
+        if (e.key === 'Home') index = 0;
+        else if (e.key === 'End') index = mobilePageItems.length - 1;
+        else index = (index + (e.key === 'ArrowDown' ? 1 : -1) + mobilePageItems.length) % mobilePageItems.length;
+        mobilePageItems[index].focus();
+      } else if (e.key === 'Tab') closeMobileMenu(false);
+    });
+    var mobileMenuClose = $('#mobileMenuClose');
+    if (mobileMenuClose) mobileMenuClose.addEventListener('click', function () { closeMobileMenu(true); });
+    document.addEventListener('click', function (e) {
+      if (mobilePicker.classList.contains('is-open') && !mobilePicker.contains(e.target)) {
+        closeMobileMenu(mobilePicker.contains(document.activeElement));
+      }
+    });
   }
   function readY() { return window.pageYOffset || document.documentElement.scrollTop || 0; }
   function scrollRatio() {
@@ -97,7 +179,8 @@
       b.classList.toggle('on', b.getAttribute('data-goto') === id);
     });
     CUR = id;
-    if (mobilePageSelect) mobilePageSelect.value = id;
+    closeMobileMenu(false);
+    syncMobilePicker(id);
     var nb = document.querySelector('#nav button[data-goto="' + id + '"]');
     document.title = (nb ? nb.textContent + ' · ' : '') + '万象天账 · 墨序司异闻籍';
     if (noPush) {

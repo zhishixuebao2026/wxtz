@@ -64,8 +64,20 @@
   <button type="button" class="mobile-back" id="mobileBack" aria-label="返回上一页" title="返回上一页">
     <span aria-hidden="true">‹</span>返回
   </button>
-  <label for="mobilePageSelect">篇目</label>
-  <select id="mobilePageSelect" aria-label="选择要阅读的篇目"></select>
+  <span class="mobile-nav-label" aria-hidden="true">篇目</span>
+  <div class="mobile-picker" id="mobilePicker">
+    <button type="button" class="mobile-picker-trigger" id="mobilePageTrigger" aria-label="选择篇目，当前为总纲" aria-haspopup="menu" aria-expanded="false" aria-controls="mobilePagePopover">
+      <span class="mobile-page-current" id="mobilePageCurrent">总纲</span>
+      <span class="mobile-picker-chevron" aria-hidden="true"></span>
+    </button>
+    <div class="mobile-page-popover" id="mobilePagePopover" aria-hidden="true">
+      <div class="mobile-menu-head">
+        <div><strong>篇目目录</strong><span>十八篇 · 选择即开卷</span></div>
+        <button type="button" id="mobileMenuClose" aria-label="关闭篇目目录">×</button>
+      </div>
+      <div class="mobile-page-menu" id="mobilePageMenu" role="menu" aria-label="选择篇目"></div>
+    </div>
+  </div>
 </div>
 
 <main id="main">
