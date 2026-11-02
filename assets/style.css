@@ -1250,3 +1250,13 @@ html.standalone-app .install-dialog{padding-top:calc(24px + env(safe-area-inset-
   .relay-letter-head{align-items:flex-start;flex-direction:column}
 }
 @media print{.relay-tabs,.relay-story-link,.net-scroll-note{display:none!important}.relay-panel,.relay-letter,.relay-stop{break-inside:avoid;box-shadow:none}}
+
+/* v1.30.0 · 三照勘签：将核验次序画成可读的纸上流程 */
+.doc-checks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0 2px;padding:0;list-style:none;counter-reset:doc-check}
+.doc-checks li{position:relative;display:flex;align-items:flex-start;gap:10px;min-width:0;padding:11px 10px;border:1px solid rgba(200,163,90,.2);border-left:2px solid var(--golddim);border-radius:3px;background:linear-gradient(135deg,rgba(200,163,90,.055),rgba(255,255,255,.012));counter-increment:doc-check}
+.doc-check-key{flex:none;display:grid;place-items:center;width:25px;height:25px;border:1px solid rgba(200,163,90,.44);border-radius:50%;color:var(--gold2);font:13px var(--kai)}
+.doc-check-copy{min-width:0}
+.doc-check-copy strong{display:block;margin:1px 0 4px;color:var(--gold2);font:11px var(--hei);letter-spacing:.14em}
+.doc-check-copy p{margin:0;color:var(--silk2);font:11px/1.7 var(--hei)}
+@media(max-width:720px){.doc-checks{grid-template-columns:1fr;gap:6px}.doc-checks li{min-height:54px;padding:10px 11px}}
+@media print{.doc-checks li{break-inside:avoid;background:#fff;color:#111;border-color:#aaa}.doc-check-key,.doc-check-copy strong,.doc-check-copy p{color:#222}}

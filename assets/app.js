@@ -1757,6 +1757,20 @@
       var body = el('p', 'dc-text');
       body.appendChild(lrDecorate(paper.text, {}, false));
       card.appendChild(body);
+      if (Array.isArray(paper.checks) && paper.checks.length) {
+        var checks = el('ol', 'doc-checks');
+        checks.setAttribute('aria-label', '勘验步骤');
+        paper.checks.forEach(function (check) {
+          var item = el('li');
+          item.appendChild(txt(el('b', 'doc-check-key'), check.key));
+          var copy = el('div', 'doc-check-copy');
+          copy.appendChild(txt(el('strong'), check.title));
+          copy.appendChild(txt(el('p'), check.text));
+          item.appendChild(copy);
+          checks.appendChild(item);
+        });
+        card.appendChild(checks);
+      }
       var refs = el('footer', 'dc-refs');
       refs.appendChild(txt(el('span', 'dc-ref-label'), '勾稽'));
       (paper.ref || '').split('、').forEach(function (ref) {
@@ -3123,7 +3137,7 @@
   }
 
   /* ---------------- 卷引用互开（v1.06.0 历纪接卷）：正文里「卷X」即可点 ---------------- */
-  var VOLRX = /卷[零壹贰叁肆伍陆柒捌玖拾]{1,3}/g;
+  var VOLRX = /卷[零壹贰叁肆伍陆柒捌玖拾佰]{1,5}/g;
   /* v1.07.0 展线改重建式过滤：过滤器不再是 display:none 的遮罩，
      隐藏卷直接从册中不出现——回卷、卷目、罩 toggle 与展线不再互相打架 */
   var ARC_OF = {}, ARCSET = {};
@@ -3165,7 +3179,17 @@
     show('stories');
     var art = document.querySelector('#storyList article[data-no="' + no + '"]');
     if (art) {
-      art.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      var mobileNav = $('#mobileNav');
+      var stickyNav = mobileNav && window.getComputedStyle(mobileNav).display !== 'none' ? mobileNav : $('#nav');
+      var offset = stickyNav ? Math.ceil(stickyNav.getBoundingClientRect().height) + 12 : 12;
+      var targetY = Math.max(0, art.getBoundingClientRect().top + readY() - offset);
+      var far = Math.abs(targetY - readY()) > 2400;
+      if (far) {
+        var priorScroll = document.documentElement.style.scrollBehavior;
+        document.documentElement.style.scrollBehavior = 'auto';
+        window.scrollTo(0, targetY);
+        document.documentElement.style.scrollBehavior = priorScroll;
+      } else window.scrollTo({ top: targetY, behavior: 'smooth' });
       art.classList.add('story-flash');
       setTimeout(function () { art.classList.remove('story-flash'); }, 2400);
     }

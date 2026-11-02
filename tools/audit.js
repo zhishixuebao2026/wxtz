@@ -80,6 +80,10 @@ const K = Object.keys(ctx).filter(k => k.charAt(0) === 'W').sort();
 ok('全局变量 ' + K.length + ' 个：' + K.join('、'));
 const q = n => ctx[n];
 const cnt = n => { const v = q(n); return Array.isArray(v) ? v.length : null; };
+const publicCredit = String(q('WXCORE').falsify.credit || '');
+/[A-Z]:[\\/](?!\/)|\b[\w.-]+\.(?:md|txt|docx)\b/i.test(publicCredit)
+  ? ng('总纲可见署注暴露本地路径或素材文件名')
+  : ok('总纲公开署注不含本地路径或外部素材文件名');
 for (const n of ['WXSTORIES','WXLEXICON','WXCHARS','WXSAYINGS','WXCITYSAYINGS','WXGOODS','WXUPDATES','WXTRACE','WXBEINGS','WXCITIES','WX_CITY_NUM','WXBEING_CATS']) {
   const c = cnt(n); if (c !== null) ok(n + ' = ' + c);
 }
@@ -120,6 +124,9 @@ else {
   const gDup = new Set(gran.stores.map(s => s.id)).size !== gran.stores.length || new Set(gran.seasons.map(s => s.id)).size !== gran.seasons.length;
   gDup ? ng('仓制或仓事 id 重复') : ok('仓制与仓事 id 无重复');
 }
+const threeCheckDoc = q('WXDOCS').filter(p => p.n === '三照覆籍签 · 沈归')[0];
+if (!threeCheckDoc || !Array.isArray(threeCheckDoc.checks) || threeCheckDoc.checks.map(x => x.key).join('') !== '籍行见' || threeCheckDoc.checks.some(x => !x.title || !x.text)) ng('三照勘签步骤不齐');
+else ok('三照勘签有籍、行、见三步，证源说明齐备');
 const relay = q('WXRELAY');
 if (!relay || !Array.isArray(relay.channels) || relay.channels.length !== 3 || !relay.dispatch || !Array.isArray(relay.dispatch.legs)) ng('信路三式或递送实录形状不全');
 else {
@@ -206,6 +213,7 @@ if (q('WXNOTE')) ok('WXNOTE 声明存在');
 
 console.log('\n【七 计数一致性】');
 const readme = fs.readFileSync(P + 'README.md', 'utf8');
+/[A-Z]:[\\/](?!\/)/.test(readme) ? ng('README 暴露本机绝对路径') : ok('README 不含本机绝对路径');
 [
   ['异闻', q('WXSTORIES').length, '则'],
   ['词库', q('WXLEXICON').length, '条'],
@@ -231,14 +239,24 @@ mon ? ng('更新志日期非降序 ' + mon + ' 处') : ok('更新志日期降序
 
 console.log('\n【八 卷号勾稽】');
 const D2 = '零壹贰叁肆伍陆柒捌玖拾';
+function cnUnder100(v, compound) {
+  if (v <= 10) return v === 10 && compound ? '壹拾' : D2[v];
+  if (v < 20) return (compound ? '壹' : '') + '拾' + D2[v - 10];
+  return D2[Math.floor(v / 10)] + '拾' + (v % 10 ? D2[v % 10] : '');
+}
 const CN = [];
-for (let v = 1; v <= 120; v++) {
+for (let v = 1; v <= 300; v++) {
   let s;
-  if (v <= 10) s = D2[v];
-  else if (v < 20) s = '拾' + D2[v - 10];
-  else s = D2[Math.floor(v / 10)] + '拾' + (v % 10 ? D2[v % 10] : '');
+  if (v < 100) s = cnUnder100(v);
+  else {
+    const hundreds = Math.floor(v / 100), rest = v % 100;
+    s = D2[hundreds] + '佰' + (rest ? (rest < 10 ? '零' + D2[rest] : cnUnder100(rest, true)) : '');
+  }
   CN[v] = '卷' + s;
 }
+CN[100] === '卷壹佰' && CN[110] === '卷壹佰壹拾' && CN[121] === '卷壹佰贰拾壹' && CN[300] === '卷叁佰'
+  ? ok('卷号财数字可至三百，百位与零位写法无空字')
+  : ng('卷号财数字百位生成失实');
 const ST2 = q('WXSTORIES');
 let sseqBad = 0;
 ST2.forEach((s, i) => { if (s.id !== 's' + (i + 1) || s.no !== CN[i + 1]) { sseqBad++; console.log('  · ' + s.no + ' 应为 ' + CN[i + 1] + '（id ' + s.id + '）'); } });
@@ -251,9 +269,9 @@ R.links.forEach(l => { if (l.note) reftXT.push(l.note); });
 if (up) up.forEach(u => (u.items || []).forEach(it => reftXT.push(it)));
 const refBad = new Set();
 reftXT.forEach(t => {
-  (t.match(/卷[壹贰叁肆伍陆柒捌玖拾]{1,3}/g) || []).forEach(m => { if (!validCN.has(m)) refBad.add(m); });
+  (t.match(/卷[零壹贰叁肆伍陆柒捌玖拾佰]{1,5}/g) || []).forEach(m => { if (!validCN.has(m)) refBad.add(m); });
 });
-refBad.size ? ng('人物来历／关系注引用了不存在之卷：' + [...refBad].join('、')) : ok('人物来历与关系注中 ' + reftXT.join('　').match(/卷[壹贰叁肆伍陆柒捌玖拾]{1,3}/g).length + ' 处卷目引用全部存在');
+refBad.size ? ng('人物来历／关系注引用了不存在之卷：' + [...refBad].join('、')) : ok('人物来历与关系注中 ' + reftXT.join('　').match(/卷[零壹贰叁肆伍陆柒捌玖拾佰]{1,5}/g).length + ' 处卷目引用全部存在');
 
 console.log('\n【九 货殖齐整】');
 const C2 = q('WXCITIES');
