@@ -23,6 +23,26 @@ let d0 = 0, neg = 0;
 for (const ch of css) { if (ch === '{') d0++; else if (ch === '}') { d0--; if (d0 < 0) { neg++; d0 = 0; } } }
 d0 === 0 ? ok('CSS 括号配平（' + css.split('\n').length + ' 行）') : ng('CSS 括号不配平，剩余 ' + d0);
 if (neg) ng('CSS 负深 ' + neg);
+const rootColor = name => {
+  const hit = css.match(new RegExp('--' + name + ':\\s*(#[0-9a-f]{6})', 'i'));
+  return hit ? hit[1] : null;
+};
+const luminance = hex => {
+  const rgb = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255);
+  const linear = rgb.map(v => v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4));
+  return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
+};
+const contrast = (a, b) => {
+  const values = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return (values[0] + 0.05) / (values[1] + 0.05);
+};
+const palette = ['ink','panel','silk','silk3','dim','golddim'].reduce((o, k) => (o[k] = rootColor(k), o), {});
+const contrastPairs = [['正文','silk','ink'],['次级正文','silk3','panel'],['说明文字','dim','panel'],['旧金提示','golddim','panel']];
+const weakContrast = contrastPairs.filter(pair => !palette[pair[1]] || !palette[pair[2]] || contrast(palette[pair[1]], palette[pair[2]]) < 4.5);
+weakContrast.length ? ng('暖石墨配色文字对比度不足：' + weakContrast.map(x => x[0]).join('、'))
+  : ok('正文、次级说明与旧金提示对石墨面均达 4.5:1 对比度门槛');
+const capOk = /\.story \.body p:first-of-type\{text-indent:0\}/.test(css) && /\.story \.body p:first-of-type::first-letter\{[^}]*float:left[^}]*padding:3px 4px 0 0/.test(css) && /\.story \.body p:first-of-type::first-letter\{font-size:2\.5em;padding-right:3px\}/.test(css);
+capOk ? ok('异闻首字放大保留；首段缩进清零、字旁留白收束') : ng('异闻首字放大与段首间距修复不完整');
 
 const fontCssPath = P + 'assets/fonts/lxgwwenkailite-regular.css';
 const fontCss = fs.existsSync(fontCssPath) ? fs.readFileSync(fontCssPath, 'utf8') : '';
@@ -36,9 +56,9 @@ const swSource = fs.readFileSync(P + 'sw.js', 'utf8');
 const swFontsOk = /fontCss\.text\(\)/.test(swSource) && /cache\.addAll\(fonts\.slice\(/.test(swSource);
 swFontsOk ? ok('离线安装会分批预存 ' + fontRefs.length + ' 个本地字形子集') : ng('离线安装未覆盖本地字体子集');
 /['\"]\.\/data\/relay\.js\?v=\d+['\"]/.test(swSource) ? ok('Service Worker 预缓存信路数据') : ng('Service Worker 漏缓存信路数据');
-/['\"]\.\/data\/daily\.js\?v=168['\"]/.test(swSource) ? ok('Service Worker 预缓存街巷日用篇') : ng('Service Worker 漏缓存街巷日用篇');
-/['\"]\.\/data\/observatory\.js\?v=168['\"]/.test(swSource) ? ok('Service Worker 预缓存三签校时资料') : ng('Service Worker 漏缓存三签校时资料');
-/['\"]\.\/data\/artifacts\.js\?v=168['\"]/.test(swSource) ? ok('Service Worker 预缓存见物设定') : ng('Service Worker 漏缓存见物设定');
+/['\"]\.\/data\/daily\.js\?v=169['\"]/.test(swSource) ? ok('Service Worker 预缓存街巷日用篇') : ng('Service Worker 漏缓存街巷日用篇');
+/['\"]\.\/data\/observatory\.js\?v=169['\"]/.test(swSource) ? ok('Service Worker 预缓存三签校时资料') : ng('Service Worker 漏缓存三签校时资料');
+/['\"]\.\/data\/artifacts\.js\?v=169['\"]/.test(swSource) ? ok('Service Worker 预缓存见物设定') : ng('Service Worker 漏缓存见物设定');
 /['\"]\.\/assets\/three-seal-observatory\.webp['\"]/.test(swSource) ? ok('Service Worker 预缓存原创三签台器物图') : ng('Service Worker 漏缓存三签台器物图');
 const characterSource = fs.readFileSync(P + 'data/characters.js', 'utf8');
 const portraitRefs = [...characterSource.matchAll(/portrait:\s*['\"]([^'\"]+)['\"]/g)].map(m => m[1]);
@@ -494,7 +514,7 @@ dirtyHits.length ? ng('账面露管线 ' + dirtyHits.length + ' 处：' + dirtyH
 const appSrc = fs.readFileSync(P + 'assets/app.js', 'utf8');
 const srcBlock = (appSrc.match(/var SOURCES = \[([\s\S]*?)\n    \];/) || [0, ''])[1];
 const srcCount = (srcBlock.match(/name: '/g) || []).length;
-const tipOk = html.indexOf('全书二十一篇') >= 0 && html.indexOf('索引二十源') >= 0 && secTags === 21 && srcCount === 20 && /data\/daily\.js\?v=168/.test(html) && /data\/daily\.js\?v=168/.test(swSource) && /data\/observatory\.js\?v=168/.test(html) && /data\/observatory\.js\?v=168/.test(swSource) && /data\/artifacts\.js\?v=168/.test(html) && /data\/artifacts\.js\?v=168/.test(swSource);
+const tipOk = html.indexOf('全书二十一篇') >= 0 && html.indexOf('索引二十源') >= 0 && secTags === 21 && srcCount === 20 && /data\/daily\.js\?v=169/.test(html) && /data\/daily\.js\?v=169/.test(swSource) && /data\/observatory\.js\?v=169/.test(html) && /data\/observatory\.js\?v=169/.test(swSource) && /data\/artifacts\.js\?v=169/.test(html) && /data\/artifacts\.js\?v=169/.test(swSource);
 tipOk ? ok('初见笺、篇目、索引与离线数据一致（二十一篇 · 二十源）') : ng('初见笺计数脱节：实况 ' + secTags + ' 篇 · ' + srcCount + ' 源，或日用/校时/见物资料未纳入离线册');
 
 console.log('\n【结论】' + (warn.length ? '需处理 ' + warn.length + ' 项' : '全部通过'));
