@@ -3118,4 +3118,111 @@
   buildJiazi();
   ticker();
   if (location.hash && location.hash.length > 1) show(location.hash.slice(1), true);
+
+  /* ---------------- 主屏应用与离线册 ---------------- */
+  var installButton = $('#installAppBtn');
+  var installDialog = $('#installDialog');
+  var installSteps = $('#installSteps');
+  var deferredInstallPrompt = null;
+
+  function isStandaloneApp() {
+    return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+  }
+  function syncStandaloneState() {
+    document.documentElement.classList.toggle('standalone-app', isStandaloneApp());
+    if (installButton) installButton.hidden = isStandaloneApp();
+  }
+  function setInstallSteps(items, note) {
+    if (!installSteps) return;
+    installSteps.textContent = '';
+    items.forEach(function (step) {
+      var li = document.createElement('li');
+      var title = document.createElement('strong');
+      var detail = document.createElement('span');
+      title.textContent = step[0];
+      detail.textContent = step[1];
+      li.appendChild(title);
+      li.appendChild(detail);
+      installSteps.appendChild(li);
+    });
+    var installNote = $('#installDialogNote');
+    if (installNote && note) txt(installNote, note);
+  }
+  function openInstallHelp() {
+    if (!installDialog) return;
+    var ua = navigator.userAgent || '';
+    var appleMobile = /iPhone|iPad|iPod/i.test(ua) || (/Macintosh/i.test(ua) && navigator.maxTouchPoints > 1);
+    var android = /Android/i.test(ua);
+    if (appleMobile) {
+      setInstallSteps([
+        ['请用 Safari 打开本页', 'iPhone 上其他浏览器暂不能完成主屏添加。'],
+        ['点 Safari 的分享按钮', '在底部或顶部工具栏，图标是方框向上箭头。'],
+        ['选「添加到主屏幕」', '若未看见，向上滑动分享菜单找到该项。'],
+        ['确认「添加」并从新图标开卷', '若出现「作为网页 App 打开」，请保持开启。']
+      ], '加到主屏后，图标会以独立窗口开卷；首次联网完成后，离线也可继续阅读。');
+    } else if (android && deferredInstallPrompt) {
+      setInstallSteps([
+        ['点下方「立即安装」', '系统会显示应用添加确认。'],
+        ['确认添加到主屏', '此后从「万象天账」图标独立开卷。']
+      ], '阅读位置保存在本机；首次联网完成后，可离线继续阅读。');
+    } else if (android) {
+      setInstallSteps([
+        ['打开浏览器菜单 ⋮', '通常位于地址栏旁或右上角。'],
+        ['选择「安装应用」或「添加到主屏幕」', '不同浏览器的菜单文字可能略有不同。'],
+        ['确认添加', '此后从「万象天账」图标独立开卷。']
+      ], '若没有安装选项，请先用 Chrome 打开并确保网络连接正常。');
+    } else {
+      setInstallSteps([
+        ['打开浏览器菜单', '查找「安装应用」或「添加到主屏幕」。'],
+        ['确认添加并从新图标开卷', '支持安装的浏览器会以独立窗口打开本册。']
+      ], 'iPhone 请使用 Safari 的分享菜单；首次联网完成后，离线也可继续阅读。');
+    }
+    if (typeof installDialog.showModal === 'function') installDialog.showModal();
+    else window.alert('iPhone：请在 Safari 点分享按钮，再选「添加到主屏幕」。');
+  }
+  if (installButton) installButton.addEventListener('click', function () {
+    if (deferredInstallPrompt) {
+      var promptEvent = deferredInstallPrompt;
+      deferredInstallPrompt = null;
+      promptEvent.prompt();
+      promptEvent.userChoice.then(function (choice) {
+        if (choice && choice.outcome === 'accepted') installButton.hidden = true;
+      }).catch(function () {});
+    } else openInstallHelp();
+  });
+  if (installDialog) {
+    ['#installDialogClose', '#installDialogDone'].forEach(function (selector) {
+      var closeButton = $(selector);
+      if (closeButton) closeButton.addEventListener('click', function () { installDialog.close(); });
+    });
+    installDialog.addEventListener('click', function (event) {
+      if (event.target === installDialog) installDialog.close();
+    });
+  }
+  window.addEventListener('beforeinstallprompt', function (event) {
+    event.preventDefault();
+    deferredInstallPrompt = event;
+    if (installButton) {
+      installButton.querySelector('.install-label-short').textContent = '↓ 安装';
+      installButton.querySelector('.install-label-long').textContent = '安装应用';
+      installButton.title = '安装万象天账应用';
+    }
+  });
+  window.addEventListener('appinstalled', function () {
+    deferredInstallPrompt = null;
+    if (installButton) installButton.hidden = true;
+  });
+  syncStandaloneState();
+  if (window.matchMedia) {
+    var standaloneQuery = window.matchMedia('(display-mode: standalone)');
+    if (standaloneQuery.addEventListener) standaloneQuery.addEventListener('change', syncStandaloneState);
+  }
+  function registerOfflineBook() {
+    if (!('serviceWorker' in navigator) || !/^https?:$/.test(location.protocol)) return;
+    navigator.serviceWorker.register(new URL('sw.js', document.baseURI), { scope: './' }).catch(function (error) {
+      console.warn('离线册未能登记：', error);
+    });
+  }
+  if (document.readyState === 'complete') registerOfflineBook();
+  else window.addEventListener('load', registerOfflineBook, { once: true });
 })();

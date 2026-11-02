@@ -1,0 +1,86 @@
+/* 万象天账 · 离线册 */
+'use strict';
+
+const CACHE_NAME = 'wxtz-app-v1.28.0';
+const SHELL = [
+  './index.html',
+  './site.webmanifest',
+  './assets/style.css?v=162',
+  './assets/fonts/lxgwwenkailite-regular.css',
+  './assets/app.js?v=162',
+  './data/core.js?v=162',
+  './data/cities.js?v=162',
+  './data/beings.js?v=162',
+  './data/timeline.js?v=162',
+  './data/suiling.js?v=162',
+  './data/organs.js?v=162',
+  './data/arcs.js?v=162',
+  './data/docs.js?v=162',
+  './data/lexicon.js?v=162',
+  './data/sayings.js?v=162',
+  './data/goods.js?v=162',
+  './data/stakes.js?v=162',
+  './data/stories.js?v=162',
+  './data/characters.js?v=162',
+  './data/relations.js?v=162',
+  './data/updates.js?v=162',
+  './data/trials.js?v=162',
+  './data/granaries.js?v=162',
+  './assets/ledger-atmosphere.webp',
+  './assets/icons/app-192.png',
+  './assets/icons/app-512.png',
+  './assets/icons/app-maskable-512.png',
+  './assets/icons/apple-touch-icon.png',
+  './assets/portraits/bai-xihe.webp',
+  './assets/portraits/hong-sigu.webp',
+  './assets/portraits/jiang-keqing.webp',
+  './assets/portraits/liang-zhaohe.webp',
+  './assets/portraits/mei-busao.webp',
+  './assets/portraits/mi-shouchang.webp',
+  './assets/portraits/qiao-zhongren.webp',
+  './assets/portraits/su-jiuting.webp',
+  './assets/portraits/tie-wuming.webp',
+  './assets/portraits/wenren-heng.webp'
+];
+
+self.addEventListener('install', event => {
+  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(SHELL)).then(() => self.skipWaiting()));
+});
+
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys()
+      .then(keys => Promise.all(keys.filter(key => key.startsWith('wxtz-app-') && key !== CACHE_NAME).map(key => caches.delete(key))))
+      .then(() => self.clients.claim())
+  );
+});
+
+self.addEventListener('fetch', event => {
+  const request = event.request;
+  if (request.method !== 'GET' || new URL(request.url).origin !== self.location.origin) return;
+  const scope = new URL(self.registration.scope);
+  if (!new URL(request.url).pathname.startsWith(scope.pathname)) return;
+
+  if (request.mode === 'navigate') {
+    event.respondWith((async () => {
+      const cache = await caches.open(CACHE_NAME);
+      try {
+        const response = await fetch(request);
+        if (response.ok) await cache.put(request, response.clone());
+        return response;
+      } catch (error) {
+        return await cache.match(request) || await cache.match(new URL('index.html', scope).href) || await cache.match(new URL('./', scope).href);
+      }
+    })());
+    return;
+  }
+
+  event.respondWith((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    const cached = await cache.match(request);
+    if (cached) return cached;
+    const response = await fetch(request);
+    if (response.ok && response.type === 'basic') await cache.put(request, response.clone());
+    return response;
+  })());
+});

@@ -2,10 +2,15 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>万象天账 · 墨序司异闻籍</title>
 <meta name="description" content="原创世界观：天不造物，天记账。中界如摊开的账册，十三京星布其上；墨序执三律，灰吏勾天下，修士以性命作票号。">
 <meta name="theme-color" content="#0c0f13">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="万象天账">
+<link rel="manifest" href="site.webmanifest">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png">
 <meta name="color-scheme" content="dark">
 <meta property="og:title" content="万象天账 · 墨序司异闻籍">
 <meta property="og:description" content="原创世界观：天不造物，天记账。中界如摊开的账册，十三京星布其上；墨序执三律，灰吏勾天下，修士以性命作票号。">
@@ -13,7 +18,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%230c0f13'/%3E%3Crect x='8' y='8' width='48' height='48' rx='6' fill='none' stroke='%23c0402e' stroke-width='2'/%3E%3Ctext x='32' y='45' font-size='34' text-anchor='middle' fill='%23c8a35a' font-family='serif'%3E%E8%B4%A6%3C/text%3E%3C/svg%3E">
 <!-- 自托管霞鹜文楷 Lite：页面无需依赖第三方字体/CDN，离线也能正确显示中文 -->
 <link rel="stylesheet" href="assets/fonts/lxgwwenkailite-regular.css">
-<link rel="stylesheet" href="assets/style.css?v=161">
+<link rel="stylesheet" href="assets/style.css?v=162">
 </head>
 <body>
 <a class="skip-link" href="#main">跳至正文</a>
@@ -35,6 +40,7 @@
   <button type="button" id="readerBack" class="reader-tool" aria-label="返回上一页">← 返回</button>
   <button type="button" id="readerContinue" class="reader-tool" disabled>续读</button>
   <button type="button" class="reader-tool" data-goto="home">回总纲</button>
+  <button type="button" id="installAppBtn" class="reader-tool install-app-tool" aria-haspopup="dialog" aria-controls="installDialog" title="添加到主屏幕"><span class="install-label-short">＋ 主屏</span><span class="install-label-long">装入主屏</span></button>
   <span class="reader-position" id="readerPosition">总纲 · 尚未开卷</span>
   <span class="reader-percent" id="readerPercent">0%</span>
   <span class="reader-track" aria-hidden="true"><i id="readerTrackFill"></i></span>
@@ -326,31 +332,42 @@
   <button type="button" id="portraitDialogClose" class="dialog-close" aria-label="关闭画像">×</button>
   <figure><img id="portraitViewerImage" alt=""><figcaption id="portraitViewerCaption"></figcaption></figure>
 </dialog>
+<dialog id="installDialog" class="install-dialog" aria-labelledby="installDialogTitle">
+  <div class="install-dialog-head">
+    <img src="assets/icons/app-192.png" alt="" width="54" height="54">
+    <div><p>万象天账 · 便携开卷</p><h2 id="installDialogTitle">把这册书放在主屏</h2></div>
+    <button type="button" id="installDialogClose" aria-label="关闭安装说明">×</button>
+  </div>
+  <p class="install-dialog-intro">从主屏打开，便如一册独立应用；首次联网后，本册也可离线阅读。</p>
+  <ol id="installSteps" class="install-steps"></ol>
+  <p class="install-dialog-note" id="installDialogNote">添加后，点新图标即可开卷。阅读位置保存在本机。</p>
+  <button type="button" id="installDialogDone" class="install-done">知道了</button>
+</dialog>
 
 <footer class="foot">
   <p class="ticker" id="ticker" aria-live="off"></p>
   <p class="footline">万象天账 · 墨序司异闻籍 ——账不平，天不活。</p>
-  <p class="ver">版本 v1.27.0 · 资源戳 v=161 · 篇目居中易点，返回常在。</p>
+  <p class="ver">版本 v1.28.0 · 资源戳 v=162 · 主屏独立开卷，离线亦可读。</p>
 </footer>
 
-<script src="data/core.js?v=161"></script>
-<script src="data/cities.js?v=161"></script>
-<script src="data/beings.js?v=161"></script>
-<script src="data/timeline.js?v=161"></script>
-<script src="data/suiling.js?v=161"></script>
-<script src="data/organs.js?v=161"></script>
-<script src="data/arcs.js?v=161"></script>
-<script src="data/docs.js?v=161"></script>
-<script src="data/lexicon.js?v=161"></script>
-  <script src="data/sayings.js?v=161"></script>
-  <script src="data/goods.js?v=161"></script>
-  <script src="data/stakes.js?v=161"></script>
-<script src="data/stories.js?v=161"></script>
-<script src="data/characters.js?v=161"></script>
-<script src="data/relations.js?v=161"></script>
-<script src="data/updates.js?v=161"></script>
-<script src="data/trials.js?v=161"></script>
-<script src="data/granaries.js?v=161"></script>
-<script src="assets/app.js?v=161"></script>
+<script src="data/core.js?v=162"></script>
+<script src="data/cities.js?v=162"></script>
+<script src="data/beings.js?v=162"></script>
+<script src="data/timeline.js?v=162"></script>
+<script src="data/suiling.js?v=162"></script>
+<script src="data/organs.js?v=162"></script>
+<script src="data/arcs.js?v=162"></script>
+<script src="data/docs.js?v=162"></script>
+<script src="data/lexicon.js?v=162"></script>
+  <script src="data/sayings.js?v=162"></script>
+  <script src="data/goods.js?v=162"></script>
+  <script src="data/stakes.js?v=162"></script>
+<script src="data/stories.js?v=162"></script>
+<script src="data/characters.js?v=162"></script>
+<script src="data/relations.js?v=162"></script>
+<script src="data/updates.js?v=162"></script>
+<script src="data/trials.js?v=162"></script>
+<script src="data/granaries.js?v=162"></script>
+<script src="assets/app.js?v=162"></script>
 </body>
 </html>

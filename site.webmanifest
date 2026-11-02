@@ -1,0 +1,20 @@
+{
+  "id": "./index.html",
+  "name": "万象天账 · 墨序司异闻籍",
+  "short_name": "万象天账",
+  "description": "原创世界观设定书：天不造物，天记账。",
+  "lang": "zh-CN",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#0b0e12",
+  "theme_color": "#0c0f13",
+  "categories": ["books", "education"],
+  "icons": [
+    { "src": "assets/icons/app-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icons/app-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icons/app-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
