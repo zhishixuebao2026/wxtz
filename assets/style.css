@@ -765,23 +765,23 @@ body{
 .net-link .net-line{stroke-width:1.5px;fill:none;pointer-events:none;transition:stroke .22s,stroke-width .22s}
 .net-link.real .net-line{stroke:rgba(200,163,90,.55)}
 .net-link.soft .net-line{stroke:rgba(138,126,102,.45);stroke-dasharray:5 5}
-.net-link:hover .net-line,.net-link.hl .net-line{stroke:var(--verm2);stroke-width:2.6px}
+.net-link:hover .net-line,.net-link.hl .net-line,.net-link:focus-visible .net-line{stroke:var(--verm2);stroke-width:2.6px}
 .net-link text{fill:rgba(200,163,90,.72);font-family:var(--hei);font-size:12.5px;text-anchor:middle;letter-spacing:.1em;opacity:0;transition:opacity .22s;pointer-events:none}
-.net-link:hover text,.net-link.hl text{opacity:1}
+.net-link:hover text,.net-link.hl text,.net-link:focus-visible text{opacity:1}
 /* 节点 */
 .net-node{cursor:pointer}
 .net-node circle{fill:#171d24;stroke:var(--gold);stroke-width:2px;transition:.22s}
 .net-node .net-name{fill:#f0e6cf;font-family:var(--kai);font-size:15px;text-anchor:middle;letter-spacing:.04em;pointer-events:none}
 .net-node .net-group{fill:rgba(190,175,150,.62);font-family:var(--hei);font-size:11.5px;text-anchor:middle;letter-spacing:.16em;pointer-events:none;opacity:0;transition:opacity .22s}
-.net-node:hover .net-group,.net-node.hl .net-group{opacity:1}
+.net-node:hover .net-group,.net-node.hl .net-group,.net-node:focus-visible .net-group{opacity:1}
 .net-node.c0 circle{stroke:var(--gold2)}
 .net-node.c1 circle{stroke:var(--cyan)}
 .net-node.c2 circle{stroke:rgba(150,158,168,.85)}
 .net-node.c3 circle{stroke:var(--verm)}
 .net-node.c4 circle{stroke:#b08ac8}
 .net-node.c5 circle{stroke:var(--moss)}
-.net-node:hover circle,.net-node.hl circle{fill:rgba(200,163,90,.2);stroke-width:3px;filter:drop-shadow(0 0 9px rgba(224,103,79,.45))}
-.net-node.hl .net-name{fill:#fff3d8}
+.net-node:hover circle,.net-node.hl circle,.net-node:focus-visible circle{fill:rgba(200,163,90,.2);stroke-width:3px;filter:drop-shadow(0 0 9px rgba(224,103,79,.45))}
+.net-node.hl .net-name,.net-node:focus-visible .net-name{fill:#fff3d8}
 /* 右栏 */
 .net-detail{border:1px solid var(--line2);border-radius:5px;padding:18px 20px;background:var(--panel);min-height:180px;max-height:420px;overflow:auto}
 .net-detail .nd-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
@@ -789,7 +789,7 @@ body{
 .net-detail .nd-tag{display:inline-block;border:1px solid var(--golddim);color:var(--gold2);padding:2px 10px;border-radius:2px;font-size:11px;letter-spacing:.2em;font-family:var(--hei)}
 .net-detail .nd-meta{margin-top:8px;color:var(--silk3);font-size:13px;letter-spacing:.06em;font-family:var(--kai)}
 .net-detail p{margin-top:14px;color:var(--silk2);font-size:14.5px;line-height:1.85}
-.net-detail .dim{color:var(--silk3);font-size:13.5px}
+.net-detail .dim{color:var(--silk2);font-size:13.5px}
 .net-links{margin-top:14px;list-style:none;display:flex;flex-direction:column;gap:9px;padding:0}
 .net-links li{padding:9px 12px;border:1px dashed var(--line);border-radius:3px;background:rgba(16,21,27,.5);color:var(--silk);font-size:13.5px;line-height:1.75}
 .net-links li.soft{border-style:solid;border-color:rgba(120,110,90,.28)}

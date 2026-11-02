@@ -58,6 +58,31 @@ missingGlyphs.length ? ng('自托管字体未覆盖项目汉字：' + missingGly
   : ok('自托管字体 Unicode 范围覆盖全站使用汉字');
 
 const html = fs.readFileSync(P + 'index.html', 'utf8');
+const staticIds = [...html.matchAll(/\bid=[\"']([^\"']+)[\"']/g)].map(m => m[1]);
+const dupStaticIds = staticIds.filter((id, i) => staticIds.indexOf(id) !== i);
+dupStaticIds.length ? ng('HTML id 重复：' + [...new Set(dupStaticIds)].join('、')) : ok('HTML id 唯一（' + staticIds.length + ' 个）');
+let badLocalRefs = [];
+for (const m of html.matchAll(/\b(?:href|src)=[\"']([^\"']+)[\"']/g)) {
+  const ref = m[1];
+  if (!ref || /^(?:[a-z]+:|\/\/)/i.test(ref)) continue;
+  if (ref.charAt(0) === '#') {
+    const id = decodeURIComponent(ref.slice(1));
+    if (id && staticIds.indexOf(id) < 0) badLocalRefs.push(ref);
+    continue;
+  }
+  const file = decodeURIComponent(ref.split(/[?#]/)[0]);
+  if (file && !fs.existsSync(require('path').resolve(P, file))) badLocalRefs.push(ref);
+}
+badLocalRefs.length ? ng('HTML 本地链接或素材失引：' + badLocalRefs.join('、')) : ok('HTML 本地锚点、脚本、样式、图标与资源均可达');
+const mapSvgA11y = /<svg id="mapSvg"[^>]*role="group"[^>]*aria-label="[^"]+"/.test(html);
+const netSvgA11y = /<svg id="netSvg"[^>]*role="group"[^>]*aria-label="[^"]+"/.test(html);
+mapSvgA11y && netSvgA11y ? ok('天地图与关系网标作可交互图组，并各有操作说明') : ng('地图 SVG 的无障碍图组名称或操作说明缺失');
+const netSource = fs.readFileSync(P + 'assets/app.js', 'utf8').split('function buildNetwork()')[1].split('/* 桩签：')[0];
+const netButtons = (netSource.match(/setAttribute\('role', 'button'\)/g) || []).length;
+const netKeyboard = (netSource.match(/addEventListener\('keydown'/g) || []).length;
+netButtons >= 2 && netKeyboard >= 2 && /aria-label/.test(netSource)
+  ? ok('关系网人物与连线皆有读屏名、键盘焦点及回车/空格操作')
+  : ng('关系网人物或连线的键盘/读屏操作不完整');
 const secTags = (html.match(/<section/g) || []).length, secClose = (html.match(/<\/section>/g) || []).length;
 secTags === secClose ? ok('HTML section 标签配对（' + secTags + ' 对）') : ng('HTML section ' + secTags + ' / ' + secClose);
 const pageIds = [...html.matchAll(/<section id="pg-([^"]+)"/g)].map(m => m[1]).sort();

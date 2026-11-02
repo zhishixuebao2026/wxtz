@@ -2677,7 +2677,13 @@
       var tg = setAttrs(elNS('text', NET_NS), { x: placed.x, y: placed.y, class: 'net-ltype' });
       tg.textContent = l.type;
       g.appendChild(tg);
+      g.setAttribute('role', 'button');
+      g.setAttribute('tabindex', '0');
+      g.setAttribute('aria-label', (s ? s.name : l.s) + ' 与 ' + (t ? t.name : l.t) + '，' + l.kind + ' · ' + l.type + '。' + l.note + ' 按回车查看分录。');
       g.addEventListener('click', function (e) { e.stopPropagation(); showLink(l); });
+      g.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); showLink(l); }
+      });
       svg.appendChild(g);
       linkEls.push({ g: g, l: l });
     });
@@ -2686,6 +2692,9 @@
       var g = elNS('g', NET_NS);
       g.setAttribute('class', 'net-node ' + (NET_GROUP_CLS[n.g] || 'c2'));
       g.setAttribute('transform', 'translate(' + n.x + ',' + n.y + ')');
+      g.setAttribute('role', 'button');
+      g.setAttribute('tabindex', '0');
+      g.setAttribute('aria-label', n.name + '，' + n.g + '。按回车查看关系。');
       g.appendChild(setAttrs(elNS('circle', NET_NS), { r: NET_R }));
       var nm = setAttrs(elNS('text', NET_NS), { y: 6, class: 'net-name' });
       nm.textContent = n.name;
@@ -2694,6 +2703,9 @@
       gp.textContent = n.g;
       g.appendChild(gp);
       g.addEventListener('click', function (e) { e.stopPropagation(); showNode(n); });
+      g.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); showNode(n); }
+      });
       g.addEventListener('mouseenter', function () { paint(n.id); });
       g.addEventListener('mouseleave', function () { paint(current); });
       svg.appendChild(g);
