@@ -1079,6 +1079,59 @@
     return '一二三四五六七八九十'[n - 1] || n;
   }
 
+  /* ---------------- 地物图志：天地图的非方位意象 ---------------- */
+  function buildPlaceAtlas() {
+    if (typeof WXPLACES === 'undefined') return;
+    var grid = $('#placeAtlasGrid'), stage = $('#placeAtlasStage');
+    if (!grid || !stage) return;
+    grid.innerHTML = '';
+
+    function showPlace(place) {
+      stage.innerHTML = '';
+      var figure = el('figure', 'place-atlas-figure');
+      var image = el('img', 'place-atlas-image');
+      image.src = place.image; image.alt = place.alt; image.width = 1536; image.height = 1024;
+      image.loading = 'eager'; image.decoding = 'async';
+      figure.appendChild(image);
+      var caption = el('figcaption', 'place-atlas-caption');
+      caption.appendChild(txt(el('span', 'place-atlas-region'), place.region));
+      caption.appendChild(txt(el('h4'), place.name));
+      caption.appendChild(txt(el('p'), place.note));
+      var actions = el('div', 'place-atlas-actions');
+      actions.appendChild(txt(el('span', 'place-atlas-caveat'), '意象图 · 非方位凭据'));
+      if (place.cityId) {
+        var city = WXCITIES.filter(function (c) { return c.id === place.cityId; })[0];
+        if (city) {
+          var jump = el('button', 'place-city-link'); jump.type = 'button';
+          jump.appendChild(txt(el('span'), '开' + city.name + '卷宗　↗'));
+          jump.addEventListener('click', function () { openCity(city.id); var detail = $('#cityDetail'); if (detail) detail.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' }); });
+          actions.appendChild(jump);
+        }
+      }
+      caption.appendChild(actions); figure.appendChild(caption); stage.appendChild(figure);
+      $$('.place-atlas-card', grid).forEach(function (button) {
+        var active = button.getAttribute('data-place') === place.id;
+        button.setAttribute('aria-pressed', active ? 'true' : 'false');
+      });
+    }
+
+    WXPLACES.forEach(function (place, index) {
+      var button = el('button', 'place-atlas-card'); button.type = 'button';
+      button.setAttribute('data-place', place.id); button.setAttribute('aria-pressed', 'false');
+      button.setAttribute('aria-controls', 'placeAtlasStage');
+      button.setAttribute('aria-label', '查看' + place.name + '，' + place.region);
+      var thumb = el('img', 'place-atlas-thumb'); thumb.src = place.image;
+      thumb.alt = ''; thumb.width = 384; thumb.height = 256; thumb.loading = index < 4 ? 'eager' : 'lazy'; thumb.decoding = 'async';
+      button.appendChild(thumb);
+      var meta = el('span', 'place-atlas-card-meta');
+      meta.appendChild(txt(el('span', 'place-atlas-card-region'), place.region));
+      meta.appendChild(txt(el('strong'), place.name)); button.appendChild(meta);
+      button.addEventListener('click', function (event) { showPlace(place); if (event.detail > 0 && window.matchMedia('(max-width: 700px)').matches) { var rect = stage.getBoundingClientRect(); if (rect.top < 0 || rect.bottom > window.innerHeight) stage.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); } });
+      grid.appendChild(button);
+    });
+    showPlace(WXPLACES[0]);
+  }
+
   /* ---------------- 信路：递信、交接与事实核验 ---------------- */
   function buildRelay() {
     if (typeof WXRELAY === 'undefined') return;
@@ -3816,6 +3869,7 @@
   /* ---------------- 启动 ---------------- */
   buildHome();
   buildMap();
+  buildPlaceAtlas();
   buildPower();
   buildTrial();
   buildJudge();

@@ -4,7 +4,7 @@
 'use strict';
 const fs = require('fs'), vm = require('vm');
 const P = __dirname.replace(/\\/g, '/') + '/../';
-const DATA = ['core','cities','beings','timeline','lexicon','sayings','goods','stories','characters','relations','stakes','suiling','organs','arcs','docs','updates','trials','granaries','relay','daily','observatory','artifacts'];
+const DATA = ['core','cities','places','beings','timeline','lexicon','sayings','goods','stories','characters','relations','stakes','suiling','organs','arcs','docs','updates','trials','granaries','relay','daily','observatory','artifacts'];
 const JS = DATA.map(d => 'data/' + d + '.js').concat(['assets/app.js']);
 let warn = [];
 const ok = m => console.log('  ✓ ' + m);
@@ -56,9 +56,9 @@ const swSource = fs.readFileSync(P + 'sw.js', 'utf8');
 const swFontsOk = /fontCss\.text\(\)/.test(swSource) && /cache\.addAll\(fonts\.slice\(/.test(swSource);
 swFontsOk ? ok('离线安装会分批预存 ' + fontRefs.length + ' 个本地字形子集') : ng('离线安装未覆盖本地字体子集');
 /['\"]\.\/data\/relay\.js\?v=\d+['\"]/.test(swSource) ? ok('Service Worker 预缓存信路数据') : ng('Service Worker 漏缓存信路数据');
-/['\"]\.\/data\/daily\.js\?v=177['\"]/.test(swSource) ? ok('Service Worker 预缓存街巷日用篇') : ng('Service Worker 漏缓存街巷日用篇');
-/['\"]\.\/data\/observatory\.js\?v=177['\"]/.test(swSource) ? ok('Service Worker 预缓存三签校时资料') : ng('Service Worker 漏缓存三签校时资料');
-/['\"]\.\/data\/artifacts\.js\?v=177['\"]/.test(swSource) ? ok('Service Worker 预缓存见物设定') : ng('Service Worker 漏缓存见物设定');
+/['\"]\.\/data\/daily\.js\?v=178['\"]/.test(swSource) ? ok('Service Worker 预缓存街巷日用篇') : ng('Service Worker 漏缓存街巷日用篇');
+/['\"]\.\/data\/observatory\.js\?v=178['\"]/.test(swSource) ? ok('Service Worker 预缓存三签校时资料') : ng('Service Worker 漏缓存三签校时资料');
+/['\"]\.\/data\/artifacts\.js\?v=178['\"]/.test(swSource) ? ok('Service Worker 预缓存见物设定') : ng('Service Worker 漏缓存见物设定');
 /['\"]\.\/assets\/three-seal-observatory\.webp['\"]/.test(swSource) ? ok('Service Worker 预缓存原创三签台器物图') : ng('Service Worker 漏缓存三签台器物图');
 const characterSource = fs.readFileSync(P + 'data/characters.js', 'utf8');
 const portraitRefs = [...characterSource.matchAll(/portrait:\s*['\"]([^'\"]+)['\"]/g)].map(m => m[1]);
@@ -160,6 +160,25 @@ for (const dn of DATA) vm.runInContext(fs.readFileSync(P + 'data/' + dn + '.js',
 const K = Object.keys(ctx).filter(k => k.charAt(0) === 'W').sort();
 ok('全局变量 ' + K.length + ' 个：' + K.join('、'));
 const q = n => ctx[n];
+const placeRows = q('WXPLACES') || [];
+const placeIds = placeRows.map(x => x.id);
+const expectedPlaceImages = ['ash-corridor','cancellation-pit','debtless-sea','heavenly-ledger-court','copytower-interior','central-ledger-thirteenth-floor','hanging-sun-tower-interior','golden-gutter-binding-line','ashen-corridor-outpost','nether-capital-ticket-vault'];
+const missingPlaceImages = expectedPlaceImages.filter(id => {
+  const item = placeRows.filter(x => x.id === id)[0];
+  if (!item || !item.image || !fs.existsSync(P + item.image)) return true;
+  const bytes = fs.readFileSync(P + item.image);
+  return !item.alt || !item.note || !item.name || !item.region || !item.image.endsWith('.webp') || bytes.toString('ascii', 0, 4) !== 'RIFF' || bytes.toString('ascii', 8, 12) !== 'WEBP' || bytes.length > 450 * 1024;
+});
+placeRows.length === 10 && new Set(placeIds).size === placeIds.length && missingPlaceImages.length === 0
+  ? ok('地物图志十景齐整：替代文字、题记、WebP 文件均完整且轻量')
+  : ng('地物图志缺项、重号、过大或缺少替代文字：' + missingPlaceImages.join('、'));
+const uncachedPlaces = placeRows.filter(x => !swSource.includes("'./" + x.image + "'"));
+uncachedPlaces.length === 0 && /data\/places\.js\?v=178/.test(swSource)
+  ? ok('地物资料与十幅意象均纳入离线首装')
+  : ng('离线册漏收地物资料或图片：' + uncachedPlaces.map(x => x.id).join('、'));
+const placeAppSource = fs.readFileSync(P + 'assets/app.js', 'utf8');
+const placeAtlasUiOk = /id="placeAtlasGrid"/.test(html) && /id="placeAtlasStage"/.test(html) && /function buildPlaceAtlas\(/.test(placeAppSource) && /aria-pressed/.test(placeAppSource) && /\.place-atlas-grid\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/.test(css) && /prefers-reduced-motion:reduce\)\{\.place-atlas-card/.test(css);
+placeAtlasUiOk ? ok('地物图志卡片可键盘选择，窄屏双列且尊重减少动态偏好') : ng('地物图志交互、响应式或动态偏好兜底未接通');
 const cnt = n => { const v = q(n); return Array.isArray(v) ? v.length : null; };
 const routes = q('WXCORE').readingRoutes || [];
 const validPages = new Set(pageIds);
@@ -258,8 +277,17 @@ const fourPillarBoundary = fourPillars && fourPillars.pillars && fourPillars.pil
 fourPillarBoundary ? ok('四柱与三律一致：差异待核、不承袭未证之债、不凭差数定过') : ng('四柱仍将未核差异或亲缘推定为债责');
 const clockMyth = q('WXSTORIES').filter(x => x.id === 's8')[0];
 const clockChosen = q('WXSTORIES').filter(x => x.id === 's25')[0];
-const noPrebirthDebt = clockMyth && clockChosen && /不在人名下立借/.test(clockMyth.paras.join(' ')) && /不该生来替一座钟还账/.test(clockMyth.paras.join(' ')) && /不等于命欠了谁/.test(clockChosen.paras.join(' '));
-noPrebirthDebt ? ok('慢钟传说与守钟选择均未把未出生者写成债务人') : ng('慢钟故事仍将先天债责写作事实');
+const tornPage = q('WXSTORIES').filter(x => x.id === 's15')[0];
+const blankOrigin = q('WXSTORIES').filter(x => x.id === 's16')[0];
+const clockAnnual = q('WXSTORIES').filter(x => x.id === 's35')[0];
+const cityClock = q('WXCITIES').filter(x => x.id === 'zhao')[0];
+const dayTable = q('WXGOODS').filter(x => x.n === '日表')[0];
+const slowClockTerm = q('WXLEXICON').filter(x => x.t === '慢钟之息')[0];
+const blankStake = q('WXSTAKES').filter(x => x.no === '甲四')[0];
+const coffinStake = q('WXSTAKES').filter(x => x.no === '甲八')[0];
+const bindingStake = q('WXSTAKES').filter(x => x.no === '甲十二')[0];
+const noPrebirthDebt = clockMyth && clockChosen && tornPage && blankOrigin && clockAnnual && cityClock && dayTable && slowClockTerm && blankStake && coffinStake && bindingStake && /不在人名下立借/.test(clockMyth.paras.join(' ')) && /不该生来替一座钟还账/.test(clockMyth.paras.join(' ')) && /不等于命欠了谁/.test(clockChosen.paras.join(' ')) && /所指是尚未成形的账页，不是人/.test(tornPage.paras.join(' ')) && /不替任何未来的人先写欠项/.test(blankOrigin.paras.join(' ')) && /自愿轮值一息/.test(clockAnnual.paras.join(' ')) && /从未立借/.test(cityClock.hook) && !/未降世之人的/.test(dayTable.d) && /不作凭据/.test(slowClockTerm.d) && /不预设欠账者/.test(blankStake.note) && /无名不等于欠债/.test(coffinStake.note) && /待有新凭再添注/.test(bindingStake.note);
+noPrebirthDebt ? ok('昭京慢钟、日表、词条、守钟人物与空格桩文均不预设未来债务人') : ng('慢钟相关文案仍将未来者写成债务人');
 const blankLedgerStory = q('WXSTORIES').filter(x => x.id === 's93')[0];
 const blankLedgerTerm = q('WXLEXICON').filter(x => x.t === '天账庭')[0];
 const blankLedgerConsistent = blankLedgerStory && blankLedgerTerm && /存一件未决之事/.test(blankLedgerStory.paras[0]) && /不刻人名/.test(blankLedgerStory.paras.join(' ')) && /不预设债务人/.test(blankLedgerTerm.d) && !/来还账的人|格里的名/.test(blankLedgerStory.paras.join(' '));
@@ -622,7 +650,7 @@ dirtyHits.length ? ng('账面露管线 ' + dirtyHits.length + ' 处：' + dirtyH
 const appSrc = fs.readFileSync(P + 'assets/app.js', 'utf8');
 const srcBlock = (appSrc.match(/var SOURCES = \[([\s\S]*?)\n    \];/) || [0, ''])[1];
 const srcCount = (srcBlock.match(/name: '/g) || []).length;
-const tipOk = html.indexOf('全书二十一篇') >= 0 && html.indexOf('索引二十一源') >= 0 && pageIds.length === 21 && srcCount === 21 && /data\/daily\.js\?v=177/.test(html) && /data\/daily\.js\?v=177/.test(swSource) && /data\/observatory\.js\?v=177/.test(html) && /data\/observatory\.js\?v=177/.test(swSource) && /data\/artifacts\.js\?v=177/.test(html) && /data\/artifacts\.js\?v=177/.test(swSource);
+const tipOk = html.indexOf('全书二十一篇') >= 0 && html.indexOf('索引二十一源') >= 0 && pageIds.length === 21 && srcCount === 21 && /data\/daily\.js\?v=178/.test(html) && /data\/daily\.js\?v=178/.test(swSource) && /data\/observatory\.js\?v=178/.test(html) && /data\/observatory\.js\?v=178/.test(swSource) && /data\/artifacts\.js\?v=178/.test(html) && /data\/artifacts\.js\?v=178/.test(swSource) && /data\/places\.js\?v=178/.test(html) && /data\/places\.js\?v=178/.test(swSource);
 tipOk ? ok('初见笺、篇目、索引与离线数据一致（二十一篇 · 二十一源）') : ng('初见笺计数脱节：实况 ' + pageIds.length + ' 篇 · ' + srcCount + ' 源，或新增设定未纳入离线册');
 
 console.log('\n【结论】' + (warn.length ? '需处理 ' + warn.length + ' 项' : '全部通过'));
