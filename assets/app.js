@@ -714,18 +714,18 @@
     sv('line', { x1: 58, y1: 684, x2: 450, y2: 678, stroke: 'rgba(168,64,42,.5)', 'stroke-width': '1.2' }, svg);
     sv('line', { x1: 550, y1: 678, x2: 942, y2: 684, stroke: 'rgba(168,64,42,.5)', 'stroke-width': '1.2' }, svg);
 
-    sv('text', { x: 254, y: 80, 'text-anchor': 'middle', text: '阴　页', fill: 'rgba(160,64,42,.6)',
-      style: 'font-family:KaiTi,STKaiti,Kaiti SC,serif;font-size:21.5px;letter-spacing:22px' }, svg);
-    sv('text', { x: 746, y: 80, 'text-anchor': 'middle', text: '阳　页', fill: 'rgba(160,64,42,.6)',
-      style: 'font-family:KaiTi,STKaiti,Kaiti SC,serif;font-size:21.5px;letter-spacing:22px' }, svg);
+    sv('text', { x: 254, y: 80, 'text-anchor': 'middle', text: '阴页', fill: 'rgba(160,64,42,.6)',
+      style: 'font-family:var(--kai);font-size:18px;letter-spacing:4px' }, svg);
+    sv('text', { x: 746, y: 80, 'text-anchor': 'middle', text: '阳页', fill: 'rgba(160,64,42,.6)',
+      style: 'font-family:var(--kai);font-size:18px;letter-spacing:4px' }, svg);
 
     /* 灰雾：页缘之外 */
     sv('ellipse', { cx: 46, cy: 420, rx: 40, ry: 260, fill: 'rgba(10,12,16,.62)', filter: 'url(#fogSoft)' }, svg);
     sv('ellipse', { cx: 956, cy: 420, rx: 40, ry: 260, fill: 'rgba(10,12,16,.62)', filter: 'url(#fogSoft)' }, svg);
     sv('text', { x: 26, y: 300, 'text-anchor': 'middle', text: '桩　外　之　雾', fill: 'rgba(90,100,115,.5)', transform: 'rotate(-90 26 300)',
-      style: 'font-family:KaiTi,STKaiti,Kaiti SC,serif;font-size:12.5px;letter-spacing:8px' }, svg);
+      style: 'font-family:var(--kai);font-size:12.5px;letter-spacing:8px' }, svg);
     sv('text', { x: 978, y: 460, 'text-anchor': 'middle', text: '账　外　之　地', fill: 'rgba(90,100,115,.5)', transform: 'rotate(90 978 460)',
-      style: 'font-family:KaiTi,STKaiti,Kaiti SC,serif;font-size:12.5px;letter-spacing:8px' }, svg);
+      style: 'font-family:var(--kai);font-size:12.5px;letter-spacing:8px' }, svg);
 
     var spine = sv('rect', { x: 456, y: 30, width: 88, height: 666, fill: 'url(#spineG)' }, svg);
     sv('line', { x1: 460, y1: 34, x2: 460, y2: 692, stroke: 'rgba(35,24,8,.55)', 'stroke-width': '2' }, svg);
@@ -858,7 +858,7 @@
       var g = sv('g', { 'class': 'nd' + (c.blank ? ' blank' : ''), 'data-id': c.id, tabindex: '0', role: 'button', 'aria-label': c.name + ' · ' + c.tower }, nodesGroup);
       sv('circle', { 'class': 'pulse', cx: c.pos[0], cy: c.pos[1], r: 11 }, g);
       sv('circle', { 'class': 'halo', cx: c.pos[0], cy: c.pos[1], r: 23 }, g);
-      sv('circle', { 'class': 'hit', cx: c.pos[0], cy: c.pos[1], r: 26 }, g);
+      sv('circle', { 'class': 'hit', cx: c.pos[0], cy: c.pos[1], r: 40 }, g);
       sv('circle', { 'class': 'v', cx: c.pos[0], cy: c.pos[1], r: 6.8 }, g);
       sv('text', { 'class': 'nu', x: c.pos[0] + 10, y: c.pos[1] - 9, 'text-anchor': 'middle', text: WX_CITY_NUM[c.nu - 1],
         style: 'font-size:12.5px' }, g);
@@ -877,6 +877,7 @@
         var sx = k.pos[0], sy = k.pos[1];
         var sg = sv('g', { 'class': 'stake st-' + k.state, 'data-no': k.no, tabindex: '0', role: 'button',
           'aria-label': k.no + ' ' + k.name + '，' + k.state + '，' + k.measure }, stG);
+        sv('circle', { cx: sx, cy: sy, r: 1, 'class': 'st-hit' }, sg);
         sv('circle', { cx: sx, cy: sy, r: 12.5, 'class': 'st-ring' }, sg);
         sv('path', { d: 'M' + (sx - 2) + ',' + (sy - 1.5) + ' L' + (sx - 2) + ',' + (sy - 9) +
           ' L' + sx + ',' + (sy - 10.5) + ' L' + (sx + 2) + ',' + (sy - 9) +
@@ -921,7 +922,7 @@
     });
 
     sv('text', { x: 500, y: 48, 'text-anchor': 'middle', text: '天账庭 · 存疑',
-      style: 'font-family:Noto Serif SC,Songti SC,SimSun,serif;fill:#f4e3b3;font-size:13.5px;font-weight:600;letter-spacing:.34em;paint-order:stroke;stroke:rgba(11,14,18,.78);stroke-width:2.6px' }, svg);
+      style: 'font-family:var(--kai);fill:#f4e3b3;font-size:12px;font-weight:600;letter-spacing:.08em;paint-order:stroke;stroke:rgba(11,14,18,.78);stroke-width:2.6px' }, svg);
 
     var lead = $('#mapLead');
     lead.innerHTML = '';
@@ -2318,14 +2319,19 @@
         if (isFav) { art.classList.add('fav'); }
         favBtn.textContent = isFav ? '★' : '☆';
         favBtn.setAttribute('title', isFav ? '已收此卷' : '收此卷');
+        favBtn.setAttribute('aria-label', (isFav ? '移出我架' : '收进我架') + ' · ' + s.no + '《' + s.title + '》');
+        favBtn.setAttribute('aria-pressed', isFav ? 'true' : 'false');
         favBtn.addEventListener('click', function (e) {
           e.stopPropagation();
           var idx = favs.indexOf(s.id);
           if (idx >= 0) { favs.splice(idx, 1); art.classList.remove('fav'); }
           else { favs.push(s.id); art.classList.add('fav'); }
           localStorage.setItem('wx_favs', JSON.stringify(favs));
-          favBtn.textContent = (favs.indexOf(s.id) >= 0) ? '★' : '☆';
-          favBtn.setAttribute('title', (favs.indexOf(s.id) >= 0) ? '已收此卷' : '收此卷');
+          var saved = favs.indexOf(s.id) >= 0;
+          favBtn.textContent = saved ? '★' : '☆';
+          favBtn.setAttribute('title', saved ? '已收此卷' : '收此卷');
+          favBtn.setAttribute('aria-label', (saved ? '移出我架' : '收进我架') + ' · ' + s.no + '《' + s.title + '》');
+          favBtn.setAttribute('aria-pressed', saved ? 'true' : 'false');
           favLabel();
           var hc2 = document.querySelector('#homeTally .chip');
           if (hc2) txt(hc2, '我架 · ' + favs.length + ' 卷');
@@ -3178,6 +3184,7 @@
       g.setAttribute('role', 'button');
       g.setAttribute('tabindex', '0');
       g.setAttribute('aria-label', n.name + '，' + n.g + '。按回车查看关系。');
+      g.appendChild(setAttrs(elNS('circle', NET_NS), { r: 1, class: 'net-hit-target' }));
       g.appendChild(setAttrs(elNS('circle', NET_NS), { r: NET_R }));
       var nm = setAttrs(elNS('text', NET_NS), { y: 6, class: 'net-name' });
       nm.textContent = n.name;

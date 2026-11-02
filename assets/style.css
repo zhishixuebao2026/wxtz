@@ -18,6 +18,7 @@
 }
 
 *{margin:0;padding:0;box-sizing:border-box}
+button{min-height:24px;touch-action:manipulation}
 html{scroll-behavior:smooth}
 body{
   background:var(--ink);
@@ -234,6 +235,7 @@ body{
 /* 京畿节点：光环 / 脉冲 / 题签 */
 .nd {cursor:pointer}
 .nd .hit{fill:transparent}
+.stake .st-hit{fill:none;stroke:transparent;stroke-width:24px;vector-effect:non-scaling-stroke;pointer-events:stroke}
 .nd .halo{fill:rgba(200,163,90,.10);opacity:0;transition:opacity .3s}
 .nd:hover .halo,.nd.sel .halo{opacity:1}
 .nd .pulse{fill:none;stroke:rgba(192,64,46,.55);stroke-width:1.2;opacity:0;transform-box:fill-box;transform-origin:center}
@@ -261,7 +263,7 @@ body{
 
 /* 三道分形 */
 .rd{cursor:pointer;outline:none}
-.rd .road-hit{fill:none;stroke:transparent;stroke-width:15px;pointer-events:stroke}
+.rd .road-hit{fill:none;stroke:transparent;stroke-width:24px;vector-effect:non-scaling-stroke;pointer-events:stroke}
 .rd .road{pointer-events:none}
 .rd .pu{fill:rgba(120,74,44,.75);pointer-events:none}
 .rd .rd-lb{font-family:var(--kai);font-size:11px;fill:rgba(132,66,40,.92);letter-spacing:1px;
@@ -375,7 +377,7 @@ body{
 /* ---------- 通用 chip ---------- */
 .chips{display:flex;flex-wrap:wrap;gap:9px;margin:14px 0 4px}
 .chip{
-  display:inline-flex;align-items:center;gap:6px;padding:4px 14px;border-radius:3px;cursor:pointer;
+  display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:4px 14px;border-radius:3px;cursor:pointer;touch-action:manipulation;
   border:1px solid var(--line);color:var(--silk2);font-size:13px;letter-spacing:.14em;font-family:var(--hei);
   background:rgba(22,28,35,.6);transition:.22s;user-select:none;
 }
@@ -449,10 +451,10 @@ body{
 .story-list{display:grid;gap:26px;margin-top:22px}
 .story{border:1px solid var(--line2);border-radius:6px;padding:28px 30px;position:relative;
   background:linear-gradient(180deg,var(--panel),rgba(24,30,38,.85));box-shadow:0 12px 34px rgba(0,0,0,.4);overflow:hidden}
-.story::before{content:'';position:absolute;right:-40px;top:-40px;width:150px;height:150px;border-radius:50%;
+.story::before{content:'';position:absolute;right:-40px;top:-40px;width:150px;height:150px;border-radius:50%;pointer-events:none;
   background:radial-gradient(circle,rgba(192,64,46,.09),transparent 70%)}
 .story .kicker{font-size:12px;color:var(--verm2);letter-spacing:.5em;font-family:var(--hei)}
-.fav-btn{float:right;background:none;border:none;color:rgba(200,163,90,.25);cursor:pointer;font-size:14px;padding:2px 6px;transition:color .2s;font-family:var(--hei)}
+.fav-btn{float:right;min-width:32px;min-height:32px;background:none;border:none;color:rgba(200,163,90,.25);cursor:pointer;font-size:14px;padding:2px 6px;transition:color .2s;font-family:var(--hei);touch-action:manipulation}
 .fav-btn:hover{color:rgba(200,163,90,.8)}
 .story.fav{border-color:rgba(200,163,90,.45);box-shadow:0 0 12px rgba(200,163,90,.08)}
 .story h4{margin-top:6px;font-size:22px;color:#f0e6cf;letter-spacing:.24em;font-weight:600}
@@ -749,14 +751,14 @@ body{
 .mention-row{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin:10px 0 0;font-size:12px}
 .mr-hd{color:var(--silk3);font-size:11px;letter-spacing:.25em;font-family:var(--hei);margin-right:2px}
 .tch-c{padding:2px 9px;font-size:12px}
-.sj-src{margin-left:8px;font:11px var(--hei);color:var(--golddim);border:1px solid rgba(200,163,90,.35);border-radius:3px;padding:0 6px;background:none;cursor:pointer;letter-spacing:.12em}
+.sj-src{display:inline-flex;min-height:28px;align-items:center;vertical-align:middle;margin-left:8px;font:11px var(--hei);color:var(--golddim);border:1px solid rgba(200,163,90,.35);border-radius:3px;padding:2px 7px;background:none;cursor:pointer;letter-spacing:.12em;touch-action:manipulation}
 .sj-src:hover{color:var(--gold)}
 .ling-chip{margin:4px 8px 0 0;display:inline-block}
 /* v0.76.0 今日一句 */
 .home-today{max-width:760px;margin:12px auto 0;text-align:center;font-family:var(--kai);font-size:14px;letter-spacing:.1em}
 .home-today:empty{display:none}
 .tl-k{color:var(--golddim);font-family:var(--hei);font-size:11.5px;letter-spacing:.35em;margin-right:10px}
-.tl-q{background:none;border:none;color:var(--silk);cursor:pointer;font-size:14px;letter-spacing:.08em;padding:0}
+.tl-q{display:inline-flex;min-height:32px;align-items:center;vertical-align:middle;background:none;border:none;color:var(--silk);cursor:pointer;font-size:14px;letter-spacing:.08em;padding:0 4px;touch-action:manipulation}
 .tl-q:hover{color:var(--gold)}
 /* v0.71.0 索引命中高亮 */
 .hl{color:var(--gold);border-bottom:1px dotted rgba(200,163,90,.5)}
@@ -853,7 +855,7 @@ body{
 .net-spine-box{fill:rgba(18,14,8,.6);stroke:rgba(168,114,64,.28);stroke-width:1}
 /* 线 */
 .net-link{cursor:pointer}
-.net-link .net-hit{stroke:transparent;stroke-width:16px;fill:none;pointer-events:stroke}
+.net-link .net-hit{stroke:transparent;stroke-width:24px;vector-effect:non-scaling-stroke;fill:none;pointer-events:stroke}
 .net-link .net-line{stroke-width:1.5px;fill:none;pointer-events:none;transition:stroke .22s,stroke-width .22s}
 .net-link.real .net-line{stroke:rgba(200,163,90,.55)}
 .net-link.soft .net-line{stroke:rgba(138,126,102,.45);stroke-dasharray:5 5}
@@ -863,6 +865,7 @@ body{
 /* 节点 */
 .net-node{cursor:pointer}
 .net-node circle{fill:#252e38;stroke:var(--gold);stroke-width:2px;transition:.22s}
+.net-node .net-hit-target{fill:transparent;stroke:transparent;stroke-width:24px;vector-effect:non-scaling-stroke;pointer-events:stroke;transition:none}
 .net-node .net-name{fill:#f0e6cf;font-family:var(--kai);font-size:15px;text-anchor:middle;letter-spacing:.04em;pointer-events:none}
 .net-node .net-group{fill:rgba(190,175,150,.62);font-family:var(--hei);font-size:11.5px;text-anchor:middle;letter-spacing:.16em;pointer-events:none;opacity:0;transition:opacity .22s}
 .net-node:hover .net-group,.net-node.hl .net-group,.net-node:focus-visible .net-group{opacity:1}
@@ -872,7 +875,7 @@ body{
 .net-node.c3 circle{stroke:var(--verm)}
 .net-node.c4 circle{stroke:#b08ac8}
 .net-node.c5 circle{stroke:var(--moss)}
-.net-node:hover circle,.net-node.hl circle,.net-node:focus-visible circle{fill:rgba(200,163,90,.2);stroke-width:3px;filter:drop-shadow(0 0 9px rgba(224,103,79,.45))}
+.net-node:hover circle:not(.net-hit-target),.net-node.hl circle:not(.net-hit-target),.net-node:focus-visible circle:not(.net-hit-target){fill:rgba(200,163,90,.2);stroke-width:3px;filter:drop-shadow(0 0 9px rgba(224,103,79,.45))}
 .net-node.hl .net-name,.net-node:focus-visible .net-name{fill:#fff3d8}
 /* 右栏 */
 .net-detail{border:1px solid var(--line2);border-radius:5px;padding:18px 20px;background:var(--panel);min-height:180px;max-height:420px;overflow:auto}
@@ -1145,7 +1148,7 @@ details.upd:not([open]):hover{opacity:1}
 .trial-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
 .trial-no{font:11px var(--hei);letter-spacing:.2em;color:var(--verm2)}
 .trial-title{font-size:21px;letter-spacing:.18em;color:#efe5cd}
-.trial-place{margin-left:auto;border:0;border-bottom:1px dotted var(--golddim);padding:2px 0;background:none;color:var(--gold2);font:13px var(--kai);letter-spacing:.1em;cursor:pointer}
+.trial-place{display:inline-flex;min-height:32px;align-items:center;margin-left:auto;border:0;border-bottom:1px dotted var(--golddim);padding:2px 4px;background:none;color:var(--gold2);font:13px var(--kai);letter-spacing:.1em;cursor:pointer;touch-action:manipulation}
 .trial-place:hover{color:#fff0c9}
 .trial-laws{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0}
 .trial-law{padding:2px 9px;border:1px solid rgba(200,163,90,.27);border-radius:2px;color:var(--golddim);font:10.5px var(--hei);letter-spacing:.14em}

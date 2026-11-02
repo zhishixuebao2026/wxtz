@@ -56,9 +56,9 @@ const swSource = fs.readFileSync(P + 'sw.js', 'utf8');
 const swFontsOk = /fontCss\.text\(\)/.test(swSource) && /cache\.addAll\(fonts\.slice\(/.test(swSource);
 swFontsOk ? ok('离线安装会分批预存 ' + fontRefs.length + ' 个本地字形子集') : ng('离线安装未覆盖本地字体子集');
 /['\"]\.\/data\/relay\.js\?v=\d+['\"]/.test(swSource) ? ok('Service Worker 预缓存信路数据') : ng('Service Worker 漏缓存信路数据');
-/['\"]\.\/data\/daily\.js\?v=174['\"]/.test(swSource) ? ok('Service Worker 预缓存街巷日用篇') : ng('Service Worker 漏缓存街巷日用篇');
-/['\"]\.\/data\/observatory\.js\?v=174['\"]/.test(swSource) ? ok('Service Worker 预缓存三签校时资料') : ng('Service Worker 漏缓存三签校时资料');
-/['\"]\.\/data\/artifacts\.js\?v=174['\"]/.test(swSource) ? ok('Service Worker 预缓存见物设定') : ng('Service Worker 漏缓存见物设定');
+/['\"]\.\/data\/daily\.js\?v=175['\"]/.test(swSource) ? ok('Service Worker 预缓存街巷日用篇') : ng('Service Worker 漏缓存街巷日用篇');
+/['\"]\.\/data\/observatory\.js\?v=175['\"]/.test(swSource) ? ok('Service Worker 预缓存三签校时资料') : ng('Service Worker 漏缓存三签校时资料');
+/['\"]\.\/data\/artifacts\.js\?v=175['\"]/.test(swSource) ? ok('Service Worker 预缓存见物设定') : ng('Service Worker 漏缓存见物设定');
 /['\"]\.\/assets\/three-seal-observatory\.webp['\"]/.test(swSource) ? ok('Service Worker 预缓存原创三签台器物图') : ng('Service Worker 漏缓存三签台器物图');
 const characterSource = fs.readFileSync(P + 'data/characters.js', 'utf8');
 const portraitRefs = [...characterSource.matchAll(/portrait:\s*['\"]([^'\"]+)['\"]/g)].map(m => m[1]);
@@ -117,6 +117,15 @@ const netKeyboard = (netSource.match(/addEventListener\('keydown'/g) || []).leng
 netButtons >= 2 && netKeyboard >= 2 && /aria-label/.test(netSource)
   ? ok('关系网人物与连线皆有读屏名、键盘焦点及回车/空格操作')
   : ng('关系网人物或连线的键盘/读屏操作不完整');
+const visualAuditApp = fs.readFileSync(P + 'assets/app.js', 'utf8');
+const svgFontOk = !/font-family:(?:KaiTi|STKaiti|Kaiti SC|Noto Serif SC|Songti SC),/.test(visualAuditApp) && /font-family:var\(--kai\)/.test(visualAuditApp);
+svgFontOk ? ok('地图题签沿用自托管书体，不依赖设备上未必存在的系统字体') : ng('SVG 题签仍引用缺字风险较高的系统字体栈');
+const touchCssOk = /button\{min-height:24px/.test(css) && /\.chip\{[\s\S]{0,180}min-height:32px/.test(css) && /\.sj-src\{[^}]*min-height:28px/.test(css) && /\.trial-place\{[^}]*min-height:32px/.test(css) && /\.fav-btn\{[^}]*min-width:32px;min-height:32px/.test(css) && /\.story::before\{[^}]*pointer-events:none/.test(css);
+touchCssOk ? ok('按钮、筛签、卷源与收藏均保有可触及的最小尺寸') : ng('交互入口有低于最小目标尺寸的样式');
+const favoriteA11yOk = /favBtn\.setAttribute\('aria-label'/.test(visualAuditApp) && /favBtn\.setAttribute\('aria-pressed'/.test(visualAuditApp);
+favoriteA11yOk ? ok('异闻收藏键读出卷号与状态，屏幕阅读器可辨已收/未收') : ng('异闻收藏按钮未标明目标卷或当前状态');
+const svgTargetsOk = /\.rd \.road-hit\{[^}]*vector-effect:non-scaling-stroke/.test(css) && /\.net-link \.net-hit\{[^}]*vector-effect:non-scaling-stroke/.test(css) && /\.stake \.st-hit\{[^}]*vector-effect:non-scaling-stroke/.test(css) && /\.net-node \.net-hit-target\{[^}]*vector-effect:non-scaling-stroke/.test(css) && /class': 'hit', cx: c\.pos\[0\], cy: c\.pos\[1\], r: 40/.test(visualAuditApp) && /class: 'net-hit-target'/.test(visualAuditApp) && /'class': 'st-hit'/.test(visualAuditApp);
+svgTargetsOk ? ok('地图与关系图的线、节点及界桩保有不随缩放消失的触控热区') : ng('地图或关系图的交互热点会随窄屏缩得过小');
 const secTags = (html.match(/<section/g) || []).length, secClose = (html.match(/<\/section>/g) || []).length;
 secTags === secClose ? ok('HTML section 标签配对（' + secTags + ' 对）') : ng('HTML section ' + secTags + ' / ' + secClose);
 const pageIds = [...html.matchAll(/<section id="pg-([^"]+)"/g)].map(m => m[1]).sort();
@@ -585,7 +594,7 @@ dirtyHits.length ? ng('账面露管线 ' + dirtyHits.length + ' 处：' + dirtyH
 const appSrc = fs.readFileSync(P + 'assets/app.js', 'utf8');
 const srcBlock = (appSrc.match(/var SOURCES = \[([\s\S]*?)\n    \];/) || [0, ''])[1];
 const srcCount = (srcBlock.match(/name: '/g) || []).length;
-const tipOk = html.indexOf('全书二十一篇') >= 0 && html.indexOf('索引二十一源') >= 0 && pageIds.length === 21 && srcCount === 21 && /data\/daily\.js\?v=174/.test(html) && /data\/daily\.js\?v=174/.test(swSource) && /data\/observatory\.js\?v=174/.test(html) && /data\/observatory\.js\?v=174/.test(swSource) && /data\/artifacts\.js\?v=174/.test(html) && /data\/artifacts\.js\?v=174/.test(swSource);
+const tipOk = html.indexOf('全书二十一篇') >= 0 && html.indexOf('索引二十一源') >= 0 && pageIds.length === 21 && srcCount === 21 && /data\/daily\.js\?v=175/.test(html) && /data\/daily\.js\?v=175/.test(swSource) && /data\/observatory\.js\?v=175/.test(html) && /data\/observatory\.js\?v=175/.test(swSource) && /data\/artifacts\.js\?v=175/.test(html) && /data\/artifacts\.js\?v=175/.test(swSource);
 tipOk ? ok('初见笺、篇目、索引与离线数据一致（二十一篇 · 二十一源）') : ng('初见笺计数脱节：实况 ' + pageIds.length + ' 篇 · ' + srcCount + ' 源，或新增设定未纳入离线册');
 
 console.log('\n【结论】' + (warn.length ? '需处理 ' + warn.length + ' 项' : '全部通过'));
