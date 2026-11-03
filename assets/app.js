@@ -2393,6 +2393,20 @@
         art.appendChild(kickP);
         art.appendChild(txt(el('h4'), s.title));
         art.appendChild(txt(el('p', 'sub'), s.sub));
+        art.setAttribute('data-ink', String(WXSTORIES.indexOf(s) % 4));
+        if (s.image) {
+          var figure = el('figure', 'story-figure');
+          var image = el('img', 'story-image');
+          image.src = s.image;
+          image.alt = s.imageAlt || ('《' + s.title + '》意象插图');
+          image.loading = 'lazy';
+          image.decoding = 'async';
+          image.width = 1536;
+          image.height = 1024;
+          figure.appendChild(image);
+          figure.appendChild(txt(el('figcaption', 'story-figure-note'), '本卷意象 · 仅作场景想象，不作方位与案情凭据'));
+          art.appendChild(figure);
+        }
         var body = el('div', 'body');
         var seen = {};
         function decorate(text) {

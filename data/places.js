@@ -23,7 +23,7 @@ var WXPLACES = [
     note: '没有账目往来的楼层，却有传闻中的多一双饭箸。所见仅是门、灯与更鼓，不替空屋认定住客。' },
   { id: 'hanging-sun-tower-interior', name: '悬日楼内景', region: '昭京', image: 'assets/places/hanging-sun-tower-interior.webp',
     alt: '悬日楼观测室中的铜晷与空金框，日光投下一道长影。',
-    note: '照影授时之处。慢一息是钟与校时簿的待核差异，不把时差记到孩子或任何尚未核实的人头上。' },
+    note: '照影授时之处。慢一息只记为钟与校时簿之间的待核差异，不转记于人。' },
   { id: 'golden-gutter-binding-line', name: '金沟装订线', region: '两页之间', image: 'assets/places/golden-gutter-binding-line.webp',
     alt: '两片纸页峭壁之间，一道金色水脉穿过三座小桥。',
     note: '阴阳两页相接的百丈沟。沟底有路只是传言；桥、桩与水色各有所记，不可由画面量取道里。' },

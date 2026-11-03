@@ -39,8 +39,8 @@ const contrast = (a, b) => {
 const palette = ['ink','panel','silk','silk3','dim','golddim'].reduce((o, k) => (o[k] = rootColor(k), o), {});
 const contrastPairs = [['正文','silk','ink'],['次级正文','silk3','panel'],['说明文字','dim','panel'],['旧金提示','golddim','panel']];
 const weakContrast = contrastPairs.filter(pair => !palette[pair[1]] || !palette[pair[2]] || contrast(palette[pair[1]], palette[pair[2]]) < 4.5);
-weakContrast.length ? ng('暖石墨配色文字对比度不足：' + weakContrast.map(x => x[0]).join('、'))
-  : ok('正文、次级说明与旧金提示对石墨面均达 4.5:1 对比度门槛');
+weakContrast.length ? ng('墨青底色文字对比度不足：' + weakContrast.map(x => x[0]).join('、'))
+  : ok('正文、次级说明与铜金提示对墨青面均达 4.5:1 对比度门槛');
 const capOk = /\.story \.body p:first-of-type\{text-indent:0\}/.test(css) && /\.story \.body p:first-of-type::first-letter\{[^}]*float:left[^}]*padding:3px 4px 0 0/.test(css) && /\.story \.body p:first-of-type::first-letter\{font-size:2\.5em;padding-right:3px\}/.test(css);
 capOk ? ok('异闻首字放大保留；首段缩进清零、字旁留白收束') : ng('异闻首字放大与段首间距修复不完整');
 
@@ -56,9 +56,9 @@ const swSource = fs.readFileSync(P + 'sw.js', 'utf8');
 const swFontsOk = /fontCss\.text\(\)/.test(swSource) && /cache\.addAll\(fonts\.slice\(/.test(swSource);
 swFontsOk ? ok('离线安装会分批预存 ' + fontRefs.length + ' 个本地字形子集') : ng('离线安装未覆盖本地字体子集');
 /['\"]\.\/data\/relay\.js\?v=\d+['\"]/.test(swSource) ? ok('Service Worker 预缓存信路数据') : ng('Service Worker 漏缓存信路数据');
-/['\"]\.\/data\/daily\.js\?v=178['\"]/.test(swSource) ? ok('Service Worker 预缓存街巷日用篇') : ng('Service Worker 漏缓存街巷日用篇');
-/['\"]\.\/data\/observatory\.js\?v=178['\"]/.test(swSource) ? ok('Service Worker 预缓存三签校时资料') : ng('Service Worker 漏缓存三签校时资料');
-/['\"]\.\/data\/artifacts\.js\?v=178['\"]/.test(swSource) ? ok('Service Worker 预缓存见物设定') : ng('Service Worker 漏缓存见物设定');
+/['\"]\.\/data\/daily\.js\?v=179['\"]/.test(swSource) ? ok('Service Worker 预缓存街巷日用篇') : ng('Service Worker 漏缓存街巷日用篇');
+/['\"]\.\/data\/observatory\.js\?v=179['\"]/.test(swSource) ? ok('Service Worker 预缓存三签校时资料') : ng('Service Worker 漏缓存三签校时资料');
+/['\"]\.\/data\/artifacts\.js\?v=179['\"]/.test(swSource) ? ok('Service Worker 预缓存见物设定') : ng('Service Worker 漏缓存见物设定');
 /['\"]\.\/assets\/three-seal-observatory\.webp['\"]/.test(swSource) ? ok('Service Worker 预缓存原创三签台器物图') : ng('Service Worker 漏缓存三签台器物图');
 const characterSource = fs.readFileSync(P + 'data/characters.js', 'utf8');
 const portraitRefs = [...characterSource.matchAll(/portrait:\s*['\"]([^'\"]+)['\"]/g)].map(m => m[1]);
@@ -160,6 +160,17 @@ for (const dn of DATA) vm.runInContext(fs.readFileSync(P + 'data/' + dn + '.js',
 const K = Object.keys(ctx).filter(k => k.charAt(0) === 'W').sort();
 ok('全局变量 ' + K.length + ' 个：' + K.join('、'));
 const q = n => ctx[n];
+const storyScenes = (q('WXSTORIES') || []).filter(x => x.image || x.imageAlt);
+const expectedStorySceneIds = ['s1','s6','s8','s15','s25','s33','s52','s80','s93','s100'];
+const missingStoryScenes = expectedStorySceneIds.filter(id => {
+  const story = (q('WXSTORIES') || []).filter(x => x.id === id)[0];
+  if (!story || !story.image || !story.imageAlt || !fs.existsSync(P + story.image)) return true;
+  const bytes = fs.readFileSync(P + story.image);
+  return !story.image.endsWith('.webp') || bytes.length > 450 * 1024 || bytes.toString('ascii', 0, 4) !== 'RIFF' || bytes.toString('ascii', 8, 12) !== 'WEBP' || !swSource.includes("'./" + story.image + "'");
+});
+storyScenes.length === expectedStorySceneIds.length && missingStoryScenes.length === 0
+  ? ok('十卷异闻意象均有替代文字、轻量 WebP 文件并纳入离线首装')
+  : ng('异闻场景图缺项、过大、格式错误或未预缓存：' + missingStoryScenes.join('、'));
 const placeRows = q('WXPLACES') || [];
 const placeIds = placeRows.map(x => x.id);
 const expectedPlaceImages = ['ash-corridor','cancellation-pit','debtless-sea','heavenly-ledger-court','copytower-interior','central-ledger-thirteenth-floor','hanging-sun-tower-interior','golden-gutter-binding-line','ashen-corridor-outpost','nether-capital-ticket-vault'];
@@ -173,7 +184,7 @@ placeRows.length === 10 && new Set(placeIds).size === placeIds.length && missing
   ? ok('地物图志十景齐整：替代文字、题记、WebP 文件均完整且轻量')
   : ng('地物图志缺项、重号、过大或缺少替代文字：' + missingPlaceImages.join('、'));
 const uncachedPlaces = placeRows.filter(x => !swSource.includes("'./" + x.image + "'"));
-uncachedPlaces.length === 0 && /data\/places\.js\?v=178/.test(swSource)
+uncachedPlaces.length === 0 && /data\/places\.js\?v=179/.test(swSource)
   ? ok('地物资料与十幅意象均纳入离线首装')
   : ng('离线册漏收地物资料或图片：' + uncachedPlaces.map(x => x.id).join('、'));
 const placeAppSource = fs.readFileSync(P + 'assets/app.js', 'utf8');
@@ -286,7 +297,9 @@ const slowClockTerm = q('WXLEXICON').filter(x => x.t === '慢钟之息')[0];
 const blankStake = q('WXSTAKES').filter(x => x.no === '甲四')[0];
 const coffinStake = q('WXSTAKES').filter(x => x.no === '甲八')[0];
 const bindingStake = q('WXSTAKES').filter(x => x.no === '甲十二')[0];
-const noPrebirthDebt = clockMyth && clockChosen && tornPage && blankOrigin && clockAnnual && cityClock && dayTable && slowClockTerm && blankStake && coffinStake && bindingStake && /不在人名下立借/.test(clockMyth.paras.join(' ')) && /不该生来替一座钟还账/.test(clockMyth.paras.join(' ')) && /不等于命欠了谁/.test(clockChosen.paras.join(' ')) && /所指是尚未成形的账页，不是人/.test(tornPage.paras.join(' ')) && /不替任何未来的人先写欠项/.test(blankOrigin.paras.join(' ')) && /自愿轮值一息/.test(clockAnnual.paras.join(' ')) && /从未立借/.test(cityClock.hook) && !/未降世之人的/.test(dayTable.d) && /不作凭据/.test(slowClockTerm.d) && /不预设欠账者/.test(blankStake.note) && /无名不等于欠债/.test(coffinStake.note) && /待有新凭再添注/.test(bindingStake.note);
+const slowClockCopy = [clockMyth && clockMyth.sub, clockMyth && clockMyth.paras.join(' '), clockChosen && clockChosen.paras.join(' '), cityClock && cityClock.hook, dayTable && dayTable.d, slowClockTerm && slowClockTerm.d].join(' ');
+const tornPageRumor = tornPage && /只留下一则旧闻/.test(tornPage.paras.join(' ')) && /传闻没有留下撕页者的姓名/.test(tornPage.paras.join(' ')) && !/撕页的还是撕了|那人要撕/.test(tornPage.paras.join(' '));
+const noPrebirthDebt = tornPageRumor && clockMyth && clockChosen && tornPage && blankOrigin && clockAnnual && cityClock && dayTable && slowClockTerm && blankStake && coffinStake && bindingStake && /没有把时差记到任何人名下/.test(clockMyth.paras.join(' ')) && /两事恰在同一夜，不足以解释钟差/.test(clockChosen.paras.join(' ')) && /自愿学守钟/.test(clockChosen.paras.join(' ')) && /「页」指账页，不指人，也不作凭据/.test(tornPage.paras.join(' ')) && /不把空白配给任何人/.test(blankOrigin.paras.join(' ')) && /自愿轮值一息/.test(clockAnnual.paras.join(' ')) && /时差只记在钟上/.test(cityClock.hook) && /旧数从不因难解便涂改/.test(dayTable.d) && /分栏记录慢差、复核与目击/.test(slowClockTerm.d) && !/未出生者|先还账|生来替一座钟还账|钟债/.test(slowClockCopy) && /不预设欠账者/.test(blankStake.note) && /无名不等于欠债/.test(coffinStake.note) && /待有新凭再添注/.test(bindingStake.note);
 noPrebirthDebt ? ok('昭京慢钟、日表、词条、守钟人物与空格桩文均不预设未来债务人') : ng('慢钟相关文案仍将未来者写成债务人');
 const blankLedgerStory = q('WXSTORIES').filter(x => x.id === 's93')[0];
 const blankLedgerTerm = q('WXLEXICON').filter(x => x.t === '天账庭')[0];
@@ -650,7 +663,7 @@ dirtyHits.length ? ng('账面露管线 ' + dirtyHits.length + ' 处：' + dirtyH
 const appSrc = fs.readFileSync(P + 'assets/app.js', 'utf8');
 const srcBlock = (appSrc.match(/var SOURCES = \[([\s\S]*?)\n    \];/) || [0, ''])[1];
 const srcCount = (srcBlock.match(/name: '/g) || []).length;
-const tipOk = html.indexOf('全书二十一篇') >= 0 && html.indexOf('索引二十一源') >= 0 && pageIds.length === 21 && srcCount === 21 && /data\/daily\.js\?v=178/.test(html) && /data\/daily\.js\?v=178/.test(swSource) && /data\/observatory\.js\?v=178/.test(html) && /data\/observatory\.js\?v=178/.test(swSource) && /data\/artifacts\.js\?v=178/.test(html) && /data\/artifacts\.js\?v=178/.test(swSource) && /data\/places\.js\?v=178/.test(html) && /data\/places\.js\?v=178/.test(swSource);
+const tipOk = html.indexOf('全书二十一篇') >= 0 && html.indexOf('索引二十一源') >= 0 && pageIds.length === 21 && srcCount === 21 && /data\/daily\.js\?v=179/.test(html) && /data\/daily\.js\?v=179/.test(swSource) && /data\/observatory\.js\?v=179/.test(html) && /data\/observatory\.js\?v=179/.test(swSource) && /data\/artifacts\.js\?v=179/.test(html) && /data\/artifacts\.js\?v=179/.test(swSource) && /data\/places\.js\?v=179/.test(html) && /data\/places\.js\?v=179/.test(swSource);
 tipOk ? ok('初见笺、篇目、索引与离线数据一致（二十一篇 · 二十一源）') : ng('初见笺计数脱节：实况 ' + pageIds.length + ' 篇 · ' + srcCount + ' 源，或新增设定未纳入离线册');
 
 console.log('\n【结论】' + (warn.length ? '需处理 ' + warn.length + ' 项' : '全部通过'));
