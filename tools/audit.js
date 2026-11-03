@@ -56,10 +56,38 @@ const swSource = fs.readFileSync(P + 'sw.js', 'utf8');
 const swFontsOk = /fontCss\.text\(\)/.test(swSource) && /cache\.addAll\(fonts\.slice\(/.test(swSource);
 swFontsOk ? ok('离线安装会分批预存 ' + fontRefs.length + ' 个本地字形子集') : ng('离线安装未覆盖本地字体子集');
 /['\"]\.\/data\/relay\.js\?v=\d+['\"]/.test(swSource) ? ok('Service Worker 预缓存信路数据') : ng('Service Worker 漏缓存信路数据');
-/['\"]\.\/data\/daily\.js\?v=179['\"]/.test(swSource) ? ok('Service Worker 预缓存街巷日用篇') : ng('Service Worker 漏缓存街巷日用篇');
-/['\"]\.\/data\/observatory\.js\?v=179['\"]/.test(swSource) ? ok('Service Worker 预缓存三签校时资料') : ng('Service Worker 漏缓存三签校时资料');
-/['\"]\.\/data\/artifacts\.js\?v=179['\"]/.test(swSource) ? ok('Service Worker 预缓存见物设定') : ng('Service Worker 漏缓存见物设定');
+/['\"]\.\/data\/daily\.js\?v=180['\"]/.test(swSource) ? ok('Service Worker 预缓存街巷日用篇') : ng('Service Worker 漏缓存街巷日用篇');
+/['\"]\.\/data\/observatory\.js\?v=180['\"]/.test(swSource) ? ok('Service Worker 预缓存三签校时资料') : ng('Service Worker 漏缓存三签校时资料');
+/['\"]\.\/data\/artifacts\.js\?v=180['\"]/.test(swSource) ? ok('Service Worker 预缓存见物设定') : ng('Service Worker 漏缓存见物设定');
 /['\"]\.\/assets\/three-seal-observatory\.webp['\"]/.test(swSource) ? ok('Service Worker 预缓存原创三签台器物图') : ng('Service Worker 漏缓存三签台器物图');
+const beingSource = fs.readFileSync(P + 'data/beings.js', 'utf8');
+const beingImages = [...beingSource.matchAll(/image:\s*['\"]([^'\"]+)['\"]\s*,\s*imageAlt:\s*['\"]([^'\"]+)['\"]/g)];
+const missingBeingImages = beingImages.map(m => m[1]).filter(src => !fs.existsSync(P + src));
+const oversizedBeingImages = beingImages.map(m => m[1]).filter(src => {
+  const file = P + src;
+  if (!fs.existsSync(file)) return false;
+  const bytes = fs.readFileSync(file);
+  return !src.endsWith('.webp') || bytes.length > 400 * 1024 || bytes.toString('ascii', 0, 4) !== 'RIFF' || bytes.toString('ascii', 8, 12) !== 'WEBP';
+});
+const uncachedBeingImages = beingImages.map(m => m[1]).filter(src => !swSource.includes("'./" + src + "'"));
+beingImages.length === 10 && beingImages.every(m => m[2].trim().length > 15) && !missingBeingImages.length && !oversizedBeingImages.length
+  ? ok('众生谱十幅均为轻量 WebP，且有描述性替代文字') : ng('众生意象缺图、非轻量 WebP 或缺少替代文字：' + missingBeingImages.concat(oversizedBeingImages).join('、'));
+if (!/\.being-grid\{[^}]*minmax\(min\(100%,300px\),1fr\)/.test(css)) ng('众生谱网格未适配小于卡片最小宽度的窄屏');
+else ok('众生谱卡片可在 320 像素窄屏收缩，不设固定最小横宽');
+uncachedBeingImages.length ? ng('众生意象未纳入离线缓存：' + uncachedBeingImages.join('、')) : ok('众生谱十幅意象均纳入离线预缓存');
+const loreBeings = fs.readFileSync(P + 'data/beings.js', 'utf8');
+const loreStories = fs.readFileSync(P + 'data/stories.js', 'utf8');
+const loreLexicon = fs.readFileSync(P + 'data/lexicon.js', 'utf8');
+const s47At = loreStories.indexOf("id: 's47'");
+const s47Text = s47At >= 0 ? loreStories.slice(s47At, loreStories.indexOf('\n  },', s47At)) : '';
+const s41At = loreStories.indexOf("id: 's41'");
+const s41Text = s41At >= 0 ? loreStories.slice(s41At, loreStories.indexOf('\n  },', s41At)) : '';
+const suilingSource = fs.readFileSync(P + 'data/suiling.js', 'utf8');
+const childDebtLoreClear = !/命厚债重|救过人命的人，天必入账|痕浅或已出账|只抹结清的账/.test(loreBeings + loreLexicon + s47Text + s41Text)
+  && /不是命数、品行或债额/.test(loreBeings) && /不是命数、品行或债额/.test(s47Text)
+  && /不等于人不存在/.test(loreLexicon) && /不是你的账/.test(s41Text)
+  && /各地说法不一/.test(suilingSource);
+childDebtLoreClear ? ok('墨痕不定命数或债额；救人、童年与祟俗均不作欠债凭据') : ng('墨痕、童年或祟俗仍含出生定债、救人换入账或替人判账暗示');
 const characterSource = fs.readFileSync(P + 'data/characters.js', 'utf8');
 const portraitRefs = [...characterSource.matchAll(/portrait:\s*['\"]([^'\"]+)['\"]/g)].map(m => m[1]);
 const missingPortraits = portraitRefs.filter(src => !fs.existsSync(P + src));
@@ -184,7 +212,7 @@ placeRows.length === 10 && new Set(placeIds).size === placeIds.length && missing
   ? ok('地物图志十景齐整：替代文字、题记、WebP 文件均完整且轻量')
   : ng('地物图志缺项、重号、过大或缺少替代文字：' + missingPlaceImages.join('、'));
 const uncachedPlaces = placeRows.filter(x => !swSource.includes("'./" + x.image + "'"));
-uncachedPlaces.length === 0 && /data\/places\.js\?v=179/.test(swSource)
+uncachedPlaces.length === 0 && /data\/places\.js\?v=180/.test(swSource)
   ? ok('地物资料与十幅意象均纳入离线首装')
   : ng('离线册漏收地物资料或图片：' + uncachedPlaces.map(x => x.id).join('、'));
 const placeAppSource = fs.readFileSync(P + 'assets/app.js', 'utf8');
@@ -663,7 +691,7 @@ dirtyHits.length ? ng('账面露管线 ' + dirtyHits.length + ' 处：' + dirtyH
 const appSrc = fs.readFileSync(P + 'assets/app.js', 'utf8');
 const srcBlock = (appSrc.match(/var SOURCES = \[([\s\S]*?)\n    \];/) || [0, ''])[1];
 const srcCount = (srcBlock.match(/name: '/g) || []).length;
-const tipOk = html.indexOf('全书二十一篇') >= 0 && html.indexOf('索引二十一源') >= 0 && pageIds.length === 21 && srcCount === 21 && /data\/daily\.js\?v=179/.test(html) && /data\/daily\.js\?v=179/.test(swSource) && /data\/observatory\.js\?v=179/.test(html) && /data\/observatory\.js\?v=179/.test(swSource) && /data\/artifacts\.js\?v=179/.test(html) && /data\/artifacts\.js\?v=179/.test(swSource) && /data\/places\.js\?v=179/.test(html) && /data\/places\.js\?v=179/.test(swSource);
+const tipOk = html.indexOf('全书二十一篇') >= 0 && html.indexOf('索引二十一源') >= 0 && pageIds.length === 21 && srcCount === 21 && /data\/daily\.js\?v=180/.test(html) && /data\/daily\.js\?v=180/.test(swSource) && /data\/observatory\.js\?v=180/.test(html) && /data\/observatory\.js\?v=180/.test(swSource) && /data\/artifacts\.js\?v=180/.test(html) && /data\/artifacts\.js\?v=180/.test(swSource) && /data\/places\.js\?v=180/.test(html) && /data\/places\.js\?v=180/.test(swSource);
 tipOk ? ok('初见笺、篇目、索引与离线数据一致（二十一篇 · 二十一源）') : ng('初见笺计数脱节：实况 ' + pageIds.length + ' 篇 · ' + srcCount + ' 源，或新增设定未纳入离线册');
 
 console.log('\n【结论】' + (warn.length ? '需处理 ' + warn.length + ' 项' : '全部通过'));

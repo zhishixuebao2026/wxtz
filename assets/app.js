@@ -1286,6 +1286,19 @@
         var chip = el('span', 'chip ' + (CATCOLOR[b.cat] || 'c2'));
         txt(chip, b.cat);
         card.appendChild(chip);
+        if (b.image) {
+          var figure = el('figure', 'being-figure');
+          var image = el('img');
+          image.src = b.image;
+          image.alt = b.imageAlt || (b.name + '意象图');
+          image.loading = 'lazy';
+          image.decoding = 'async';
+          figure.appendChild(image);
+          var caption = el('figcaption', 'being-caption');
+          txt(caption, '设定意象 · 非个体肖像或案证');
+          figure.appendChild(caption);
+          card.appendChild(figure);
+        }
         card.appendChild(txt(el('p', 'head'), b.head));
         var tpb = el('p', 'text');
         var seenB = {};
