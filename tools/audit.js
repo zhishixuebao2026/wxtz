@@ -53,12 +53,21 @@ fontCss && !missingFonts.length && !remoteFonts.length && fs.existsSync(P + 'ass
   ? ok('本地字体子集 ' + fontRefs.length + ' 件、原创首页纸景齐备；无远程字体引用')
   : ng('本地视觉资源缺失或含远程字体：' + missingFonts.join('、') + (remoteFonts.length ? '；远程 ' + remoteFonts.join('、') : ''));
 const swSource = fs.readFileSync(P + 'sw.js', 'utf8');
+const manifest = JSON.parse(fs.readFileSync(P + 'site.webmanifest', 'utf8'));
+const installHtmlSource = fs.readFileSync(P + 'index.html', 'utf8');
+const installAppSource = fs.readFileSync(P + 'assets/app.js', 'utf8');
+const appleStandalone = manifest.display === 'standalone' && manifest.display_override && manifest.display_override[0] === 'standalone' &&
+  /apple-mobile-web-app-capable" content="yes"/.test(installHtmlSource) && /apple-touch-icon/.test(installHtmlSource) &&
+  manifest.icons.every(icon => fs.existsSync(P + icon.src)) && /window\.navigator\.standalone === true/.test(installAppSource) &&
+  installAppSource.includes("matchMedia('(display-mode: standalone)')") && /html\.standalone-app \.install-app-tool/.test(css) &&
+  /作为网页 App 打开/.test(installAppSource) && /删除旧图标/.test(installAppSource);
+appleStandalone ? ok('iPhone 主屏安装配置为独立网页 App，含图标、启动方式与重加指引') : ng('iPhone 主屏安装未配置独立网页 App 或缺少 Safari 操作指引');
 const swFontsOk = /fontCss\.text\(\)/.test(swSource) && /cache\.addAll\(fonts\.slice\(/.test(swSource);
 swFontsOk ? ok('离线安装会分批预存 ' + fontRefs.length + ' 个本地字形子集') : ng('离线安装未覆盖本地字体子集');
 /['\"]\.\/data\/relay\.js\?v=\d+['\"]/.test(swSource) ? ok('Service Worker 预缓存信路数据') : ng('Service Worker 漏缓存信路数据');
-/['\"]\.\/data\/daily\.js\?v=182['\"]/.test(swSource) ? ok('Service Worker 预缓存街巷日用篇') : ng('Service Worker 漏缓存街巷日用篇');
-/['\"]\.\/data\/observatory\.js\?v=182['\"]/.test(swSource) ? ok('Service Worker 预缓存三签校时资料') : ng('Service Worker 漏缓存三签校时资料');
-/['\"]\.\/data\/artifacts\.js\?v=182['\"]/.test(swSource) ? ok('Service Worker 预缓存见物设定') : ng('Service Worker 漏缓存见物设定');
+/['\"]\.\/data\/daily\.js\?v=183['\"]/.test(swSource) ? ok('Service Worker 预缓存街巷日用篇') : ng('Service Worker 漏缓存街巷日用篇');
+/['\"]\.\/data\/observatory\.js\?v=183['\"]/.test(swSource) ? ok('Service Worker 预缓存三签校时资料') : ng('Service Worker 漏缓存三签校时资料');
+/['\"]\.\/data\/artifacts\.js\?v=183['\"]/.test(swSource) ? ok('Service Worker 预缓存见物设定') : ng('Service Worker 漏缓存见物设定');
 /['\"]\.\/assets\/three-seal-observatory\.webp['\"]/.test(swSource) ? ok('Service Worker 预缓存原创三签台器物图') : ng('Service Worker 漏缓存三签台器物图');
 const beingSource = fs.readFileSync(P + 'data/beings.js', 'utf8');
 const beingImages = [...beingSource.matchAll(/image:\s*['\"]([^'\"]+)['\"]\s*,\s*imageAlt:\s*['\"]([^'\"]+)['\"]/g)];
@@ -212,7 +221,7 @@ placeRows.length === 10 && new Set(placeIds).size === placeIds.length && missing
   ? ok('地物图志十景齐整：替代文字、题记、WebP 文件均完整且轻量')
   : ng('地物图志缺项、重号、过大或缺少替代文字：' + missingPlaceImages.join('、'));
 const uncachedPlaces = placeRows.filter(x => !swSource.includes("'./" + x.image + "'"));
-uncachedPlaces.length === 0 && /data\/places\.js\?v=182/.test(swSource)
+uncachedPlaces.length === 0 && /data\/places\.js\?v=183/.test(swSource)
   ? ok('地物资料与十幅意象均纳入离线首装')
   : ng('离线册漏收地物资料或图片：' + uncachedPlaces.map(x => x.id).join('、'));
 const placeAppSource = fs.readFileSync(P + 'assets/app.js', 'utf8');
@@ -696,7 +705,7 @@ const disclosuresRemoved = repeatedImageDisclosures.every(text => !visibleImageD
 disclosuresRemoved ? ok('插图旁不再重复堆叠声明；替代文字仍保留') : ng('插图旁仍有重复声明文字');
 const srcBlock = (appSrc.match(/var SOURCES = \[([\s\S]*?)\n    \];/) || [0, ''])[1];
 const srcCount = (srcBlock.match(/name: '/g) || []).length;
-const tipOk = html.indexOf('全书二十一篇') >= 0 && html.indexOf('索引二十一源') >= 0 && pageIds.length === 21 && srcCount === 21 && /data\/daily\.js\?v=182/.test(html) && /data\/daily\.js\?v=182/.test(swSource) && /data\/observatory\.js\?v=182/.test(html) && /data\/observatory\.js\?v=182/.test(swSource) && /data\/artifacts\.js\?v=182/.test(html) && /data\/artifacts\.js\?v=182/.test(swSource) && /data\/places\.js\?v=182/.test(html) && /data\/places\.js\?v=182/.test(swSource);
+const tipOk = html.indexOf('全书二十一篇') >= 0 && html.indexOf('索引二十一源') >= 0 && pageIds.length === 21 && srcCount === 21 && /data\/daily\.js\?v=183/.test(html) && /data\/daily\.js\?v=183/.test(swSource) && /data\/observatory\.js\?v=183/.test(html) && /data\/observatory\.js\?v=183/.test(swSource) && /data\/artifacts\.js\?v=183/.test(html) && /data\/artifacts\.js\?v=183/.test(swSource) && /data\/places\.js\?v=183/.test(html) && /data\/places\.js\?v=183/.test(swSource);
 tipOk ? ok('初见笺、篇目、索引与离线数据一致（二十一篇 · 二十一源）') : ng('初见笺计数脱节：实况 ' + pageIds.length + ' 篇 · ' + srcCount + ' 源，或新增设定未纳入离线册');
 
 console.log('\n【结论】' + (warn.length ? '需处理 ' + warn.length + ' 项' : '全部通过'));
