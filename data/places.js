@@ -1,5 +1,5 @@
 /* 万象天账 · 地物图志
-   天地图旁的意象图卡：图只供读与想，不作方位、道里或案情凭据。 */
+   天地图旁的意象图卡。 */
 'use strict';
 
 var WXPLACES = [
@@ -14,7 +14,7 @@ var WXPLACES = [
     note: '作废账页漂泊成海；被推翻的预言、失约的誓言与不再成立的旧世界，都可在此留下回声。' },
   { id: 'heavenly-ledger-court', name: '天账庭', region: '无字京 · 方位存疑', image: 'assets/places/heavenly-ledger-court.webp',
     alt: '云上的空旷庭院设有长案、铜衡与层层石阶。',
-    note: '传说中的存疑之庭。空格留的是问题，不是预定的人；图像只作传闻意象，庭址与实有仍待核。' },
+    note: '传说中的存疑之庭。空格留的是问题，不是预定的人；庭址与实有仍待核。' },
   { id: 'copytower-interior', name: '抄本楼内景', region: '闻京', image: 'assets/places/copytower-interior.webp',
     alt: '闻京抄本楼高架书格、木廊与暖光交叠的室内。',
     note: '天下账册在此存副本。错抄之字不许改回，旁注须留来由；同一底本抄十遍，仍只是一只眼睛。' },
@@ -26,7 +26,7 @@ var WXPLACES = [
     note: '照影授时之处。慢一息只记为钟与校时簿之间的待核差异，不转记于人。' },
   { id: 'golden-gutter-binding-line', name: '金沟装订线', region: '两页之间', image: 'assets/places/golden-gutter-binding-line.webp',
     alt: '两片纸页峭壁之间，一道金色水脉穿过三座小桥。',
-    note: '阴阳两页相接的百丈沟。沟底有路只是传言；桥、桩与水色各有所记，不可由画面量取道里。' },
+    note: '阴阳两页相接的百丈沟。沟底有路只是传言；桥、桩与水色各有所记。' },
   { id: 'ashen-corridor-outpost', name: '灰廊口荒岗', region: '野京边地 · 灰廊口', image: 'assets/places/ashen-corridor-outpost.webp',
     alt: '风过灰色荒岗，矮小木亭与界桩守着通向雾中的窄道。',
     note: '界桩绳走到中界便断的地方。岗亭只记来往与交接；路外仍是雾，不因一张图而取得方位。' },

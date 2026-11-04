@@ -992,7 +992,6 @@
       sceneFigure.appendChild(sceneImage);
       var sceneCaption = el('figcaption', 'cd-scene-caption');
       sceneCaption.appendChild(txt(el('span', 'cd-scene-label'), c.name + ' · ' + (c.sceneCaption || '城景意象')));
-      sceneCaption.appendChild(txt(el('span', 'cd-scene-note'), '画面不作方位、道里凭据'));
       sceneFigure.appendChild(sceneCaption);
       box.appendChild(sceneFigure);
     }
@@ -1097,18 +1096,18 @@
       caption.appendChild(txt(el('span', 'place-atlas-region'), place.region));
       caption.appendChild(txt(el('h4'), place.name));
       caption.appendChild(txt(el('p'), place.note));
-      var actions = el('div', 'place-atlas-actions');
-      actions.appendChild(txt(el('span', 'place-atlas-caveat'), '意象图 · 非方位凭据'));
       if (place.cityId) {
         var city = WXCITIES.filter(function (c) { return c.id === place.cityId; })[0];
         if (city) {
+          var actions = el('div', 'place-atlas-actions');
           var jump = el('button', 'place-city-link'); jump.type = 'button';
           jump.appendChild(txt(el('span'), '开' + city.name + '卷宗　↗'));
           jump.addEventListener('click', function () { openCity(city.id); var detail = $('#cityDetail'); if (detail) detail.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' }); });
           actions.appendChild(jump);
+          caption.appendChild(actions);
         }
       }
-      caption.appendChild(actions); figure.appendChild(caption); stage.appendChild(figure);
+      figure.appendChild(caption); stage.appendChild(figure);
       $$('.place-atlas-card', grid).forEach(function (button) {
         var active = button.getAttribute('data-place') === place.id;
         button.setAttribute('aria-pressed', active ? 'true' : 'false');
@@ -1294,9 +1293,6 @@
           image.loading = 'lazy';
           image.decoding = 'async';
           figure.appendChild(image);
-          var caption = el('figcaption', 'being-caption');
-          txt(caption, '设定意象 · 非个体肖像或案证');
-          figure.appendChild(caption);
           card.appendChild(figure);
         }
         card.appendChild(txt(el('p', 'head'), b.head));
@@ -2417,7 +2413,6 @@
           image.width = 1536;
           image.height = 1024;
           figure.appendChild(image);
-          figure.appendChild(txt(el('figcaption', 'story-figure-note'), '本卷意象 · 仅作场景想象，不作方位与案情凭据'));
           art.appendChild(figure);
         }
         var body = el('div', 'body');
