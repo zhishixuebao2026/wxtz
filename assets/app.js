@@ -2645,7 +2645,7 @@
     function openPortrait(c) {
       if (!c || !c.portrait || !portraitDialog || !portraitImage) return;
       portraitImage.src = imageUrl(c);
-      portraitImage.alt = c.name + ' · ' + c.title;
+      portraitImage.alt = c.portraitAlt || (c.name + ' · ' + c.title);
       txt(portraitCaption, c.name + ' · ' + c.title);
       if (portraitDialog.showModal) portraitDialog.showModal();
     }

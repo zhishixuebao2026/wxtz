@@ -42,7 +42,10 @@ var WXRELATIONS = {
     { id: 'xiaolushi',   name: '小录事',  g: '公门', x: 725, y: 510 },
     { id: 'huashou',     name: '图房画手', g: '公门', x: 272, y: 110 },
     { id: 'piaoli',      name: '老票吏',  g: '公门', x: 908, y: 368 },
-    { id: 'liangzhaohe', name: '梁照禾',  g: '公门', x: 936, y: 456 }
+    { id: 'liangzhaohe', name: '梁照禾',  g: '公门', x: 936, y: 456 },
+    { id: 'peichizhun', name: '裴尺准', g: '公门', x: 490, y: 90 },
+    { id: 'sangzhaowen', name: '桑照文', g: '公门', x: 830, y: 700 },
+    { id: 'luozhaoqiu', name: '罗照秋', g: '异闻', x: 140, y: 540 }
   ],
   links: [
     { s: 'liyuan', t: 'liangzhaohe', kind: '同题', type: '两头记',
@@ -135,6 +138,12 @@ var WXRELATIONS = {
     { s: 'huashou', t: 'tuoqingzhi', kind: '同题', type: '丈量',
       note: '图房画田之鳞，界桩堂量京之界——一个册上挪半指，田替他留着；一个桩往里三步，人让三步。中界的尺寸，是这两双手量出来的。' },
     { s: 'xiaolushi', t: 'huashou', kind: '同题', type: '图线',
-      note: '誊手牵线，画手描鳞——一个把卷连成布，一个把田描成鱼。中界的账，一半是线，一半是鳞。' }
+      note: '誊手牵线，画手描鳞——一个把卷连成布，一个把田描成鱼。中界的账，一半是线，一半是鳞。' },
+    { s: 'peichizhun', t: 'mishouchang', kind: '同题', type: '水尺',
+      note: '卷玖拾玖把实测时刻与牒件抵达时刻分开；裴尺准在闸口另录读数与发牒。二人无同场记录，只在「时间各归一格」上相照。' },
+    { s: 'sangzhaowen', t: 'luqingjian', kind: '同题', type: '原页',
+      note: '陆青简守旧录不涂，桑照文修裂纸不补字；一守墨迹，一护承载它的纸。两传未记同场。' },
+    { s: 'luozhaoqiu', t: 'qiaozhongren', kind: '同题', type: '灯与更',
+      note: '敲钟人按更点替旧页记时，罗照秋按旧刻检换廊灯；一个报时，一个照路，灯亮不等于雾退，也不替人认路。无同场记录。' },
   ]
 };
