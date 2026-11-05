@@ -1738,3 +1738,43 @@ button,.chip,.artifact-link,.tch{transition:color .18s,border-color .18s,backgro
 .brand-seal{display:grid;grid-template-rows:1fr 1fr;align-content:center;justify-items:center;gap:0;width:48px;height:48px;padding:5px 3px;writing-mode:horizontal-tb;text-orientation:mixed;font:10px/1.18 var(--kai);letter-spacing:.15em;text-indent:.15em}
 .brand-seal span{display:block;white-space:nowrap}
 @media(max-width:720px){.brand-seal{width:40px;height:40px;padding:4px 2px;font-size:9px;letter-spacing:.12em;text-indent:.12em}.reader-tools{position:relative;z-index:auto}}
+
+/* v1.51 · 道路与桥梁图志：以驿铺、桥券和交接边界作图说 */
+.route-atlas{margin:28px 0 12px;padding:clamp(16px,3vw,28px);border:1px solid rgba(200,166,99,.24);border-radius:7px;background:linear-gradient(145deg,rgba(45,36,27,.86),rgba(20,18,16,.96));box-shadow:0 17px 42px rgba(0,0,0,.24),inset 0 1px rgba(255,255,255,.025)}
+.route-atlas-head{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:16px;padding-bottom:15px;border-bottom:1px solid rgba(200,166,99,.2)}
+.route-atlas-kicker{color:var(--verm2);font:10px var(--hei);letter-spacing:.23em}
+.route-atlas-head h3{margin:5px 0 0;color:var(--gold2);font:600 clamp(20px,2.4vw,27px) var(--kai);letter-spacing:.16em}
+.route-atlas-head>p{max-width:560px;margin:0;color:var(--silk3);font:12px/1.85 var(--hei)}
+.route-atlas-filters{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.route-atlas-filter{min-height:36px;padding:7px 12px;border:1px solid rgba(200,166,99,.24);border-radius:3px;background:rgba(18,17,15,.55);color:var(--silk3);font:11px var(--hei);letter-spacing:.08em;cursor:pointer;touch-action:manipulation}
+.route-atlas-filter:hover{border-color:rgba(200,166,99,.55);color:var(--silk)}
+.route-atlas-filter.on{border-color:rgba(200,166,99,.65);background:rgba(200,166,99,.12);color:#f2dfae;box-shadow:inset 0 0 0 1px rgba(200,166,99,.12)}
+.route-atlas-filter:focus-visible,.route-atlas-card:focus-visible,.route-atlas-map-link:focus-visible,.route-atlas-open:focus-visible{outline:2px solid var(--gold2);outline-offset:2px}
+.route-atlas-stage{margin:0 0 16px;scroll-margin-top:82px}
+.route-atlas-figure{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(260px,.75fr);min-height:250px;overflow:hidden;border:1px solid rgba(200,166,99,.25);border-radius:5px;background:#171411}
+.route-atlas-image{display:block;width:100%;height:100%;min-height:250px;max-height:430px;object-fit:cover;background:#201b16}
+.route-atlas-caption{display:flex;flex-direction:column;justify-content:center;padding:clamp(17px,2.7vw,30px);background:linear-gradient(145deg,rgba(49,39,29,.97),rgba(28,24,20,.99))}
+.route-atlas-meta{color:var(--golddim);font:10px/1.7 var(--hei);letter-spacing:.08em}
+.route-atlas-caption h4{margin:9px 0 11px;color:#f0ebdd;font:600 clamp(20px,2.2vw,27px) var(--kai);letter-spacing:.16em}
+.route-atlas-caption>p{margin:0;color:var(--silk2);font:14px/1.9 var(--song)}
+.route-atlas-actions{margin-top:17px;padding-top:13px;border-top:1px solid rgba(200,166,99,.16)}
+.route-atlas-map-link,.route-atlas-open{min-height:40px;padding:9px 13px;border:1px solid rgba(200,166,99,.3);border-radius:3px;background:rgba(200,166,99,.08);color:#ead9b0;font:11px var(--hei);letter-spacing:.08em;cursor:pointer;touch-action:manipulation}
+.route-atlas-map-link:hover,.route-atlas-open:hover{border-color:rgba(200,166,99,.68);background:rgba(200,166,99,.14)}
+.route-atlas-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.route-atlas-card{display:block;min-width:0;padding:0;overflow:hidden;border:1px solid rgba(200,166,99,.2);border-radius:4px;background:rgba(18,17,15,.64);color:var(--silk);text-align:left;cursor:pointer;touch-action:manipulation;transition:transform .18s,border-color .18s,background .18s}
+.route-atlas-card:hover{transform:translateY(-2px);border-color:rgba(200,166,99,.65)}
+.route-atlas-card[aria-pressed=true]{border-color:var(--gold);background:rgba(200,166,99,.09);box-shadow:0 0 0 1px rgba(200,166,99,.16)}
+.route-atlas-thumb{display:block;width:100%;aspect-ratio:3/2;object-fit:cover;background:#211e19;filter:saturate(.85);transition:filter .2s}
+.route-atlas-card:hover .route-atlas-thumb,.route-atlas-card[aria-pressed=true] .route-atlas-thumb{filter:saturate(1)}
+.route-atlas-card-meta{display:grid;gap:3px;padding:8px 9px 10px}
+.route-atlas-card-kind{overflow:hidden;color:var(--dim);font:9px var(--hei);letter-spacing:.06em;text-overflow:ellipsis;white-space:nowrap}
+.route-atlas-card strong{overflow:hidden;color:var(--silk2);font:12px var(--kai);letter-spacing:.08em;text-overflow:ellipsis;white-space:nowrap}
+.route-atlas-card[aria-pressed=true] strong{color:var(--gold2)}
+.cd-road-scene{margin:12px 0 5px;overflow:hidden;border:1px solid rgba(200,166,99,.26);border-radius:4px;background:#1c1813}
+.cd-road-scene-image{display:block;width:100%;aspect-ratio:3/2;object-fit:cover}
+.cd-road-scene figcaption{padding:7px 9px;color:var(--dim);font:10px/1.6 var(--hei)}
+.route-atlas-open{width:100%;margin:4px 0 10px}
+@media(max-width:1050px){.route-atlas-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.route-atlas-figure{grid-template-columns:minmax(0,1fr) minmax(240px,.8fr)}}
+@media(max-width:760px){.route-atlas{margin:22px 0 10px;padding:15px 12px}.route-atlas-head{align-items:flex-start;flex-direction:column;gap:8px}.route-atlas-head>p{max-width:none}.route-atlas-figure{grid-template-columns:1fr}.route-atlas-image{aspect-ratio:16/9;min-height:0;max-height:none}.route-atlas-caption{padding:17px 15px}.route-atlas-caption h4{margin:6px 0 8px}.route-atlas-caption>p{font-size:13px}.route-atlas-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.route-atlas-card-meta{padding:7px 8px 9px}}
+@media(max-width:360px){.route-atlas-filters{gap:6px}.route-atlas-filter{padding-inline:9px;font-size:10px}.route-atlas-grid{gap:6px}.route-atlas-card-meta{padding-inline:6px}.route-atlas-card-kind{font-size:8px}}
+@media(prefers-reduced-motion:reduce){.route-atlas-card,.route-atlas-thumb{transition:none}.route-atlas-card:hover{transform:none}}

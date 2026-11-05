@@ -4,7 +4,7 @@
 'use strict';
 const fs = require('fs'), vm = require('vm');
 const P = __dirname.replace(/\\/g, '/') + '/../';
-const DATA = ['core','cities','places','beings','timeline','lexicon','sayings','goods','stories','characters','relations','stakes','suiling','organs','arcs','docs','updates','trials','granaries','relay','daily','observatory','artifacts'];
+const DATA = ['core','cities','places','roads','beings','timeline','lexicon','sayings','goods','stories','characters','relations','stakes','suiling','organs','arcs','docs','updates','trials','granaries','relay','daily','observatory','artifacts'];
 const JS = DATA.map(d => 'data/' + d + '.js').concat(['assets/app.js']);
 let warn = [];
 const ok = m => console.log('  ✓ ' + m);
@@ -65,9 +65,10 @@ appleStandalone ? ok('iPhone 主屏安装配置为独立网页 App，含图标�
 const swFontsOk = /fontCss\.text\(\)/.test(swSource) && /cache\.addAll\(fonts\.slice\(/.test(swSource);
 swFontsOk ? ok('离线安装会分批预存 ' + fontRefs.length + ' 个本地字形子集') : ng('离线安装未覆盖本地字体子集');
 /['\"]\.\/data\/relay\.js\?v=\d+['\"]/.test(swSource) ? ok('Service Worker 预缓存信路数据') : ng('Service Worker 漏缓存信路数据');
-/['\"]\.\/data\/daily\.js\?v=185['\"]/.test(swSource) ? ok('Service Worker 预缓存街巷日用篇') : ng('Service Worker 漏缓存街巷日用篇');
-/['\"]\.\/data\/observatory\.js\?v=185['\"]/.test(swSource) ? ok('Service Worker 预缓存三签校时资料') : ng('Service Worker 漏缓存三签校时资料');
-/['\"]\.\/data\/artifacts\.js\?v=185['\"]/.test(swSource) ? ok('Service Worker 预缓存见物设定') : ng('Service Worker 漏缓存见物设定');
+/['\"]\.\/data\/daily\.js\?v=186['\"]/.test(swSource) ? ok('Service Worker 预缓存街巷日用篇') : ng('Service Worker 漏缓存街巷日用篇');
+/['\"]\.\/data\/observatory\.js\?v=186['\"]/.test(swSource) ? ok('Service Worker 预缓存三签校时资料') : ng('Service Worker 漏缓存三签校时资料');
+/['\"]\.\/data\/artifacts\.js\?v=186['\"]/.test(swSource) ? ok('Service Worker 预缓存见物设定') : ng('Service Worker 漏缓存见物设定');
+/['\"]\.\/data\/roads\.js\?v=186['\"]/.test(swSource) ? ok('Service Worker 预缓存行路图志') : ng('Service Worker 漏缓存行路图志');
 /['\"]\.\/assets\/three-seal-observatory\.webp['\"]/.test(swSource) ? ok('Service Worker 预缓存原创三签台器物图') : ng('Service Worker 漏缓存三签台器物图');
 const beingSource = fs.readFileSync(P + 'data/beings.js', 'utf8');
 const beingImages = [...beingSource.matchAll(/image:\s*['\"]([^'\"]+)['\"]\s*,\s*imageAlt:\s*['\"]([^'\"]+)['\"]/g)];
@@ -233,9 +234,31 @@ placeRows.length === 10 && new Set(placeIds).size === placeIds.length && missing
   ? ok('地物图志十景齐整：替代文字、题记、WebP 文件均完整且轻量')
   : ng('地物图志缺项、重号、过大或缺少替代文字：' + missingPlaceImages.join('、'));
 const uncachedPlaces = placeRows.filter(x => !swSource.includes("'./" + x.image + "'"));
-uncachedPlaces.length === 0 && /data\/places\.js\?v=185/.test(swSource)
+uncachedPlaces.length === 0 && /data\/places\.js\?v=186/.test(swSource)
   ? ok('地物资料与十幅意象均纳入离线首装')
   : ng('离线册漏收地物资料或图片：' + uncachedPlaces.map(x => x.id).join('、'));
+const roadScenes = q('WXROADSCENES') || [];
+const mapRoads = q('WXMAP').roads || [];
+const roadKinds = roadScenes.reduce((counts, scene) => {
+  const road = mapRoads.filter(item => item.road === scene.road)[0];
+  if (road) counts[road.kind] = (counts[road.kind] || 0) + 1;
+  return counts;
+}, {});
+const badRoadScenes = roadScenes.filter(scene => {
+  const road = mapRoads.filter(item => item.road === scene.road)[0];
+  if (!scene.id || !scene.road || !scene.image || !scene.alt || scene.alt.length < 14 || !scene.detail || scene.detail.length < 45 || !road) return true;
+  const file = P + scene.image;
+  if (!fs.existsSync(file)) return true;
+  const bytes = fs.readFileSync(file);
+  return !scene.image.endsWith('.webp') || bytes.length > 450 * 1024 || bytes.toString('ascii', 0, 4) !== 'RIFF' || bytes.toString('ascii', 8, 12) !== 'WEBP' || !swSource.includes("'./" + scene.image + "'");
+});
+const badRoadRefs = roadScenes.some(scene => !/\.\/assets\/routes\/[\w-]+\.webp/.test("./" + scene.image));
+const roadAtlasUiOk = roadScenes.length === 10 && new Set(roadScenes.map(x => x.id)).size === 10 && new Set(roadScenes.map(x => x.road)).size === 10 &&
+  badRoadScenes.length === 0 && !badRoadRefs && roadKinds['桥'] === 3 && roadKinds['道'] === 6 && roadKinds['脊'] === 1;
+roadAtlasUiOk ? ok('三桥、六道、一脊十幅图齐备：端点、里程、替代文字、WebP 与离线缓存均可勾稽') : ng('行路图志须正好对应三桥、六道、一脊，且各图、路线、替代文字和离线缓存完整：' + badRoadScenes.map(x => x.id || x.road || '缺 id').join('、'));
+const routeUiSource = fs.readFileSync(P + 'assets/app.js', 'utf8');
+const routeAtlasUi = /id="routeAtlasGrid"/.test(html) && /id="routeAtlasStage"/.test(html) && /function buildRoadAtlas\(/.test(routeUiSource) && /WX_SHOW_ROAD_SCENE/.test(routeUiSource) && /\.route-atlas-grid\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/.test(css) && /prefers-reduced-motion:reduce\)\{\.route-atlas-card,.route-atlas-thumb/.test(css);
+routeAtlasUi ? ok('行路图志支持键盘筛选、地图回跳、窄屏双列与减少动态偏好') : ng('行路图志交互、响应式或动态偏好兜底未接通');
 const placeAppSource = fs.readFileSync(P + 'assets/app.js', 'utf8');
 const placeAtlasUiOk = /id="placeAtlasGrid"/.test(html) && /id="placeAtlasStage"/.test(html) && /function buildPlaceAtlas\(/.test(placeAppSource) && /aria-pressed/.test(placeAppSource) && /\.place-atlas-grid\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/.test(css) && /prefers-reduced-motion:reduce\)\{\.place-atlas-card/.test(css);
 placeAtlasUiOk ? ok('地物图志卡片可键盘选择，窄屏双列且尊重减少动态偏好') : ng('地物图志交互、响应式或动态偏好兜底未接通');
@@ -742,7 +765,7 @@ const disclosuresRemoved = repeatedImageDisclosures.every(text => !visibleImageD
 disclosuresRemoved ? ok('插图旁不再重复堆叠声明；替代文字仍保留') : ng('插图旁仍有重复声明文字');
 const srcBlock = (appSrc.match(/var SOURCES = \[([\s\S]*?)\n    \];/) || [0, ''])[1];
 const srcCount = (srcBlock.match(/name: '/g) || []).length;
-const tipOk = html.indexOf('全书二十一篇') >= 0 && html.indexOf('索引二十一源') >= 0 && pageIds.length === 21 && srcCount === 21 && /data\/daily\.js\?v=185/.test(html) && /data\/daily\.js\?v=185/.test(swSource) && /data\/observatory\.js\?v=185/.test(html) && /data\/observatory\.js\?v=185/.test(swSource) && /data\/artifacts\.js\?v=185/.test(html) && /data\/artifacts\.js\?v=185/.test(swSource) && /data\/places\.js\?v=185/.test(html) && /data\/places\.js\?v=185/.test(swSource);
+const tipOk = html.indexOf('全书二十一篇') >= 0 && html.indexOf('索引二十一源') >= 0 && pageIds.length === 21 && srcCount === 21 && /data\/daily\.js\?v=186/.test(html) && /data\/daily\.js\?v=186/.test(swSource) && /data\/observatory\.js\?v=186/.test(html) && /data\/observatory\.js\?v=186/.test(swSource) && /data\/artifacts\.js\?v=186/.test(html) && /data\/artifacts\.js\?v=186/.test(swSource) && /data\/places\.js\?v=186/.test(html) && /data\/places\.js\?v=186/.test(swSource) && /data\/roads\.js\?v=186/.test(html) && /data\/roads\.js\?v=186/.test(swSource);
 tipOk ? ok('初见笺、篇目、索引与离线数据一致（二十一篇 · 二十一源）') : ng('初见笺计数脱节：实况 ' + pageIds.length + ' 篇 · ' + srcCount + ' 源，或新增设定未纳入离线册');
 
 console.log('\n【结论】' + (warn.length ? '需处理 ' + warn.length + ' 项' : '全部通过'));

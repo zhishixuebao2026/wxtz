@@ -1073,9 +1073,115 @@
       rg.appendChild(row);
     });
     box.appendChild(rg);
+    var scene = roadSceneFor(rd.road);
+    if (scene) {
+      var roadFigure = el('figure', 'cd-road-scene');
+      var roadImage = el('img', 'cd-road-scene-image');
+      roadImage.src = scene.image; roadImage.alt = scene.alt; roadImage.width = 768; roadImage.height = 512;
+      roadImage.loading = 'eager'; roadImage.decoding = 'async';
+      roadFigure.appendChild(roadImage);
+      roadFigure.appendChild(txt(el('figcaption'), '行路意象 · 不替路线实测作证'));
+      box.appendChild(roadFigure);
+      var atlasLink = el('button', 'route-atlas-open'); atlasLink.type = 'button';
+      txt(atlasLink, '展开行路图志 ↗');
+      atlasLink.addEventListener('click', function () { if (window.WX_SHOW_ROAD_SCENE) window.WX_SHOW_ROAD_SCENE(scene.id); });
+      box.appendChild(atlasLink);
+    }
   }
   function GameNum(n) {
     return '一二三四五六七八九十'[n - 1] || n;
+  }
+
+  /* ---------------- 行路图志：天地图道路与桥梁意象 ---------------- */
+  function roadSceneFor(roadName) {
+    return typeof WXROADSCENES === 'undefined' ? null : WXROADSCENES.filter(function (scene) { return scene.road === roadName; })[0] || null;
+  }
+  function buildRoadAtlas() {
+    if (typeof WXROADSCENES === 'undefined') return;
+    var grid = $('#routeAtlasGrid'), stage = $('#routeAtlasStage'), filters = $('#routeAtlasFilters');
+    if (!grid || !stage || !filters) return;
+    grid.innerHTML = ''; filters.innerHTML = '';
+    var selected = WXROADSCENES[0], filter = 'all';
+    var routeRows = WXROADSCENES.map(function (scene) {
+      return { scene: scene, index: WXMAP.roads.findIndex(function (road) { return road.road === scene.road; }), road: WXMAP.roads.filter(function (road) { return road.road === scene.road; })[0] };
+    }).filter(function (row) { return row.index >= 0 && row.road; });
+    if (routeRows.length !== WXROADSCENES.length) return;
+    var labels = { all: '全图 · ' + routeRows.length, '桥': '桥 · 3', '道': '页内道 · 6', '脊': '脊道 · 1' };
+    function visibleRows() { return routeRows.filter(function (row) { return filter === 'all' || row.road.kind === filter; }); }
+    function showScene(scene, scrollToStage) {
+      selected = scene;
+      var row = routeRows.filter(function (item) { return item.scene.id === scene.id; })[0];
+      if (!row) return;
+      stage.innerHTML = '';
+      var figure = el('figure', 'route-atlas-figure');
+      var image = el('img', 'route-atlas-image');
+      image.src = scene.image; image.alt = scene.alt; image.width = 1536; image.height = 1024;
+      image.loading = 'eager'; image.decoding = 'async';
+      figure.appendChild(image);
+      var caption = el('figcaption', 'route-atlas-caption');
+      var a = cityById[row.road.a], b = cityById[row.road.b];
+      var kindName = { '桥': '金沟桥梁', '道': '页内驿道', '脊': '装订脊道' }[row.road.kind];
+      caption.appendChild(txt(el('span', 'route-atlas-meta'), kindName + '　·　' + (a ? a.name : row.road.a) + ' ⇄ ' + (b ? b.name : row.road.b) + '　·　' + row.road.li + ' 里'));
+      caption.appendChild(txt(el('h4'), scene.road));
+      caption.appendChild(txt(el('p'), scene.detail));
+      var actions = el('div', 'route-atlas-actions');
+      var mapButton = el('button', 'route-atlas-map-link'); mapButton.type = 'button';
+      txt(mapButton, '回图定位 · 看完整道簿 ↗');
+      mapButton.addEventListener('click', function () {
+        show('map'); openRoad(row.index);
+        var map = $('#mapSvg');
+        if (map) map.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+      });
+      actions.appendChild(mapButton); caption.appendChild(actions);
+      figure.appendChild(caption); stage.appendChild(figure);
+      grid.querySelectorAll('.route-atlas-card').forEach(function (button) {
+        button.setAttribute('aria-pressed', button.getAttribute('data-route-scene') === scene.id ? 'true' : 'false');
+      });
+      if (scrollToStage) stage.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+    }
+    function renderGrid() {
+      grid.innerHTML = '';
+      visibleRows().forEach(function (row, index) {
+        var button = el('button', 'route-atlas-card'); button.type = 'button';
+        button.setAttribute('data-route-scene', row.scene.id); button.setAttribute('aria-pressed', row.scene.id === selected.id ? 'true' : 'false');
+        button.setAttribute('aria-controls', 'routeAtlasStage');
+        button.setAttribute('aria-label', '查看' + row.scene.road + '，' + row.road.li + '里');
+        var thumb = el('img', 'route-atlas-thumb'); thumb.src = row.scene.image; thumb.alt = '';
+        thumb.width = 384; thumb.height = 256; thumb.loading = index < 5 ? 'eager' : 'lazy'; thumb.decoding = 'async';
+        button.appendChild(thumb);
+        var meta = el('span', 'route-atlas-card-meta');
+        meta.appendChild(txt(el('span', 'route-atlas-card-kind'), row.road.kind === '桥' ? '金沟桥梁' : row.road.kind === '脊' ? '装订脊道' : '页内驿道'));
+        meta.appendChild(txt(el('strong'), row.scene.road)); button.appendChild(meta);
+        button.addEventListener('click', function (event) { showScene(row.scene, event.detail > 0 && window.matchMedia('(max-width:700px)').matches); });
+        grid.appendChild(button);
+      });
+    }
+    Object.keys(labels).forEach(function (key) {
+      var button = el('button', 'route-atlas-filter' + (key === filter ? ' on' : '')); button.type = 'button';
+      button.setAttribute('data-route-filter', key); button.setAttribute('aria-pressed', key === filter ? 'true' : 'false');
+      txt(button, labels[key]);
+      button.addEventListener('click', function () {
+        filter = key;
+        filters.querySelectorAll('.route-atlas-filter').forEach(function (item) {
+          var active = item.getAttribute('data-route-filter') === key;
+          item.classList.toggle('on', active); item.setAttribute('aria-pressed', active ? 'true' : 'false');
+        });
+        if (filter !== 'all' && !visibleRows().some(function (row) { return row.scene.id === selected.id; })) selected = visibleRows()[0].scene;
+        renderGrid(); showScene(selected, false);
+      });
+      filters.appendChild(button);
+    });
+    renderGrid(); showScene(selected, false);
+    window.WX_SHOW_ROAD_SCENE = function (id) {
+      var row = routeRows.filter(function (item) { return item.scene.id === id; })[0];
+      if (!row) return;
+      filter = 'all';
+      filters.querySelectorAll('.route-atlas-filter').forEach(function (item) {
+        var active = item.getAttribute('data-route-filter') === 'all';
+        item.classList.toggle('on', active); item.setAttribute('aria-pressed', active ? 'true' : 'false');
+      });
+      renderGrid(); showScene(row.scene, true);
+    };
   }
 
   /* ---------------- 地物图志：天地图的非方位意象 ---------------- */
@@ -3903,6 +4009,7 @@
   /* ---------------- 启动 ---------------- */
   buildHome();
   buildMap();
+  buildRoadAtlas();
   buildPlaceAtlas();
   buildPower();
   buildTrial();

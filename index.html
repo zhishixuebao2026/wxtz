@@ -29,7 +29,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%2311100e'/%3E%3Crect x='8' y='8' width='48' height='48' rx='6' fill='none' stroke='%23c0402e' stroke-width='2'/%3E%3Ctext x='32' y='45' font-size='34' text-anchor='middle' fill='%23c8a35a' font-family='serif'%3E%E8%B4%A6%3C/text%3E%3C/svg%3E">
 <!-- 自托管霞鹜文楷 Lite：页面无需依赖第三方字体/CDN，离线也能正确显示中文 -->
 <link rel="stylesheet" href="assets/fonts/lxgwwenkailite-regular.css">
-<link rel="stylesheet" href="assets/style.css?v=185">
+<link rel="stylesheet" href="assets/style.css?v=186">
 </head>
 <body>
 <a class="skip-link" href="#main">跳至正文</a>
@@ -140,7 +140,7 @@
       <p class="fg-line">这个世界，凡有点者皆可点：</p>
       <ul>
         <li>正文里字下点金 → 入词库、入人物志、入京卷宗；</li>
-        <li>图上点京、点道、点桩 → 就地开卷宗桩签；</li>
+        <li>图上点京、点道、点桩 → 就地开卷宗桩签；三桥六道一脊另有十幅行路图，可筛选、回图定位；</li>
         <li>信路页辨封牒、搭票、背话：回执能证交接，不替来文作真；</li>
         <li>人物卡点开弹出详传；传内另点「看关系网」，画像可全屏细看；</li>
         <li>异闻卷尾三签：岁令、谱、线——点「线」只展这一条线的卷；</li>
@@ -171,6 +171,15 @@
       <aside id="cityDetail" class="city-detail" aria-live="polite"></aside>
     </div>
     <div class="map-legend" id="mapLegend"></div>
+    <section class="route-atlas" aria-labelledby="routeAtlasTitle">
+      <div class="route-atlas-head">
+        <div><span class="route-atlas-kicker">通行见证 · 一道一图</span><h3 id="routeAtlasTitle">道路与桥梁</h3></div>
+        <p>十九条路线都可在图上点读；这里为三桥、六道与一脊作十幅意象。图只画行路，不替端点、里数或通行凭据作证。</p>
+      </div>
+      <div class="route-atlas-filters" id="routeAtlasFilters" role="group" aria-label="筛选路线意象"></div>
+      <div class="route-atlas-stage" id="routeAtlasStage" aria-live="polite"></div>
+      <div class="route-atlas-grid" id="routeAtlasGrid" role="group" aria-label="选择一幅道路或桥梁意象"></div>
+    </section>
     <section class="place-atlas" aria-labelledby="placeAtlasTitle">
       <div class="place-atlas-head">
         <div><span class="place-atlas-kicker">中界地物 · 意象图志</span><h3 id="placeAtlasTitle">图上未尽之处</h3></div>
@@ -446,32 +455,33 @@
 <footer class="foot">
   <p class="ticker" id="ticker" aria-live="off"></p>
   <p class="footline">万象天账 · 墨序司异闻籍 ——账不平，天不活。</p>
-  <p class="ver">版本 v1.50.0 · 资源戳 v=185 · 每笔有据，疑处留白。</p>
+  <p class="ver">版本 v1.51.0 · 资源戳 v=186 · 每笔有据，疑处留白。</p>
 </footer>
 
-<script src="data/core.js?v=185"></script>
-<script src="data/cities.js?v=185"></script>
-<script src="data/places.js?v=185"></script>
-<script src="data/beings.js?v=185"></script>
-<script src="data/timeline.js?v=185"></script>
-<script src="data/suiling.js?v=185"></script>
-<script src="data/organs.js?v=185"></script>
-<script src="data/arcs.js?v=185"></script>
-<script src="data/docs.js?v=185"></script>
-<script src="data/lexicon.js?v=185"></script>
-  <script src="data/sayings.js?v=185"></script>
-  <script src="data/goods.js?v=185"></script>
-  <script src="data/stakes.js?v=185"></script>
-<script src="data/stories.js?v=185"></script>
-<script src="data/characters.js?v=185"></script>
-<script src="data/relations.js?v=185"></script>
-<script src="data/updates.js?v=185"></script>
-<script src="data/trials.js?v=185"></script>
-<script src="data/granaries.js?v=185"></script>
-<script src="data/relay.js?v=185"></script>
-<script src="data/daily.js?v=185"></script>
-<script src="data/observatory.js?v=185"></script>
-<script src="data/artifacts.js?v=185"></script>
-<script src="assets/app.js?v=185"></script>
+<script src="data/core.js?v=186"></script>
+<script src="data/cities.js?v=186"></script>
+<script src="data/places.js?v=186"></script>
+<script src="data/roads.js?v=186"></script>
+<script src="data/beings.js?v=186"></script>
+<script src="data/timeline.js?v=186"></script>
+<script src="data/suiling.js?v=186"></script>
+<script src="data/organs.js?v=186"></script>
+<script src="data/arcs.js?v=186"></script>
+<script src="data/docs.js?v=186"></script>
+<script src="data/lexicon.js?v=186"></script>
+  <script src="data/sayings.js?v=186"></script>
+  <script src="data/goods.js?v=186"></script>
+  <script src="data/stakes.js?v=186"></script>
+<script src="data/stories.js?v=186"></script>
+<script src="data/characters.js?v=186"></script>
+<script src="data/relations.js?v=186"></script>
+<script src="data/updates.js?v=186"></script>
+<script src="data/trials.js?v=186"></script>
+<script src="data/granaries.js?v=186"></script>
+<script src="data/relay.js?v=186"></script>
+<script src="data/daily.js?v=186"></script>
+<script src="data/observatory.js?v=186"></script>
+<script src="data/artifacts.js?v=186"></script>
+<script src="assets/app.js?v=186"></script>
 </body>
 </html>
