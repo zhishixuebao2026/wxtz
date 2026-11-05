@@ -110,8 +110,9 @@ body{
 .lead{color:var(--silk2);max-width:860px}
 .lead.unit{margin-bottom:22px}
 .note,.count{color:var(--silk3);font-size:13.5px}
-.verdict{margin-top:18px;font-family:var(--kai);font-size:18px;color:var(--gold2);letter-spacing:.16em;text-align:center}
+.verdict{margin-top:18px;font-family:var(--kai);font-size:18px;color:var(--gold2);letter-spacing:.16em;text-align:center;line-height:1.8;overflow-wrap:anywhere}
 .verdict::before,.verdict::after{content:'　·　';color:var(--verm)}
+@media(max-width:620px){.verdict{font-size:16px;letter-spacing:.08em}.verdict::before,.verdict::after{content:' · ';}}
 
 /* ---------- 总纲 ---------- */
 .hero{position:relative;isolation:isolate;text-align:center;padding:38px 24px 30px;margin:0 0 20px;overflow:hidden;border:1px solid rgba(200,166,99,.2);border-radius:6px;
@@ -967,6 +968,11 @@ body{
 .goods-card{cursor:pointer;transition:border-color .2s,transform .2s}
 .goods-card:hover{border-color:var(--golddim);transform:translateY(-2px)}
 .goods-card .also{color:var(--golddim)}
+.goods-figure{margin:12px 0 10px;overflow:hidden;border:1px solid rgba(200,166,99,.2);border-radius:4px;background:var(--ink2);aspect-ratio:3/2}
+.goods-image{display:block;width:100%;height:100%;object-fit:cover;transition:transform .45s ease,filter .3s ease;filter:saturate(.88) contrast(1.02)}
+.goods-card:hover .goods-image{transform:scale(1.025);filter:saturate(1) contrast(1.03)}
+.goods-card:focus-visible{outline:2px solid var(--gold2);outline-offset:3px}
+@media(prefers-reduced-motion:reduce){.goods-image{transition:none}.goods-card:hover .goods-image{transform:none}}
 @media (prefers-reduced-motion:reduce){.goods-card:hover{transform:none}}
 
 /* ===== v0.13.0 守岁：十三京星带 ===== */

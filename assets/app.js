@@ -2014,6 +2014,18 @@
         top.appendChild(txt(el('h4'), g.n));
         top.appendChild(txt(el('span', 'also'), g.city));
         card.appendChild(top);
+        if (g.image) {
+          var figure = el('figure', 'goods-figure');
+          var image = el('img', 'goods-image');
+          image.src = g.image;
+          image.alt = g.alt || g.n + ' · ' + g.city + '货殖器物';
+          image.width = 960;
+          image.height = 640;
+          image.loading = 'lazy';
+          image.decoding = 'async';
+          figure.appendChild(image);
+          card.appendChild(figure);
+        }
         var gtxt = el('p', 'text');
         var seenG = {};
         gtxt.appendChild(lrDecorate(g.d, seenG, false));
