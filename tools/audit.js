@@ -65,10 +65,10 @@ appleStandalone ? ok('iPhone 主屏安装配置为独立网页 App，含图标�
 const swFontsOk = /fontCss\.text\(\)/.test(swSource) && /cache\.addAll\(fonts\.slice\(/.test(swSource);
 swFontsOk ? ok('离线安装会分批预存 ' + fontRefs.length + ' 个本地字形子集') : ng('离线安装未覆盖本地字体子集');
 /['\"]\.\/data\/relay\.js\?v=\d+['\"]/.test(swSource) ? ok('Service Worker 预缓存信路数据') : ng('Service Worker 漏缓存信路数据');
-/['\"]\.\/data\/daily\.js\?v=186['\"]/.test(swSource) ? ok('Service Worker 预缓存街巷日用篇') : ng('Service Worker 漏缓存街巷日用篇');
-/['\"]\.\/data\/observatory\.js\?v=186['\"]/.test(swSource) ? ok('Service Worker 预缓存三签校时资料') : ng('Service Worker 漏缓存三签校时资料');
-/['\"]\.\/data\/artifacts\.js\?v=186['\"]/.test(swSource) ? ok('Service Worker 预缓存见物设定') : ng('Service Worker 漏缓存见物设定');
-/['\"]\.\/data\/roads\.js\?v=186['\"]/.test(swSource) ? ok('Service Worker 预缓存行路图志') : ng('Service Worker 漏缓存行路图志');
+/['\"]\.\/data\/daily\.js\?v=187['\"]/.test(swSource) ? ok('Service Worker 预缓存街巷日用篇') : ng('Service Worker 漏缓存街巷日用篇');
+/['\"]\.\/data\/observatory\.js\?v=187['\"]/.test(swSource) ? ok('Service Worker 预缓存三签校时资料') : ng('Service Worker 漏缓存三签校时资料');
+/['\"]\.\/data\/artifacts\.js\?v=187['\"]/.test(swSource) ? ok('Service Worker 预缓存见物设定') : ng('Service Worker 漏缓存见物设定');
+/['\"]\.\/data\/roads\.js\?v=187['\"]/.test(swSource) ? ok('Service Worker 预缓存行路图志') : ng('Service Worker 漏缓存行路图志');
 /['\"]\.\/assets\/three-seal-observatory\.webp['\"]/.test(swSource) ? ok('Service Worker 预缓存原创三签台器物图') : ng('Service Worker 漏缓存三签台器物图');
 const beingSource = fs.readFileSync(P + 'data/beings.js', 'utf8');
 const beingImages = [...beingSource.matchAll(/image:\s*['\"]([^'\"]+)['\"]\s*,\s*imageAlt:\s*['\"]([^'\"]+)['\"]/g)];
@@ -113,6 +113,8 @@ oversizedPortraits.length ? ng('人物画像非轻量 WebP 或超过 250 KiB：'
 const uncachedPortraits = portraitRefs.filter(src => !swSource.includes("'./" + src + "'"));
 uncachedPortraits.length ? ng('人物画像未预存离线：' + uncachedPortraits.join('、')) : ok('人物画像均纳入离线预缓存');
 portraitRefs.length >= 27 ? ok('人物画像覆盖至少二十七位有据人物') : ng('人物画像覆盖不足：当前 ' + portraitRefs.length + ' 幅');
+const readerFlowOk = !/\.reader-tools\{[^}]*position:sticky/.test(css) && /\.nav\{[^}]*position:sticky/.test(css);
+readerFlowOk ? ok('阅读工具随内容滚动，固定定位仅留给导航') : ng('阅读工具仍会覆盖内容，或导航失去固定定位');
 const reducedMotionGlobal = /@media \(prefers-reduced-motion: reduce\)[\s\S]*?scroll-behavior: auto !important[\s\S]*?transition-duration: 0\.01ms !important/.test(css);
 reducedMotionGlobal ? ok('全站统一尊重减少动态偏好') : ng('全站缺少减少动态偏好的兜底规则');
 /@media\(max-width:560px\)\{\.shiju-city,#shijuTails\{grid-template-columns:minmax\(0,1fr\)\}\}/.test(css) ? ok('拾句窄屏网格可收缩，320 像素视口不横溢') : ng('拾句京谚或卷尾网格在窄屏仍设固定最小宽度');
@@ -223,20 +225,23 @@ storyScenes.length === expectedStorySceneIds.length && missingStoryScenes.length
   : ng('异闻场景图缺项、过大、格式错误或未预缓存：' + missingStoryScenes.join('、'));
 const placeRows = q('WXPLACES') || [];
 const placeIds = placeRows.map(x => x.id);
-const expectedPlaceImages = ['ash-corridor','cancellation-pit','debtless-sea','heavenly-ledger-court','copytower-interior','central-ledger-thirteenth-floor','hanging-sun-tower-interior','golden-gutter-binding-line','ashen-corridor-outpost','nether-capital-ticket-vault'];
+const expectedPlaceImages = ['ash-corridor','cancellation-pit','debtless-sea','heavenly-ledger-court','copytower-interior','central-ledger-thirteenth-floor','hanging-sun-tower-interior','golden-gutter-binding-line','ashen-corridor-outpost','nether-capital-ticket-vault','zhao-shadow-room','yan-fish-map-office','chi-quench-ledger','lan-ticket-house','zhong-bell-gallery','shu-council-corridor','xiu-needle-stack','bai-day-vault','ming-soil-workshop','ye-stakehall'];
 const missingPlaceImages = expectedPlaceImages.filter(id => {
   const item = placeRows.filter(x => x.id === id)[0];
   if (!item || !item.image || !fs.existsSync(P + item.image)) return true;
   const bytes = fs.readFileSync(P + item.image);
-  return !item.alt || !item.note || !item.name || !item.region || !item.image.endsWith('.webp') || bytes.toString('ascii', 0, 4) !== 'RIFF' || bytes.toString('ascii', 8, 12) !== 'WEBP' || bytes.length > 450 * 1024;
+  return !item.alt || item.alt.length < 15 || !item.note || item.note.length < 25 || !item.name || !item.region || !item.group || !item.image.endsWith('.webp') || bytes.toString('ascii', 0, 4) !== 'RIFF' || bytes.toString('ascii', 8, 12) !== 'WEBP' || bytes.length > 450 * 1024;
 });
-placeRows.length === 10 && new Set(placeIds).size === placeIds.length && missingPlaceImages.length === 0
-  ? ok('地物图志十景齐整：替代文字、题记、WebP 文件均完整且轻量')
-  : ng('地物图志缺项、重号、过大或缺少替代文字：' + missingPlaceImages.join('、'));
+const newPlaceRows = placeRows.filter(x => x.group === '城中');
+const cityPlaceIds = new Set((q('WXCITIES') || []).map(x => x.id));
+const missingCityLinks = newPlaceRows.filter(x => !x.cityId || !cityPlaceIds.has(x.cityId));
+placeRows.length === 20 && new Set(placeIds).size === placeIds.length && missingPlaceImages.length === 0 && newPlaceRows.length === 10 && missingCityLinks.length === 0
+  ? ok('场所图志二十景齐整：十处原有地物、十处城中设施皆有替代文字、题记与轻量 WebP')
+  : ng('场所图志缺项、重号、过大、缺文或城卷失链：' + missingPlaceImages.concat(missingCityLinks.map(x => x.id)).join('、'));
 const uncachedPlaces = placeRows.filter(x => !swSource.includes("'./" + x.image + "'"));
-uncachedPlaces.length === 0 && /data\/places\.js\?v=186/.test(swSource)
-  ? ok('地物资料与十幅意象均纳入离线首装')
-  : ng('离线册漏收地物资料或图片：' + uncachedPlaces.map(x => x.id).join('、'));
+uncachedPlaces.length === 0 && /data\/places\.js\?v=187/.test(swSource)
+  ? ok('场所资料与二十幅意象均纳入离线首装')
+  : ng('离线册漏收场所资料或图片：' + uncachedPlaces.map(x => x.id).join('、'));
 const roadScenes = q('WXROADSCENES') || [];
 const mapRoads = q('WXMAP').roads || [];
 const roadKinds = roadScenes.reduce((counts, scene) => {
@@ -260,8 +265,9 @@ const routeUiSource = fs.readFileSync(P + 'assets/app.js', 'utf8');
 const routeAtlasUi = /id="routeAtlasGrid"/.test(html) && /id="routeAtlasStage"/.test(html) && /function buildRoadAtlas\(/.test(routeUiSource) && /WX_SHOW_ROAD_SCENE/.test(routeUiSource) && /\.route-atlas-grid\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/.test(css) && /prefers-reduced-motion:reduce\)\{\.route-atlas-card,.route-atlas-thumb/.test(css);
 routeAtlasUi ? ok('行路图志支持键盘筛选、地图回跳、窄屏双列与减少动态偏好') : ng('行路图志交互、响应式或动态偏好兜底未接通');
 const placeAppSource = fs.readFileSync(P + 'assets/app.js', 'utf8');
-const placeAtlasUiOk = /id="placeAtlasGrid"/.test(html) && /id="placeAtlasStage"/.test(html) && /function buildPlaceAtlas\(/.test(placeAppSource) && /aria-pressed/.test(placeAppSource) && /\.place-atlas-grid\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/.test(css) && /prefers-reduced-motion:reduce\)\{\.place-atlas-card/.test(css);
-placeAtlasUiOk ? ok('地物图志卡片可键盘选择，窄屏双列且尊重减少动态偏好') : ng('地物图志交互、响应式或动态偏好兜底未接通');
+const atlasBeforeMap = html.indexOf('<section class="place-atlas"') >= 0 && html.indexOf('<section class="place-atlas"') < html.indexOf('<div class="map-flex">');
+const placeAtlasUiOk = atlasBeforeMap && /id="placeAtlasFilters"/.test(html) && /id="placeAtlasGrid"/.test(html) && /id="placeAtlasStage"/.test(html) && /function buildPlaceAtlas\(/.test(placeAppSource) && /data-place-filter/.test(placeAppSource) && /aria-pressed/.test(placeAppSource) && /\.place-atlas-grid\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/.test(css) && /prefers-reduced-motion:reduce\)\{\.place-atlas-card/.test(css);
+placeAtlasUiOk ? ok('场所图志前置于地图，支持分组筛选、键盘选择、窄屏双列与减少动态偏好') : ng('场所图志前置、筛签、响应式或动态偏好兜底未接通');
 const cnt = n => { const v = q(n); return Array.isArray(v) ? v.length : null; };
 const routes = q('WXCORE').readingRoutes || [];
 const validPages = new Set(pageIds);
@@ -765,7 +771,7 @@ const disclosuresRemoved = repeatedImageDisclosures.every(text => !visibleImageD
 disclosuresRemoved ? ok('插图旁不再重复堆叠声明；替代文字仍保留') : ng('插图旁仍有重复声明文字');
 const srcBlock = (appSrc.match(/var SOURCES = \[([\s\S]*?)\n    \];/) || [0, ''])[1];
 const srcCount = (srcBlock.match(/name: '/g) || []).length;
-const tipOk = html.indexOf('全书二十一篇') >= 0 && html.indexOf('索引二十一源') >= 0 && pageIds.length === 21 && srcCount === 21 && /data\/daily\.js\?v=186/.test(html) && /data\/daily\.js\?v=186/.test(swSource) && /data\/observatory\.js\?v=186/.test(html) && /data\/observatory\.js\?v=186/.test(swSource) && /data\/artifacts\.js\?v=186/.test(html) && /data\/artifacts\.js\?v=186/.test(swSource) && /data\/places\.js\?v=186/.test(html) && /data\/places\.js\?v=186/.test(swSource) && /data\/roads\.js\?v=186/.test(html) && /data\/roads\.js\?v=186/.test(swSource);
+const tipOk = html.indexOf('全书二十一篇') >= 0 && html.indexOf('索引二十一源') >= 0 && pageIds.length === 21 && srcCount === 21 && /data\/daily\.js\?v=187/.test(html) && /data\/daily\.js\?v=187/.test(swSource) && /data\/observatory\.js\?v=187/.test(html) && /data\/observatory\.js\?v=187/.test(swSource) && /data\/artifacts\.js\?v=187/.test(html) && /data\/artifacts\.js\?v=187/.test(swSource) && /data\/places\.js\?v=187/.test(html) && /data\/places\.js\?v=187/.test(swSource) && /data\/roads\.js\?v=187/.test(html) && /data\/roads\.js\?v=187/.test(swSource);
 tipOk ? ok('初见笺、篇目、索引与离线数据一致（二十一篇 · 二十一源）') : ng('初见笺计数脱节：实况 ' + pageIds.length + ' 篇 · ' + srcCount + ' 源，或新增设定未纳入离线册');
 
 console.log('\n【结论】' + (warn.length ? '需处理 ' + warn.length + ' 项' : '全部通过'));

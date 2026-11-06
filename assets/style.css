@@ -1724,11 +1724,7 @@ button,.chip,.artifact-link,.tch{transition:color .18s,border-color .18s,backgro
 @media(prefers-reduced-motion:reduce){.review-panel,.reading-routes,.reading-route-card,.organ-card{transition:none!important}}
 
 
-/* v1.47 · 桌面阅读工具常驻可点；方印改为匀称双行字格 */
-@media(min-width:721px){
-  .reader-tools{position:sticky;top:0;z-index:52;min-height:48px;padding-top:7px;padding-bottom:7px;background:rgba(17,16,14,.97);border-bottom:1px solid rgba(200,166,99,.2);backdrop-filter:blur(12px)}
-  .nav{top:54px}
-}
+/* 阅读工具随正文滚动；篇目导航独自停驻顶端。 */
 @media(min-width:721px) and (max-width:900px){
   .reader-tools{gap:6px;padding-inline:12px}
   .reader-position{max-width:92px}
@@ -1778,3 +1774,15 @@ button,.chip,.artifact-link,.tch{transition:color .18s,border-color .18s,backgro
 @media(max-width:760px){.route-atlas{margin:22px 0 10px;padding:15px 12px}.route-atlas-head{align-items:flex-start;flex-direction:column;gap:8px}.route-atlas-head>p{max-width:none}.route-atlas-figure{grid-template-columns:1fr}.route-atlas-image{aspect-ratio:16/9;min-height:0;max-height:none}.route-atlas-caption{padding:17px 15px}.route-atlas-caption h4{margin:6px 0 8px}.route-atlas-caption>p{font-size:13px}.route-atlas-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.route-atlas-card-meta{padding:7px 8px 9px}}
 @media(max-width:360px){.route-atlas-filters{gap:6px}.route-atlas-filter{padding-inline:9px;font-size:10px}.route-atlas-grid{gap:6px}.route-atlas-card-meta{padding-inline:6px}.route-atlas-card-kind{font-size:8px}}
 @media(prefers-reduced-motion:reduce){.route-atlas-card,.route-atlas-thumb{transition:none}.route-atlas-card:hover{transform:none}}
+
+
+/* v1.52 · 场所图志并卷：旧图与城中设施分签浏览 */
+.place-atlas{background:linear-gradient(145deg,rgba(48,38,28,.83),rgba(19,17,15,.97))}
+.place-atlas-filters{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 15px}
+.place-atlas-filter{min-height:38px;padding:8px 13px;border:1px solid rgba(200,166,99,.26);border-radius:3px;background:rgba(18,17,15,.72);color:var(--silk3);font:11px var(--hei);letter-spacing:.08em;cursor:pointer;touch-action:manipulation;transition:background .18s,border-color .18s,color .18s}
+.place-atlas-filter:hover,.place-atlas-filter:focus-visible{border-color:rgba(200,166,99,.64);color:var(--gold2)}
+.place-atlas-filter:focus-visible{outline:2px solid var(--gold2);outline-offset:2px}
+.place-atlas-filter.on{border-color:rgba(200,166,99,.6);background:rgba(155,78,61,.16);color:var(--gold2);box-shadow:inset 0 -2px var(--verm)}
+.place-atlas-stage{scroll-margin-top:18px}
+@media(max-width:700px){.place-atlas-filter{min-height:40px;padding:8px 11px}.place-atlas-filters{gap:7px;margin-bottom:12px}}
+@media(prefers-reduced-motion:reduce){.place-atlas-filter{transition:none}}
