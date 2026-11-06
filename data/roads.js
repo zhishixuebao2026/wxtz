@@ -1,5 +1,5 @@
 /* 万象天账 · 行路与桥图志
-   十幅非方位定案的路线意象，逐条回指天地图 WXMAP.roads。
+   十九幅路线意象，逐条回指天地图 WXMAP.roads，不以图代替里程与通行核验。
    图意不覆盖实地测绘；里程、端点与通行边界以路线原记为准。 */
 'use strict';
 
@@ -53,5 +53,50 @@ var WXROADSCENES = [
     id: 'west-spine-road', road: '脊道西', image: 'assets/routes/west-spine-road.webp',
     alt: '脊道西贴着两页间的金色装订线蜿蜒，窄桥连起悬空纸崖，沟底留着一枚微小铜影。',
     detail: '图记晏京秤砣坠沟之处，路线沿金沟西脊绕行。这里只画传闻中的路形，不据此判定秤砣所在，也不替无字京补定坐标。'
+  },
+  {
+    id: 'moxi-road', road: '墨铁道', image: 'assets/routes/moxi-road.webp',
+    alt: '墨铁道的湿石桥连接昭京历亭与赤京炉坊，车上捆着空白纸束，桥侧案台摆着无字铁版。',
+    detail: '昭京历纸送往赤京制版，纸束、铁版与收件票分栏点数。沿途只记封捆完整与交接时刻；纸面空白不预示缺字，铁版形状也不代替印出的内容核验。'
+  },
+  {
+    id: 'lisu-road', road: '历术道', image: 'assets/routes/lisu-road.webp',
+    alt: '历术道穿过云雾山脊，日影观环与高处推算台隔着一段石径遥相照见。',
+    detail: '昭京授时记录与玄京推步复算沿此道往还。影到的时刻、云遮的缺测与复算结果各留一栏；一路同抄的一份底稿仍只算一源。'
+  },
+  {
+    id: 'chengsuan-road', road: '秤算道', image: 'assets/routes/chengsuan-road.webp',
+    alt: '秤算道的驿亭摆着两架独立梁秤与分开的空量盘，粮袋封束后沿山路送往玄京。',
+    detail: '晏京市秤读数与玄京算式在此相交。原秤、复秤、折算各记其器与日期；同一秤砣反复称量不是多件独立凭物，异数先留，不择一抹平。'
+  },
+  {
+    id: 'luli-road', road: '炉历道', image: 'assets/routes/luli-road.webp',
+    alt: '炉历道从赤京水槽旁的红炉坊攀向玄京历亭，山脊上的铜影环映着晨色。',
+    detail: '赤京择日开炉，玄京推步台供给历算。择定日期、实际起火、停炉与封匣分别记下；历牌给出日序，不替炉中成色作证。'
+  },
+  {
+    id: 'lingyin-road', road: '令隐道', image: 'assets/routes/lingyin-road.webp',
+    alt: '令隐道止于云雾中的无字石阶，近侧驿亭存着空白覆匣，另一条山径在雾后隐约续出。',
+    detail: '枢京文书在此止递，岫京山路另循本地旧程。封匣交接只记送到石阶哪一侧；未入山的文牒不记作已颁，山中所行也不因图上相连而视作收文。'
+  },
+  {
+    id: 'xuezhong-road', road: '雪终道', image: 'assets/routes/xuezhong-road.webp',
+    alt: '雪终道从白京明亮的石廊穿过积雪山口，沿途一座暖灯驿亭连接远处冥京门廊。',
+    detail: '白京收昼与冥京归票沿雪终道交接。沿途的启行刻、停雪日与抵门刻分记；光照的长短不换算成个人年岁，也不单凭天色认定来者。'
+  },
+  {
+    id: 'zhou-wen-road', road: '昼闻道', image: 'assets/routes/zhou-wen-road.webp',
+    alt: '昼闻道由霜棱阁的光廊通向闻京档案窗，亮处与阴影里的纸束各自封存。',
+    detail: '白京存昼簿与闻京史册在此相接。未认领的格子先列待核，送入史馆只表示收到一份记录，不表示已经找到了应领的人。'
+  },
+  {
+    id: 'piaobian-road', road: '票边道', image: 'assets/routes/piaobian-road.webp',
+    alt: '票边道从冥京石票库伸向雾中边门，空白旅票放在门旁木盘，界桩内外道路渐隐。',
+    detail: '冥京出边归票沿票边道递送。票号、经手与越过界桩的时刻分开核录；票能证明一次交接，不替持票者认名，也不把未抵之处补成归籍结论。'
+  },
+  {
+    id: 'east-spine-road', road: '脊道东', image: 'assets/routes/east-spine-road.webp',
+    alt: '脊道东沿金色装订线穿过两页高崖，细石路连着窄桥，在无名雾隙前收住。',
+    detail: '白京一侧的来件循东脊向无名处递送。图只表现页缝间可见的桥与路；雾隙外的里数未核，图线到此收住，不替无字京添定方位。'
   }
 ];
