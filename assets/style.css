@@ -722,6 +722,15 @@ body{
 .stake-acts{display:none;margin-top:12px;padding-top:11px;border-top:1px dashed rgba(200,166,99,.3);gap:8px;flex-wrap:wrap}
 .stake-card.sel{border-color:rgba(200,166,99,.55);box-shadow:0 0 0 1px rgba(200,166,99,.28),0 8px 22px rgba(0,0,0,.35)}
 .stake-card.sel .stake-acts{display:flex}
+.stake-card-extra{display:none;margin-top:12px;padding-top:11px;border-top:1px solid rgba(200,166,99,.16)}
+.stake-card.sel .stake-card-extra{display:block}
+.stake-card-scene,.cd-stake-scene{margin:0;overflow:hidden;border:1px solid rgba(200,166,99,.22);border-radius:4px;background:#1c1813}
+.stake-card-scene img,.cd-stake-scene-image{display:block;width:100%;aspect-ratio:3/2;object-fit:cover}
+.stake-card-scene figcaption,.cd-stake-scene figcaption{padding:7px 9px;color:var(--golddim);font:10px/1.6 var(--hei);letter-spacing:.06em}
+.stake-card-care,.cd-stake-care{margin:10px 0 0;color:var(--silk3);font:12px/1.8 var(--hei)}
+.stake-card-care strong,.cd-stake-care strong{color:var(--gold2);font-weight:500}
+.cd-stake-scene{grid-column:1/-1;width:min(100%,780px);margin:5px auto 0}
+.cd-stake-care{grid-column:1/-1}
 .stake-acts .chip{margin:0}
 .cd-links{grid-column:2;display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
 .cd-links .chip{margin:0}

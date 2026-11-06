@@ -3373,6 +3373,20 @@
     box.appendChild(txt(el('blockquote', 'cd-motto'), '桩面：' + k.face));
     box.appendChild(txt(el('p', 'cd-text'), '量语：' + k.measure));
     box.appendChild(txt(el('p', 'cd-text'), k.note));
+    if (k.image) {
+      var stakeFigure = el('figure', 'cd-stake-scene');
+      var stakeImage = el('img', 'cd-stake-scene-image');
+      stakeImage.src = k.image; stakeImage.alt = k.imageAlt || (k.name + '意象');
+      stakeImage.width = 1536; stakeImage.height = 1024; stakeImage.loading = 'eager'; stakeImage.decoding = 'async';
+      stakeFigure.appendChild(stakeImage);
+      stakeFigure.appendChild(txt(el('figcaption'), k.imageCaption || k.name));
+      box.appendChild(stakeFigure);
+    }
+    if (k.care) {
+      var care = el('p', 'cd-stake-care');
+      care.appendChild(txt(el('strong'), '守桩札 · ')); care.appendChild(txt(el('span'), k.care));
+      box.appendChild(care);
+    }
     var ln = el('div', 'cd-links');
     var b1 = el('button', 'chip');
     txt(b1, '翻看界桩志');
@@ -3503,6 +3517,21 @@
         var seenK = {};
         txtp.appendChild(lrDecorate(k.note, seenK, false));
         card.appendChild(txtp);
+        var extra = el('div', 'stake-card-extra');
+        if (k.image) {
+          var preview = el('figure', 'stake-card-scene');
+          var previewImage = el('img'); previewImage.src = k.image; previewImage.alt = k.imageAlt || (k.name + '意象');
+          previewImage.width = 768; previewImage.height = 512; previewImage.loading = 'lazy'; previewImage.decoding = 'async';
+          preview.appendChild(previewImage);
+          preview.appendChild(txt(el('figcaption'), k.imageCaption || k.name));
+          extra.appendChild(preview);
+        }
+        if (k.care) {
+          var careNote = el('p', 'stake-card-care');
+          careNote.appendChild(txt(el('strong'), '守桩札 · ')); careNote.appendChild(txt(el('span'), k.care));
+          extra.appendChild(careNote);
+        }
+        if (extra.childNodes.length) card.appendChild(extra);
         var acts = el('div', 'stake-acts');
         var bFind = el('button', 'chip');
         txt(bFind, '去图上找桩');
