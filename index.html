@@ -7,7 +7,7 @@
 <meta name="description" content="原创世界观：天不造物，天记账。中界如摊开的账册，十三京星布其上；墨序执三律，灰吏勾天下，修士以性命作票号。">
 <meta name="theme-color" content="#1a1815">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="万象天账">
 <link rel="manifest" href="site.webmanifest">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png">
@@ -29,7 +29,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%2311100e'/%3E%3Crect x='8' y='8' width='48' height='48' rx='6' fill='none' stroke='%23c0402e' stroke-width='2'/%3E%3Ctext x='32' y='45' font-size='34' text-anchor='middle' fill='%23c8a35a' font-family='serif'%3E%E8%B4%A6%3C/text%3E%3C/svg%3E">
 <!-- 自托管霞鹜文楷 Lite：页面无需依赖第三方字体/CDN，离线也能正确显示中文 -->
 <link rel="stylesheet" href="assets/fonts/lxgwwenkailite-regular.css">
-<link rel="stylesheet" href="assets/style.css?v=183">
+<link rel="stylesheet" href="assets/style.css?v=186">
 </head>
 <body>
 <a class="skip-link" href="#main">跳至正文</a>
@@ -164,21 +164,20 @@
   <section id="pg-map" class="page">
     <h3 class="sec-title"><span>天地图</span><em>THE WORLD LEDGER</em></h3>
     <p class="lead" id="mapLead"></p>
+    <section class="place-atlas" aria-labelledby="placeAtlasTitle">
+      <div class="place-atlas-head">
+        <div><span class="place-atlas-kicker">中界地物 · 地图卷宗</span><h3 id="placeAtlasTitle">图上未尽之处</h3></div>
+        <p>十处地物就近列签；点选后，图景与设定在地图卷宗内展开。京城、道桥、地标与界桩也各有对应图像。</p>
+      </div>
+      <div class="place-atlas-grid" id="placeAtlasGrid" role="group" aria-label="选择一处地物，在地图卷宗中查看"></div>
+    </section>
     <div class="map-flex">
       <div class="map-wrap">
-        <svg id="mapSvg" viewBox="0 0 1000 760" role="group" aria-label="可交互中界账图。使用 Tab 浏览京、道路与界桩，按回车查看卷宗。"></svg>
+        <svg id="mapSvg" viewBox="0 0 1000 760" role="group" aria-label="可交互中界账图。使用 Tab 浏览京、道路、桥、地标、地物与界桩，按回车查看对应图文卷宗。"></svg>
       </div>
       <aside id="cityDetail" class="city-detail" aria-live="polite"></aside>
     </div>
     <div class="map-legend" id="mapLegend"></div>
-    <section class="place-atlas" aria-labelledby="placeAtlasTitle">
-      <div class="place-atlas-head">
-        <div><span class="place-atlas-kicker">中界地物 · 意象图志</span><h3 id="placeAtlasTitle">图上未尽之处</h3></div>
-        <p>十处地物，各留一幅想象。可点图签细看。</p>
-      </div>
-      <div class="place-atlas-stage" id="placeAtlasStage" aria-live="polite"></div>
-      <div class="place-atlas-grid" id="placeAtlasGrid" role="group" aria-label="选择一处地物意象"></div>
-    </section>
   </section>
 
   <!-- ================= 信路 ================= -->
@@ -446,32 +445,32 @@
 <footer class="foot">
   <p class="ticker" id="ticker" aria-live="off"></p>
   <p class="footline">万象天账 · 墨序司异闻籍 ——账不平，天不活。</p>
-  <p class="ver">版本 v1.48.0 · 资源戳 v=183 · 每笔有据，疑处留白。</p>
+  <p class="ver">版本 v1.51.0 · 资源戳 v=186 · 每笔有据，疑处留白。</p>
 </footer>
 
-<script src="data/core.js?v=183"></script>
-<script src="data/cities.js?v=183"></script>
-<script src="data/places.js?v=183"></script>
-<script src="data/beings.js?v=183"></script>
-<script src="data/timeline.js?v=183"></script>
-<script src="data/suiling.js?v=183"></script>
-<script src="data/organs.js?v=183"></script>
-<script src="data/arcs.js?v=183"></script>
-<script src="data/docs.js?v=183"></script>
-<script src="data/lexicon.js?v=183"></script>
-  <script src="data/sayings.js?v=183"></script>
-  <script src="data/goods.js?v=183"></script>
-  <script src="data/stakes.js?v=183"></script>
-<script src="data/stories.js?v=183"></script>
-<script src="data/characters.js?v=183"></script>
-<script src="data/relations.js?v=183"></script>
-<script src="data/updates.js?v=183"></script>
-<script src="data/trials.js?v=183"></script>
-<script src="data/granaries.js?v=183"></script>
-<script src="data/relay.js?v=183"></script>
-<script src="data/daily.js?v=183"></script>
-<script src="data/observatory.js?v=183"></script>
-<script src="data/artifacts.js?v=183"></script>
-<script src="assets/app.js?v=183"></script>
+<script src="data/core.js?v=186"></script>
+<script src="data/cities.js?v=186"></script>
+<script src="data/places.js?v=186"></script>
+<script src="data/beings.js?v=186"></script>
+<script src="data/timeline.js?v=186"></script>
+<script src="data/suiling.js?v=186"></script>
+<script src="data/organs.js?v=186"></script>
+<script src="data/arcs.js?v=186"></script>
+<script src="data/docs.js?v=186"></script>
+<script src="data/lexicon.js?v=186"></script>
+  <script src="data/sayings.js?v=186"></script>
+  <script src="data/goods.js?v=186"></script>
+  <script src="data/stakes.js?v=186"></script>
+<script src="data/stories.js?v=186"></script>
+<script src="data/characters.js?v=186"></script>
+<script src="data/relations.js?v=186"></script>
+<script src="data/updates.js?v=186"></script>
+<script src="data/trials.js?v=186"></script>
+<script src="data/granaries.js?v=186"></script>
+<script src="data/relay.js?v=186"></script>
+<script src="data/daily.js?v=186"></script>
+<script src="data/observatory.js?v=186"></script>
+<script src="data/artifacts.js?v=186"></script>
+<script src="assets/app.js?v=186"></script>
 </body>
 </html>

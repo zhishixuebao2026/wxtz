@@ -101,35 +101,35 @@ var WXMAP = {
   grid: { cell: 50, li: 20, note: '每方折地二十里' },
   bridges: [150, 300, 450],
   landmarks: [
-    { x: 500, y: 236, t: '金沟三桥', s: '三桥连阴阳 · 民概不得渡' },
-    { x: 250, y: 520, t: '澜江', s: '一江分六京 · 帆影即账影' },
-    { x: 752, y: 540, t: '北屏山', s: '山脉入雾处 · 即界桩之外' }
+    { x: 500, y: 236, t: '金沟三桥', s: '三桥连阴阳 · 民概不得渡', id: 'golden-gutter-bridges', image: 'assets/map-scenes/bridge-middle.webp', imageAlt: '金沟三桥之一横跨两页之间的金色水脉，雾中可见桥身与远处页城。', imageCaption: '金沟三桥 · 三处渡口各有独立桥簿。', note: '三桥连阴阳，通行须凭渡牒；桥影只作意象，不补造桥上行程。' },
+    { x: 250, y: 520, t: '澜江', s: '一江分六京 · 帆影即账影', id: 'lan-river', image: 'assets/map-scenes/stake-riverbank.webp', imageAlt: '澜江水尺立在涨水的堤岸，旧界桩与泊船在雨线后隐约可见。', imageCaption: '澜江 · 先记水位，再记时刻。', note: '江水、报汛与抵达分开留记；此处图景不表示洪水已至。' },
+    { x: 752, y: 540, t: '北屏山', s: '山脉入雾处 · 即界桩之外', id: 'north-screen-range', image: 'assets/map-scenes/route-mountain.webp', imageAlt: '北屏山云壁间的石道蜿蜒至雾外，山口界石只标出已核实的一段。', imageCaption: '北屏山 · 山脉入雾处。', note: '山外方位留白；此图不把雾外绘成已知疆界。' }
   ],
   roads: [
-    { a: 'zhao', b: 'yan', kind: '道', road: '历仓道', r: 0, li: 80, note: '昭京定历，晏京凭历以征' },
-    { a: 'zhao', b: 'chi', kind: '道', road: '墨铁道', r: 0, li: 60, note: '昭纸须砑，赤京为制印版' },
-    { a: 'zhao', b: 'xuan', kind: '道', road: '历术道', r: 0, li: 100, note: '观星须先授时' },
-    { a: 'yan', b: 'xuan', kind: '道', road: '秤算道', r: 0, li: 60, note: '晏京的秤，末了要交玄京去算' },
-    { a: 'chi', b: 'xuan', kind: '道', road: '炉历道', r: 0, li: 80, note: '赤京择日起炉，历出自推步台' },
-    { a: 'chi', b: 'lan', kind: '道', road: '铁漕道', r: 0, li: 60, note: '记名铁下水，须泊平流坊' },
-    { a: 'lan', b: 'zhong', kind: '道', road: '律水道', r: 0, li: 80, note: '声价随船走' },
-    { a: 'shu', b: 'bai', kind: '道', road: '北册道', r: 0, li: 60, note: '极北分册，岁末亲缴中枢' },
-    { a: 'shu', b: 'xiu', kind: '道', road: '令隐道', r: 0, li: 80, note: '山中无历，律令不入岫京' },
-    { a: 'xiu', b: 'ming', kind: '道', road: '药终道', r: 0, li: 60, note: '食时芝者，注销须缓' },
-    { a: 'bai', b: 'ming', kind: '道', road: '雪终道', r: 0, li: 80, note: '白京借昼，实抵冥京' },
-    { a: 'bai', b: 'wen', kind: '道', road: '昼闻道', r: 0, li: 60, note: '无人认领的贷方，归史馆立档' },
-    { a: 'wen', b: 'ye', kind: '道', road: '野史道', r: 0, li: 80, note: '边报入史馆，一字一赏' },
-    { a: 'ming', b: 'ye', kind: '道', road: '票边道', r: 0, li: 60, note: '无籍者出边，凭归票' },
-    { a: 'yan', b: 'shu', kind: '桥', road: '上桥', r: 0, li: 120, note: '仓帖赴枢京请印 · 民概不得渡' },
-    { a: 'xuan', b: 'bai', kind: '桥', road: '中桥', r: 0, li: 120, note: '算学与昼贷互通 · 官凭方许渡' },
-    { a: 'zhong', b: 'wen', kind: '桥', road: '下桥', r: 0, li: 120, note: '声教与实录 · 许渡不许留' },
-    { a: 'yan', b: 'wuzi', kind: '脊', road: '脊道西', r: -40, li: 210, note: '晏京秤砣坠沟处' },
-    { a: 'bai', b: 'wuzi', kind: '脊', road: '脊道东', r: 0, li: 150, note: '无人认领之贷，终归无字' }
+    { a: 'zhao', b: 'yan', kind: '道', road: '历仓道', r: 0, li: 80, note: '昭京定历，晏京凭历以征', scene: 'assets/map-scenes/route-harvest.webp', sceneAlt: '昭京的历法路标穿过层叠稻田，粮车沿着堤道驶向晏京仓廪。', sceneCaption: '历仓道 · 先定节候，再核收成。' },
+    { a: 'zhao', b: 'chi', kind: '道', road: '墨铁道', r: 0, li: 60, note: '昭纸须砑，赤京为制印版', scene: 'assets/map-scenes/route-forge.webp', sceneAlt: '黑石道路由昭京纸作坊通向赤京炉场，远处山脊上烟火与铜色观星台相望。', sceneCaption: '墨铁道 · 纸纹与铁脉在此相接。' },
+    { a: 'zhao', b: 'xuan', kind: '道', road: '历术道', r: 0, li: 100, note: '观星须先授时', scene: 'assets/map-scenes/route-mountain.webp', sceneAlt: '山脊间的窄道连接昭京日表与玄京推步台，云雾里可见层层观星屋檐。', sceneCaption: '历术道 · 授时先于推步。' },
+    { a: 'yan', b: 'xuan', kind: '道', road: '秤算道', r: 0, li: 60, note: '晏京的秤，末了要交玄京去算', scene: 'assets/map-scenes/route-harvest.webp', sceneAlt: '谷仓外的石道向玄京延伸，沿途有田埂、水渠和供复核的空白里牌。', sceneCaption: '秤算道 · 丰歉并记，不把差数推给人。' },
+    { a: 'chi', b: 'xuan', kind: '道', road: '炉历道', r: 0, li: 80, note: '赤京择日起炉，历出自推步台', scene: 'assets/map-scenes/route-forge.webp', sceneAlt: '一辆封盖铁车行过赤京炉道，冷却水渠映着远处悬日楼的晨光。', sceneCaption: '炉历道 · 起炉择日，所经只留时刻。' },
+    { a: 'chi', b: 'lan', kind: '道', road: '铁漕道', r: 0, li: 60, note: '记名铁下水，须泊平流坊', scene: 'assets/map-scenes/route-river.webp', sceneAlt: '记名铁随漕船驶离赤京，澜京石埠与水尺在雨雾中显现。', sceneCaption: '铁漕道 · 铁入水路，票随船行。' },
+    { a: 'lan', b: 'zhong', kind: '道', road: '律水道', r: 0, li: 80, note: '声价随船走', scene: 'assets/map-scenes/route-river.webp', sceneAlt: '澜江支流上，载着律钟与纸箱的平底船驶向钟京，岸边更楼依次亮灯。', sceneCaption: '律水道 · 声价随船走，水尺另记水位。' },
+    { a: 'shu', b: 'bai', kind: '道', road: '北册道', r: 0, li: 60, note: '极北分册，岁末亲缴中枢', scene: 'assets/map-scenes/route-north.webp', sceneAlt: '雪地驿路从中枢官署直达北方库城，途中每隔一程立有遮雪的空白路亭。', sceneCaption: '北册道 · 分册向北，回执仍须核验。' },
+    { a: 'shu', b: 'xiu', kind: '道', road: '令隐道', r: 0, li: 80, note: '山中无历，律令不入岫京', scene: 'assets/map-scenes/route-mountain.webp', sceneAlt: '石阶沿岫京云壁盘旋，隐修茶亭与沿途界石在薄雾中若隐若现。', sceneCaption: '令隐道 · 山中无历，来往自有边界。' },
+    { a: 'xiu', b: 'ming', kind: '道', road: '药终道', r: 0, li: 60, note: '食时芝者，注销须缓', scene: 'assets/map-scenes/route-mountain.webp', sceneAlt: '药圃山道绕过云海与静默的石门，背药人把一束新叶系在路旁棚檐。', sceneCaption: '药终道 · 入山与出山，各记其时。' },
+    { a: 'bai', b: 'ming', kind: '道', road: '雪终道', r: 0, li: 80, note: '白京借昼，实抵冥京', scene: 'assets/map-scenes/route-north.webp', sceneAlt: '北地雪道自白京晶棱库延向冥京石阶，暖灯映在结霜的路面上。', sceneCaption: '雪终道 · 借来的昼有去处，归票也有来路。' },
+    { a: 'bai', b: 'wen', kind: '道', road: '昼闻道', r: 0, li: 60, note: '无人认领的贷方，归史馆立档', scene: 'assets/map-scenes/route-north.webp', sceneAlt: '雪原驿道连接白京与闻京，覆雪文箱在晨光里被两名驿卒交接。', sceneCaption: '昼闻道 · 无主贷方先入档，不替它认领。' },
+    { a: 'wen', b: 'ye', kind: '道', road: '野史道', r: 0, li: 80, note: '边报入史馆，一字一赏', scene: 'assets/map-scenes/route-boundary.webp', sceneAlt: '从闻京书库通向野京边地的旧道渐渐被草与薄雾吞没，路桩仍在逐段记录。', sceneCaption: '野史道 · 边报入史，传闻不作定论。' },
+    { a: 'ming', b: 'ye', kind: '道', road: '票边道', r: 0, li: 60, note: '无籍者出边，凭归票', scene: 'assets/map-scenes/route-boundary.webp', sceneAlt: '一条灰色边道沿界桩走向冥京，归票封在油布里，雾外没有擅绘的疆线。', sceneCaption: '票边道 · 票随人行，身份另行核对。' },
+    { a: 'yan', b: 'shu', kind: '桥', road: '上桥', r: 0, li: 120, note: '仓帖赴枢京请印 · 民概不得渡', scene: 'assets/map-scenes/bridge-upper.webp', sceneAlt: '上桥的白石拱跨过金沟，桥心能望见两页账册各自延伸的山脊。', sceneCaption: '上桥 · 仓帖赴枢，请印须凭牒。' },
+    { a: 'xuan', b: 'bai', kind: '桥', road: '中桥', r: 0, li: 120, note: '算学与昼贷互通 · 官凭方许渡', scene: 'assets/map-scenes/bridge-middle.webp', sceneAlt: '中桥横在金沟最窄处，铜链与灯笼在雨雾间勾出通行的边界。', sceneCaption: '中桥 · 官凭方渡，桥不替凭据作真。' },
+    { a: 'zhong', b: 'wen', kind: '桥', road: '下桥', r: 0, li: 120, note: '声教与实录 · 许渡不许留', scene: 'assets/map-scenes/bridge-lower.webp', sceneAlt: '下桥贴着金色水脉落在两页街巷之间，桥下泊着等待回执的小舟。', sceneCaption: '下桥 · 许渡不许留，交接另记一笔。' },
+    { a: 'yan', b: 'wuzi', kind: '脊', road: '脊道西', r: -40, li: 210, note: '晏京秤砣坠沟处', scene: 'assets/places/golden-gutter-binding-line.webp', sceneAlt: '金沟装订线在西侧收窄，纸页峭壁下的金色水脉绕过一列旧界桩。', sceneCaption: '脊道西 · 秤砣坠沟之处，位置仅据图上计里。' },
+    { a: 'bai', b: 'wuzi', kind: '脊', road: '脊道东', r: 0, li: 150, note: '无人认领之贷，终归无字', scene: 'assets/places/golden-gutter-binding-line.webp', sceneAlt: '金沟东侧的薄雾将无字京方向遮去，水脉只留下可见的短短一段。', sceneCaption: '脊道东 · 无人认领的贷方，去向仍未定。' }
   ],
   extras: [
-    { id: 'keng', name: '冲销坑', type: 'pit', pos: [215, 620] },
-    { id: 'hai', name: '废账海', type: 'sea', pos: [785, 620] },
-    { id: 'lang', name: '灰廊', type: 'line' }
+    { id: 'keng', name: '冲销坑', type: 'pit', pos: [215, 620], placeId: 'cancellation-pit' },
+    { id: 'hai', name: '废账海', type: 'sea', pos: [785, 620], placeId: 'debtless-sea' },
+    { id: 'lang', name: '灰廊', type: 'line', placeId: 'ash-corridor' }
   ],
-  ghost: { name: '天账庭', pos: [500, 26], text: '存疑' }
+  ghost: { id: 'court', name: '天账庭', pos: [500, 26], text: '存疑', placeId: 'heavenly-ledger-court' }
 };
