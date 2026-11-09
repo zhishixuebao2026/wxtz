@@ -58,6 +58,18 @@
   var mobilePageItems = [];
   var mobileFocusTimer = 0;
 
+  function stickyNavigationOffset(extra) {
+    var mobile = $('#mobileNav');
+    var bar = mobile && window.getComputedStyle(mobile).display !== 'none' ? mobile : $('#nav');
+    var gap = Number(extra) || 0;
+    if (!bar) return gap;
+    var style = window.getComputedStyle(bar);
+    if (style.position !== 'sticky') return gap;
+    var top = parseFloat(style.top);
+    if (!isFinite(top)) top = 0;
+    return Math.ceil(bar.getBoundingClientRect().height + top + gap);
+  }
+
   function syncMobilePicker(id) {
     if (!mobilePicker) return;
     if (mobilePageCurrent) txt(mobilePageCurrent, pageLabel(id));
@@ -78,6 +90,22 @@
   }
   function openMobileMenu(focusItem) {
     if (!mobilePicker) return;
+    var mobileNav = $('#mobileNav');
+    if (mobileNav && window.getComputedStyle(mobileNav).display !== 'none') {
+      var mobileNavStyle = window.getComputedStyle(mobileNav);
+      var stickyTop = parseFloat(mobileNavStyle.top);
+      var bottomInset = parseFloat(window.getComputedStyle(document.documentElement).getPropertyValue('--safe-area-bottom')) || 0;
+      if (!isFinite(stickyTop)) stickyTop = 0;
+      var navRect = mobileNav.getBoundingClientRect();
+      var popoverRect = mobilePagePopover.getBoundingClientRect();
+      if (popoverRect.bottom + 8 > window.innerHeight - bottomInset && navRect.top > stickyTop + 1) {
+        var currentY = window.pageYOffset || document.documentElement.scrollTop || 0;
+        var priorBehavior = document.documentElement.style.scrollBehavior;
+        document.documentElement.style.scrollBehavior = 'auto';
+        window.scrollTo(0, Math.max(0, currentY + navRect.top - stickyTop));
+        document.documentElement.style.scrollBehavior = priorBehavior;
+      }
+    }
     mobilePicker.classList.add('is-open');
     mobilePageTrigger.setAttribute('aria-expanded', 'true');
     mobilePagePopover.setAttribute('aria-hidden', 'false');
@@ -274,8 +302,7 @@
   function routeTarget(targetId) {
     var target = targetId ? $('#' + targetId) : null;
     if (!target) return;
-    var stickyBar = $('#mobileNav') && getComputedStyle($('#mobileNav')).display !== 'none' ? $('#mobileNav') : $('#nav');
-    var stickyOffset = stickyBar && getComputedStyle(stickyBar).position === 'sticky' ? stickyBar.getBoundingClientRect().height + 18 : 18;
+    var stickyOffset = stickyNavigationOffset(18);
     var targetY = Math.max(0, readY() + target.getBoundingClientRect().top - stickyOffset);
     var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     window.scrollTo({ top: targetY, behavior: reduced ? 'auto' : 'smooth' });
@@ -751,8 +778,13 @@
       sv('path', { d: 'M' + (p[0] - 14) + ',' + (p[1] + 12) + ' L' + p[0] + ',' + (p[1] - 10) + ' L' + (p[0] + 14) + ',' + (p[1] + 12), fill: 'none', stroke: 'rgba(74,84,66,.8)', 'stroke-width': '1.6' }, lmg);
     });
     WXMAP.landmarks.forEach(function (l) {
-      sv('text', { x: l.x, y: l.y, 'text-anchor': 'middle', 'class': 'lm-t', text: l.t }, lmg);
-      sv('text', { x: l.x, y: l.y + 14, 'text-anchor': 'middle', 'class': 'lm-s', text: l.s }, lmg);
+      var landmark = sv('g', { 'class': 'lm-item', 'data-landmark': l.id, tabindex: '0', role: 'button',
+        'aria-label': l.t + ' · ' + l.s + '，按回车查看地标图景' }, lmg);
+      sv('circle', { cx: l.x, cy: l.y + 4, r: 42, 'class': 'lm-hit' }, landmark);
+      sv('text', { x: l.x, y: l.y, 'text-anchor': 'middle', 'class': 'lm-t', text: l.t }, landmark);
+      sv('text', { x: l.x, y: l.y + 14, 'text-anchor': 'middle', 'class': 'lm-s', text: l.s }, landmark);
+      var tip = sv('title', {}, landmark);
+      tip.textContent = l.t + ' · 点选查看图景与设定；不作实测方位。';
     });
 
     /* 澜江行舟：三叶顺逆往来 */
@@ -775,7 +807,7 @@
       if (!a || !b) return;
       var q = qPath(a, b, rd.r);
       var grp = sv('g', { 'class': 'rd rd-' + rd.kind + ' flow', 'data-i': i, tabindex: '0', role: 'button',
-        'aria-label': rd.road + '，' + a.name + '通' + b.name + '，' + rd.li + '里' }, roadG);
+        'aria-label': rd.road + '，' + a.name + '通' + b.name + '，' + rd.li + '里，点选查看路线图与卷宗' }, roadG);
       var p = sv('path', { d: q.d, 'class': 'road', id: 'road' + i }, grp);
       sv('path', { d: q.d, 'class': 'road-hit' }, grp);
       var tip = sv('title', {}, grp);
@@ -897,7 +929,9 @@
 
     WXMAP.extras.forEach(function (ex) {
       if (ex.type === 'pit') {
-        var g = sv('g', { tabindex: '0' }, svg);
+        var g = sv('g', { 'class': 'map-place map-place-pit', 'data-place': ex.placeId || ex.id, tabindex: '0', role: 'button',
+          'aria-label': ex.name + ' · 点选查看地物图景与设定' }, svg);
+        sv('circle', { cx: ex.pos[0], cy: ex.pos[1], r: 32, fill: 'transparent', stroke: 'transparent', 'class': 'map-place-hit' }, g);
         sv('circle', { cx: ex.pos[0], cy: ex.pos[1], r: 24, fill: 'none', stroke: '#7a4a30', 'stroke-width': '1.6', 'stroke-dasharray': '5 4' }, g);
         sv('circle', { cx: ex.pos[0], cy: ex.pos[1], r: 13, fill: 'none', stroke: '#7a4a30', 'stroke-width': '1', 'stroke-dasharray': '3 3' }, g);
         sv('circle', { cx: ex.pos[0], cy: ex.pos[1], r: 2.4, fill: '#5c241b' }, g);
@@ -905,7 +939,9 @@
         var tip1 = sv('title', {}, g);
         tip1.textContent = '冲销坑 · 总账年结未平且异源复核未成者暂入待核巨窟；单一争议行不得牵连全账或整个人。';
       } else if (ex.type === 'sea') {
-        var g2 = sv('g', { tabindex: '0' }, svg);
+        var g2 = sv('g', { 'class': 'map-place map-place-sea', 'data-place': ex.placeId || ex.id, tabindex: '0', role: 'button',
+          'aria-label': ex.name + ' · 点选查看地物图景与设定' }, svg);
+        sv('circle', { cx: ex.pos[0], cy: ex.pos[1], r: 34, fill: 'transparent', stroke: 'transparent', 'class': 'map-place-hit' }, g2);
         var wave = '';
         for (var w = 0; w < 3; w++) {
           wave += 'M' + (ex.pos[0] - 44) + ',' + (ex.pos[1] - 8 + w * 8) +
@@ -916,27 +952,35 @@
         var tip2 = sv('title', {}, g2);
         tip2.textContent = '废账海 · 作废账页漂成的海：漂着作废的世界、被推翻的预言、失约的誓言。';
       } else {
-        sv('path', { d: 'M60,728 C240,746 760,746 940,728', fill: 'none', stroke: '#4a5a68', 'stroke-width': '1.6', 'stroke-dasharray': '9 7', opacity: '.8' }, svg);
-        sv('text', { 'class': 'exl', x: 938, y: 714, 'text-anchor': 'end', text: '灰廊（页缝）', fill: '#55606e' }, svg);
+        var corridor = sv('g', { 'class': 'map-place map-place-corridor', 'data-place': ex.placeId || ex.id, tabindex: '0', role: 'button',
+          'aria-label': '灰廊 · 点选查看页缝地物图景与设定' }, svg);
+        sv('path', { d: 'M60,728 C240,746 760,746 940,728', fill: 'none', stroke: 'transparent', 'stroke-width': '28', 'class': 'map-place-hit' }, corridor);
+        sv('path', { d: 'M60,728 C240,746 760,746 940,728', fill: 'none', stroke: '#4a5a68', 'stroke-width': '1.6', 'stroke-dasharray': '9 7', opacity: '.8', 'pointer-events': 'none' }, corridor);
+        sv('text', { 'class': 'exl', x: 938, y: 714, 'text-anchor': 'end', text: '灰廊（页缝）', fill: '#55606e', 'pointer-events': 'none' }, corridor);
       }
     });
 
-    sv('text', { x: 500, y: 48, 'text-anchor': 'middle', text: '天账庭 · 存疑',
-      style: 'font-family:var(--kai);fill:#f4e3b3;font-size:12px;font-weight:600;letter-spacing:.08em;paint-order:stroke;stroke:rgba(11,14,18,.78);stroke-width:2.6px' }, svg);
+    var court = WXMAP.ghost;
+    var courtGroup = sv('g', { 'class': 'map-place map-place-court', 'data-place': court.placeId || court.id, tabindex: '0', role: 'button',
+      'aria-label': court.name + ' · ' + court.text + '，点选查看图景与设定' }, svg);
+    sv('ellipse', { cx: court.pos[0], cy: court.pos[1] + 18, rx: 78, ry: 22, fill: 'transparent', stroke: 'transparent', 'class': 'map-place-hit' }, courtGroup);
+    sv('text', { x: court.pos[0], y: court.pos[1] + 22, 'text-anchor': 'middle', text: court.name + ' · ' + court.text,
+      'class': 'ghost-txt', 'pointer-events': 'none', style: 'paint-order:stroke;stroke:rgba(11,14,18,.78);stroke-width:2.6px' }, courtGroup);
 
     var lead = $('#mapLead');
     lead.innerHTML = '';
     txt(lead, '中界如一本摊开的账册：' + esc(WXMAP.left) + '六京、' + esc(WXMAP.right) + '六京，脊上悬着无名之塔。' + esc(WXMAP.spineNote) +
-      '　图依计里画方，每方折地' + WXMAP.grid.li + '里。点京城观其志，点道线知其账往与里数；界桩十二根按里数立于图上，悬停见名，点击入界桩志。');
+      '　图依计里画方，每方折地' + WXMAP.grid.li + '里。点京城看城景，点道、桥、脊看通路图与里数，点地标、界桩或页外地物看各自图签；图景只作意象，不作实测凭据。');
 
     var legend = $('#mapLegend');
     legend.innerHTML = '';
     legend.innerHTML = [
       '<span><i class="lg-dot"></i>入账之京</span>',
       '<span><i class="lg-dot blank"></i>冲销中（无字京）</span>',
-      '<span><i class="lg-road"></i>道（点选观账往）</span>',
-      '<span><i class="lg-bridge"></i>桥 · 渡金沟</span>',
-      '<span><i class="lg-spine"></i>脊 · 通无字京</span>',
+      '<span><i class="lg-road"></i>道（点选看路线图与里数）</span>',
+      '<span><i class="lg-bridge"></i>桥 · 渡金沟（点选看桥图）</span>',
+      '<span><i class="lg-spine"></i>脊 · 通无字京（点选看脊图）</span>',
+      '<span><i class="lg-ghost"></i>地标与页外地物（点选看图签）</span>',
       '<span><i class="lg-grid"></i>画方 · 每方' + WXMAP.grid.li + '里</span>',
       '<span><i class="lg-stake"></i>界桩 · 点上开签　<i class="lg-st 在记"></i>在记<i class="lg-st 已销"></i>已销<i class="lg-st 自移"></i>自移<i class="lg-st 存疑"></i>存疑<i class="lg-st 赊"></i>赊</span>',
       '<span><i class="lg-pit"></i>冲销坑</span>',
@@ -945,29 +989,68 @@
       '<span><i class="lg-ghost"></i>存疑之地</span>'
     ].join('');
     svg.addEventListener('click', function (e) {
+      var placeEl = e.target.closest ? e.target.closest('.map-place') : null;
+      if (placeEl) { openPlace(placeEl.getAttribute('data-place')); revealMapDetail(); return; }
+      var landmarkEl = e.target.closest ? e.target.closest('.lm-item') : null;
+      if (landmarkEl) { openLandmark(landmarkEl.getAttribute('data-landmark')); revealMapDetail(); return; }
       var stEl = e.target.closest ? e.target.closest('.stake') : null;
-      if (stEl) { var stNo = stEl.getAttribute('data-no'); markStake(stNo); openStake(stNo); return; }
+      if (stEl) { var stNo = stEl.getAttribute('data-no'); markStake(stNo); openStake(stNo); revealMapDetail(); return; }
       var ndEl = e.target.closest ? e.target.closest('.nd') : null;
-      if (ndEl) { openCity(ndEl.getAttribute('data-id')); return; }
+      if (ndEl) { openCity(ndEl.getAttribute('data-id')); revealMapDetail(); return; }
       var rdEl = e.target.closest ? e.target.closest('.rd') : null;
-      if (rdEl) openRoad(+rdEl.getAttribute('data-i'));
+      if (rdEl) { openRoad(+rdEl.getAttribute('data-i')); revealMapDetail(); }
     });
     svg.addEventListener('keydown', function (e) {
       if ((e.key === 'Enter' || e.key === ' ') && e.target.closest) {
+        var placeEl = e.target.closest('.map-place');
+        if (placeEl) { e.preventDefault(); openPlace(placeEl.getAttribute('data-place')); revealMapDetail(); return; }
+        var landmarkEl = e.target.closest('.lm-item');
+        if (landmarkEl) { e.preventDefault(); openLandmark(landmarkEl.getAttribute('data-landmark')); revealMapDetail(); return; }
         var stEl = e.target.closest('.stake');
-        if (stEl) { e.preventDefault(); var stNo = stEl.getAttribute('data-no'); markStake(stNo); openStake(stNo); return; }
+        if (stEl) { e.preventDefault(); var stNo = stEl.getAttribute('data-no'); markStake(stNo); openStake(stNo); revealMapDetail(); return; }
         var ndEl = e.target.closest('.nd');
-        if (ndEl) { e.preventDefault(); openCity(ndEl.getAttribute('data-id')); return; }
+        if (ndEl) { e.preventDefault(); openCity(ndEl.getAttribute('data-id')); revealMapDetail(); return; }
         var rdEl = e.target.closest('.rd');
-        if (rdEl) { e.preventDefault(); openRoad(+rdEl.getAttribute('data-i')); }
+        if (rdEl) { e.preventDefault(); openRoad(+rdEl.getAttribute('data-i')); revealMapDetail(); }
       }
     });
     attachPanZoom(svg, 1000, 760);
     openCity('zhao');
   }
+  function revealMapDetail() {
+    if (!window.matchMedia('(max-width: 960px)').matches) return;
+    var detail = $('#cityDetail');
+    if (!detail) return;
+    var behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+    detail.scrollIntoView({ behavior: behavior, block: 'start' });
+  }
+
+  function appendMapScene(parent, item, label) {
+    if (!parent || !item) return null;
+    var src = item.scene || item.image;
+    if (!src) return null;
+    var figure = el('figure', 'cd-scene cd-scene-map');
+    var image = el('img', 'cd-scene-image');
+    image.src = src;
+    image.alt = item.sceneAlt || item.imageAlt || item.alt || (label + '意象');
+    image.width = 1200;
+    image.height = 800;
+    image.loading = 'lazy';
+    image.decoding = 'async';
+    figure.appendChild(image);
+    var caption = el('figcaption', 'cd-scene-caption');
+    caption.appendChild(txt(el('span', 'cd-scene-label'), label + ' · ' + (item.sceneCaption || item.imageCaption || item.caption || '意象图')));
+    figure.appendChild(caption);
+    parent.appendChild(figure);
+    return figure;
+  }
+
   function openCity(id) {
     var c = cityById[id] || WXCITIES.filter(function (x) { return x.id === id; })[0];
     if (!c) return;
+    $$('#mapSvg .map-place').forEach(function (node) { node.classList.remove('place-target', 'sel'); });
+    $$('#mapSvg .lm-item.sel').forEach(function (node) { node.classList.remove('sel'); });
+    $$('.place-atlas-card').forEach(function (button) { button.setAttribute('aria-pressed', 'false'); });
     $$('#mapSvg .nd').forEach(function (g) {
       g.classList.toggle('sel', g.getAttribute('data-id') === id);
     });
@@ -980,21 +1063,15 @@
     h.appendChild(txt(el('h4'), c.name));
     h.appendChild(txt(el('span', 'cd-page'), c.page));
     box.appendChild(h);
-    if (c.scene) {
-      var sceneFigure = el('figure', 'cd-scene');
-      var sceneImage = el('img', 'cd-scene-image');
-      sceneImage.src = c.scene;
-      sceneImage.alt = c.sceneAlt || (c.name + '城景意象');
-      sceneImage.width = c.sceneWidth || 1440;
-      sceneImage.height = c.sceneHeight || 960;
-      sceneImage.loading = 'lazy';
-      sceneImage.decoding = 'async';
-      sceneFigure.appendChild(sceneImage);
-      var sceneCaption = el('figcaption', 'cd-scene-caption');
-      sceneCaption.appendChild(txt(el('span', 'cd-scene-label'), c.name + ' · ' + (c.sceneCaption || '城景意象')));
-      sceneFigure.appendChild(sceneCaption);
-      box.appendChild(sceneFigure);
-    }
+    appendMapScene(box, c, c.name + '城景');
+    var cityPlaces = typeof WXPLACES !== 'undefined' ? WXPLACES.filter(function (place) { return place.cityId === id; }) : [];
+    cityPlaces.forEach(function (place) {
+      var site = el('section', 'cd-site');
+      site.appendChild(txt(el('p', 'cd-site-kicker'), '城中地物 · ' + place.region));
+      appendMapScene(site, place, place.name);
+      site.appendChild(txt(el('p', 'cd-site-note'), place.note));
+      box.appendChild(site);
+    });
     box.appendChild(txt(el('p', 'cd-tower'), '总账塔 · ' + c.tower));
     box.appendChild(txt(el('blockquote', 'cd-motto'), c.motto));
     if (typeof WXCITYSAYINGS !== 'undefined') {
@@ -1032,10 +1109,12 @@
       rel.forEach(function (r) {
         var other = r.a === id ? r.b : r.a;
         var o = cityById[other];
-        var row = el('div', 'cd-road');
-        row.appendChild(txt(el('span', 'cr-name'), o ? o.name : other));
-        row.appendChild(txt(el('span', 'cr-note'), r.note));
-        row.addEventListener('click', function () { openCity(other); });
+        var roadIndex = WXMAP.roads.indexOf(r);
+        var row = el('button', 'cd-road');
+        row.type = 'button';
+        row.appendChild(txt(el('span', 'cr-name'), r.road));
+        row.appendChild(txt(el('span', 'cr-note'), (o ? '通' + o.name : other) + ' · ' + r.li + '里 · ' + r.note));
+        row.addEventListener('click', function () { openRoad(roadIndex); });
         rg.appendChild(row);
       });
       box.appendChild(rg);
@@ -1046,7 +1125,8 @@
     if (!rd) return;
     var a = cityById[rd.a], b = cityById[rd.b];
     if (!a || !b) return;
-    $$('#mapSvg .nd.sel').forEach(function (g) { g.classList.remove('sel'); });
+    $$('#mapSvg .nd.sel, #mapSvg .lm-item.sel, #mapSvg .map-place.place-target').forEach(function (g) { g.classList.remove('sel', 'place-target'); });
+    $$('.place-atlas-card').forEach(function (button) { button.setAttribute('aria-pressed', 'false'); });
     $$('#mapSvg .rd').forEach(function (g) { g.classList.toggle('sel', +g.getAttribute('data-i') === i); });
     var KIND = { '道': '页内陆路', '桥': '渡金沟', '脊': '沿装订线' };
     var box = $('#cityDetail');
@@ -1056,6 +1136,7 @@
     h.appendChild(txt(el('h4'), rd.road));
     h.appendChild(txt(el('span', 'cd-page'), rd.li + ' 里'));
     box.appendChild(h);
+    appendMapScene(box, rd, rd.road);
     box.appendChild(txt(el('p', 'cd-tower'), a.name + '（' + a.tower + '）　⇄　' + b.name + '（' + b.tower + '）'));
     box.appendChild(txt(el('blockquote', 'cd-motto'), rd.note));
     box.appendChild(txt(el('p', 'cd-text'),
@@ -1066,14 +1147,114 @@
     rg.appendChild(txt(el('b'), '两　端'));
     [rd.a, rd.b].forEach(function (cid) {
       var o = cityById[cid];
-      var row = el('div', 'cd-road');
+      var row = el('button', 'cd-road');
+      row.type = 'button';
       row.appendChild(txt(el('span', 'cr-name'), o.name));
-      row.appendChild(txt(el('span', 'cr-note'), o.tower + ' · ' + o.tag));
+      row.appendChild(txt(el('span', 'cr-note'), o.tower + ' · ' + o.tag + ' · 开城卷宗'));
       row.addEventListener('click', function () { openCity(cid); });
       rg.appendChild(row);
     });
     box.appendChild(rg);
   }
+
+  function openPlace(id) {
+    if (typeof WXPLACES === 'undefined') return;
+    var place = WXPLACES.filter(function (item) { return item.id === id; })[0];
+    if (!place) return;
+    $$('#mapSvg .nd.sel, #mapSvg .rd.sel, #mapSvg .lm-item.sel, #mapSvg .map-place.sel').forEach(function (node) { node.classList.remove('sel'); });
+    $$('#mapSvg .map-place').forEach(function (node) { node.classList.toggle('place-target', node.getAttribute('data-place') === place.id); });
+    $$('.place-atlas-card').forEach(function (button) {
+      button.setAttribute('aria-pressed', button.getAttribute('data-place') === place.id ? 'true' : 'false');
+    });
+    var box = $('#cityDetail');
+    box.innerHTML = '';
+    box.appendChild(txt(el('p', 'cd-kicker'), '地物图志 · ' + place.region));
+    var head = el('div', 'cd-head');
+    head.appendChild(txt(el('span', 'cd-nu'), '图'));
+    head.appendChild(txt(el('h4'), place.name));
+    head.appendChild(txt(el('span', 'cd-page'), '意象卷'));
+    box.appendChild(head);
+    appendMapScene(box, place, place.name);
+    box.appendChild(txt(el('p', 'cd-text'), place.note));
+    box.appendChild(txt(el('p', 'cd-lat'), '图景只作设定意象，不据此断定方位、道里或未核之事。'));
+    var links = el('div', 'cd-links');
+    if (place.cityId && cityById[place.cityId]) {
+      var city = cityById[place.cityId];
+      var cityButton = el('button', 'chip');
+      cityButton.type = 'button';
+      txt(cityButton, '看所辖京 · ' + city.name);
+      cityButton.addEventListener('click', function () { openCity(city.id); });
+      links.appendChild(cityButton);
+    }
+    if (place.mapRef === 'spine') {
+      WXMAP.roads.forEach(function (road, index) {
+        if (road.kind !== '脊') return;
+        var roadButton = el('button', 'chip');
+        roadButton.type = 'button';
+        txt(roadButton, '看' + road.road + ' · ' + road.li + '里');
+        roadButton.addEventListener('click', function () { openRoad(index); });
+        links.appendChild(roadButton);
+      });
+    } else if (place.mapRef) {
+      var marker = document.querySelector('#mapSvg [data-place="' + place.id + '"]');
+      if (marker) {
+        var markerButton = el('button', 'chip');
+        markerButton.type = 'button';
+        txt(markerButton, '在图上定位 · ' + place.name);
+        markerButton.addEventListener('click', function () {
+          marker.focus();
+          marker.classList.add('place-target');
+          var map = $('#mapSvg');
+          if (map && window.matchMedia('(max-width: 960px)').matches) map.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
+        });
+        links.appendChild(markerButton);
+      }
+    }
+    if (links.childNodes.length) box.appendChild(links);
+  }
+
+  function openLandmark(id) {
+    var landmark = WXMAP.landmarks.filter(function (item) { return item.id === id; })[0];
+    if (!landmark) return;
+    $$('#mapSvg .nd.sel, #mapSvg .rd.sel, #mapSvg .map-place.sel, #mapSvg .map-place.place-target, #mapSvg .lm-item.sel').forEach(function (node) { node.classList.remove('sel', 'place-target'); });
+    $$('.place-atlas-card').forEach(function (button) { button.setAttribute('aria-pressed', 'false'); });
+    var selected = document.querySelector('#mapSvg .lm-item[data-landmark="' + id + '"]');
+    if (selected) selected.classList.add('sel');
+    var box = $('#cityDetail');
+    box.innerHTML = '';
+    box.appendChild(txt(el('p', 'cd-kicker'), '地图地标 · 参照不代替测量'));
+    var head = el('div', 'cd-head');
+    head.appendChild(txt(el('span', 'cd-nu'), '标'));
+    head.appendChild(txt(el('h4'), landmark.t));
+    head.appendChild(txt(el('span', 'cd-page'), landmark.s));
+    box.appendChild(head);
+    appendMapScene(box, landmark, landmark.t);
+    box.appendChild(txt(el('blockquote', 'cd-motto'), landmark.note));
+    box.appendChild(txt(el('p', 'cd-text'), '此地标只供辨识地图中的地貌关系，图像不作实测图、边界凭据或案情证明。'));
+    var links = el('div', 'cd-links');
+    if (landmark.id === 'golden-gutter-bridges') {
+      WXMAP.roads.forEach(function (road, index) {
+        if (road.kind !== '桥') return;
+        var button = el('button', 'chip');
+        button.type = 'button';
+        txt(button, '开桥簿 · ' + road.road);
+        button.addEventListener('click', function () { openRoad(index); });
+        links.appendChild(button);
+      });
+    }
+    if (landmark.id === 'lan-river') {
+      var lan = el('button', 'chip'); lan.type = 'button'; txt(lan, '看澜京卷宗');
+      lan.addEventListener('click', function () { openCity('lan'); });
+      links.appendChild(lan);
+    }
+    if (landmark.id === 'north-screen-range') {
+      var ye = el('button', 'chip'); ye.type = 'button'; txt(ye, '看野京卷宗');
+      ye.addEventListener('click', function () { openCity('ye'); });
+      links.appendChild(ye);
+    }
+    if (links.childNodes.length) box.appendChild(links);
+  }
+
   function GameNum(n) {
     return '一二三四五六七八九十'[n - 1] || n;
   }
@@ -1081,54 +1262,37 @@
   /* ---------------- 地物图志：天地图的非方位意象 ---------------- */
   function buildPlaceAtlas() {
     if (typeof WXPLACES === 'undefined') return;
-    var grid = $('#placeAtlasGrid'), stage = $('#placeAtlasStage');
-    if (!grid || !stage) return;
+    var grid = $('#placeAtlasGrid');
+    if (!grid) return;
     grid.innerHTML = '';
-
-    function showPlace(place) {
-      stage.innerHTML = '';
-      var figure = el('figure', 'place-atlas-figure');
-      var image = el('img', 'place-atlas-image');
-      image.src = place.image; image.alt = place.alt; image.width = 1536; image.height = 1024;
-      image.loading = 'eager'; image.decoding = 'async';
-      figure.appendChild(image);
-      var caption = el('figcaption', 'place-atlas-caption');
-      caption.appendChild(txt(el('span', 'place-atlas-region'), place.region));
-      caption.appendChild(txt(el('h4'), place.name));
-      caption.appendChild(txt(el('p'), place.note));
-      if (place.cityId) {
-        var city = WXCITIES.filter(function (c) { return c.id === place.cityId; })[0];
-        if (city) {
-          var actions = el('div', 'place-atlas-actions');
-          var jump = el('button', 'place-city-link'); jump.type = 'button';
-          jump.appendChild(txt(el('span'), '开' + city.name + '卷宗　↗'));
-          jump.addEventListener('click', function () { openCity(city.id); var detail = $('#cityDetail'); if (detail) detail.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' }); });
-          actions.appendChild(jump);
-          caption.appendChild(actions);
-        }
-      }
-      figure.appendChild(caption); stage.appendChild(figure);
-      $$('.place-atlas-card', grid).forEach(function (button) {
-        var active = button.getAttribute('data-place') === place.id;
-        button.setAttribute('aria-pressed', active ? 'true' : 'false');
-      });
-    }
-
     WXPLACES.forEach(function (place, index) {
-      var button = el('button', 'place-atlas-card'); button.type = 'button';
-      button.setAttribute('data-place', place.id); button.setAttribute('aria-pressed', 'false');
-      button.setAttribute('aria-controls', 'placeAtlasStage');
-      button.setAttribute('aria-label', '查看' + place.name + '，' + place.region);
-      var thumb = el('img', 'place-atlas-thumb'); thumb.src = place.image;
-      thumb.alt = ''; thumb.width = 384; thumb.height = 256; thumb.loading = index < 4 ? 'eager' : 'lazy'; thumb.decoding = 'async';
+      var button = el('button', 'place-atlas-card');
+      button.type = 'button';
+      button.setAttribute('data-place', place.id);
+      button.setAttribute('aria-pressed', 'false');
+      button.setAttribute('aria-controls', 'cityDetail');
+      button.setAttribute('aria-label', '在地图卷宗中查看' + place.name + '，' + place.region);
+      var thumb = el('img', 'place-atlas-thumb');
+      thumb.src = place.image;
+      thumb.alt = '';
+      thumb.width = 384;
+      thumb.height = 256;
+      thumb.loading = index < 4 ? 'eager' : 'lazy';
+      thumb.decoding = 'async';
       button.appendChild(thumb);
       var meta = el('span', 'place-atlas-card-meta');
       meta.appendChild(txt(el('span', 'place-atlas-card-region'), place.region));
-      meta.appendChild(txt(el('strong'), place.name)); button.appendChild(meta);
-      button.addEventListener('click', function (event) { showPlace(place); if (event.detail > 0 && window.matchMedia('(max-width: 700px)').matches) { var rect = stage.getBoundingClientRect(); if (rect.top < 0 || rect.bottom > window.innerHeight) stage.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); } });
+      meta.appendChild(txt(el('strong'), place.name));
+      button.appendChild(meta);
+      button.addEventListener('click', function () {
+        openPlace(place.id);
+        if (window.matchMedia('(max-width: 960px)').matches) {
+          var detail = $('#cityDetail');
+          if (detail) detail.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+        }
+      });
       grid.appendChild(button);
     });
-    showPlace(WXPLACES[0]);
   }
 
   /* ---------------- 信路：递信、交接与事实核验 ---------------- */
@@ -1966,8 +2130,7 @@
           if (h.targetId) {
             var indexedTarget = $('#' + h.targetId);
             if (indexedTarget) {
-              var stickyBar = $('#mobileNav') && getComputedStyle($('#mobileNav')).display !== 'none' ? $('#mobileNav') : $('#nav');
-              var stickyOffset = stickyBar && getComputedStyle(stickyBar).position === 'sticky' ? stickyBar.getBoundingClientRect().height + 16 : 16;
+              var stickyOffset = stickyNavigationOffset(16);
               var targetY = readY() + indexedTarget.getBoundingClientRect().top - stickyOffset;
               window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
               indexedTarget.classList.add('home-focus');
@@ -2551,8 +2714,7 @@
           });
           if (volumeCurrent) txt(volumeCurrent, '当前 · ' + s.no);
           volumeNav.open = false;
-          var stickyBar = $('#mobileNav') && getComputedStyle($('#mobileNav')).display !== 'none' ? $('#mobileNav') : $('#nav');
-          var stickyOffset = stickyBar && getComputedStyle(stickyBar).position === 'sticky' ? stickyBar.getBoundingClientRect().height + 12 : 12;
+          var stickyOffset = stickyNavigationOffset(12);
           var targetY = Math.max(0, readY() + art.getBoundingClientRect().top - stickyOffset);
           window.scrollTo({ top: targetY, behavior: 'smooth' });
           art.classList.add('story-flash');
@@ -3307,8 +3469,8 @@
   function openStake(no) {
     var k = (typeof WXSTAKES !== 'undefined' ? WXSTAKES : []).filter(function (x) { return x.no === no; })[0];
     if (!k) return;
-    $$('#mapSvg .nd.sel').forEach(function (g) { g.classList.remove('sel'); });
-    $$('#mapSvg .rd.sel').forEach(function (g) { g.classList.remove('sel'); });
+    $$('#mapSvg .nd.sel, #mapSvg .rd.sel, #mapSvg .lm-item.sel, #mapSvg .map-place').forEach(function (g) { g.classList.remove('sel', 'place-target'); });
+    $$('.place-atlas-card').forEach(function (button) { button.setAttribute('aria-pressed', 'false'); });
     var box = $('#cityDetail');
     box.innerHTML = '';
     box.appendChild(txt(el('p', 'cd-kicker'), '桩签 · ' + k.state + ' · 界桩志录'));
@@ -3316,6 +3478,7 @@
     h.appendChild(txt(el('span', 'cd-nu'), k.no));
     h.appendChild(txt(el('h4'), k.name));
     box.appendChild(h);
+    appendMapScene(box, k, k.name);
     box.appendChild(txt(el('p', 'cd-tower'), k.where));
     box.appendChild(txt(el('blockquote', 'cd-motto'), '桩面：' + k.face));
     box.appendChild(txt(el('p', 'cd-text'), '量语：' + k.measure));
@@ -3441,6 +3604,19 @@
         var card = el('article', 'being stake-card st-' + k.state);
         card.setAttribute('tabindex', '0');
         card.setAttribute('data-no', k.no);
+        if (k.image) {
+          var stakeFigure = el('figure', 'stake-card-figure');
+          var stakeImage = el('img', 'stake-card-image');
+          stakeImage.src = k.image;
+          stakeImage.alt = k.imageAlt || (k.name + '意象');
+          stakeImage.width = 1200;
+          stakeImage.height = 800;
+          stakeImage.loading = 'lazy';
+          stakeImage.decoding = 'async';
+          stakeFigure.appendChild(stakeImage);
+          stakeFigure.appendChild(txt(el('figcaption', 'stake-card-caption'), k.imageCaption || k.name + '意象'));
+          card.appendChild(stakeFigure);
+        }
         var top = el('div', 'being-top');
         top.appendChild(txt(el('h4'), k.name));
         top.appendChild(txt(el('span', 'also'), k.state));
@@ -3824,9 +4000,7 @@
     show('stories');
     var art = document.querySelector('#storyList article[data-no="' + no + '"]');
     if (art) {
-      var mobileNav = $('#mobileNav');
-      var stickyNav = mobileNav && window.getComputedStyle(mobileNav).display !== 'none' ? mobileNav : $('#nav');
-      var offset = stickyNav ? Math.ceil(stickyNav.getBoundingClientRect().height) + 12 : 12;
+      var offset = stickyNavigationOffset(12);
       var targetY = Math.max(0, art.getBoundingClientRect().top + readY() - offset);
       var far = Math.abs(targetY - readY()) > 2400;
       if (far) {
