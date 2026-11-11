@@ -13,7 +13,8 @@
   --safe-area-right:var(--system-safe-area-right);
   --safe-area-bottom:var(--system-safe-area-bottom);
   --safe-area-left:var(--system-safe-area-left);
-  --mobile-statusbar-top:max(var(--safe-area-top),24px);
+  /* 旧值：曾用于给吸顶导航假让位，现已由导航条内边距承担，仅作兼容保留 */
+  --mobile-statusbar-top:var(--safe-area-top);
   --ink:#11100e; --ink2:#1a1815; --ink3:#2b261f; --panel:#211e19;
   --line:#5a5042; --line2:#433a30; --dim:#b6aa96;
   --gold:#c8a663; --gold2:#ecd7a5; --golddim:#b39764;
@@ -31,7 +32,7 @@
 @supports (padding-top:env(safe-area-inset-top)){
   :root{--system-safe-area-top:env(safe-area-inset-top,0px);--system-safe-area-right:env(safe-area-inset-right,0px);--system-safe-area-bottom:env(safe-area-inset-bottom,0px);--system-safe-area-left:env(safe-area-inset-left,0px)}
 }
-html.standalone-app{--safe-area-top:max(var(--system-safe-area-top),44px);--mobile-statusbar-top:max(var(--system-safe-area-top),44px)}
+html.standalone-app{--safe-area-top:max(var(--system-safe-area-top),44px);--mobile-statusbar-top:var(--safe-area-top)}
 
 *{margin:0;padding:0;box-sizing:border-box}
 button{min-height:24px;touch-action:manipulation}
@@ -1778,13 +1779,13 @@ button,.chip,.artifact-link,.tch{transition:color .18s,border-color .18s,backgro
 @media(max-width:720px){
   .brand-seal{width:40px;height:40px;padding:4px 2px;font-size:9px;letter-spacing:.12em;text-indent:.12em}
   .reader-tools{position:relative;z-index:auto;padding-left:calc(14px + var(--safe-area-left));padding-right:calc(14px + var(--safe-area-right))}
-  .top{padding-top:calc(14px + var(--mobile-statusbar-top));padding-left:calc(12px + var(--safe-area-left));padding-right:calc(12px + var(--safe-area-right))}
-  .mobile-nav{top:var(--mobile-statusbar-top);padding-left:calc(12px + var(--safe-area-left));padding-right:calc(12px + var(--safe-area-right))}
-  .mobile-page-popover{width:min(360px,calc(100vw - 24px - var(--safe-area-left) - var(--safe-area-right)));max-height:min(calc(68dvh - var(--mobile-statusbar-top) - var(--safe-area-bottom)),560px)}
+  .top{padding-top:calc(16px + var(--safe-area-top));padding-left:calc(12px + var(--safe-area-left));padding-right:calc(12px + var(--safe-area-right))}
+  .mobile-nav{top:0;padding:calc(7px + var(--safe-area-top)) calc(12px + var(--safe-area-right)) 7px calc(12px + var(--safe-area-left))}
+  .mobile-page-popover{width:min(360px,calc(100vw - 24px - var(--safe-area-left) - var(--safe-area-right)));max-height:min(calc(68dvh - var(--safe-area-top) - var(--safe-area-bottom)),560px)}
   #main{padding-left:calc(12px + var(--safe-area-left));padding-right:calc(12px + var(--safe-area-right))}
   .foot{padding-left:calc(22px + var(--safe-area-left));padding-right:calc(22px + var(--safe-area-right));padding-bottom:calc(40px + var(--safe-area-bottom))}
-  .skip-link{top:calc(8px + var(--mobile-statusbar-top));left:calc(8px + var(--safe-area-left))}
-  .prog{top:var(--mobile-statusbar-top)}
+  .skip-link{top:calc(8px + var(--safe-area-top));left:calc(8px + var(--safe-area-left))}
+  .prog{top:0}
   .character-profile-heading{padding-left:calc(20px + var(--safe-area-left));padding-right:calc(20px + var(--safe-area-right))}
   .character-profile-body{padding-left:calc(20px + var(--safe-area-left));padding-right:calc(20px + var(--safe-area-right));padding-bottom:calc(28px + var(--safe-area-bottom))}
   .portrait-dialog{padding:calc(60px + var(--safe-area-top)) calc(12px + var(--safe-area-right)) calc(20px + var(--safe-area-bottom)) calc(12px + var(--safe-area-left))}
@@ -1817,14 +1818,17 @@ html{scroll-padding-top:calc(14px + var(--safe-area-top))}
     padding-bottom:7px;
   }
   /* 极端情况下（导航尚未吸顶）也保证状态栏底下是纸色，不是正文 */
+  /* 遮罩必须在导航条（z-index 52）之下，只在导航尚未吸顶时替状态栏垫底色 */
   body::before{
     content:"";
-    position:fixed;top:0;left:0;right:0;z-index:59;
+    position:fixed;top:0;left:0;right:0;z-index:51;
     height:var(--safe-area-top);
     background:var(--ink);
     pointer-events:none;
   }
+  /* 顶栏：不再叠加 24px 的假状态栏高度，安全区一次给足即可 */
   .top{padding-top:calc(16px + var(--safe-area-top))}
+  .reader-tools{padding-top:0}
 }
 @media (orientation:landscape) and (max-width:900px){
   .mobile-nav{top:0;padding-top:calc(5px + var(--safe-area-top));padding-bottom:5px}
