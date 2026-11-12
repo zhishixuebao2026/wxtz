@@ -81,9 +81,9 @@ safeAreaUiOk ? ok('手机状态栏改用不透叠暗底；吸顶栏、回案偏�
 const swFontsOk = /fontCss\.text\(\)/.test(swSource) && /cache\.addAll\(fonts\.slice\(/.test(swSource);
 swFontsOk ? ok('离线安装会分批预存 ' + fontRefs.length + ' 个本地字形子集') : ng('离线安装未覆盖本地字体子集');
 /['\"]\.\/data\/relay\.js\?v=\d+['\"]/.test(swSource) ? ok('Service Worker 预缓存信路数据') : ng('Service Worker 漏缓存信路数据');
-/['\"]\.\/data\/daily\.js\?v=188['\"]/.test(swSource) ? ok('Service Worker 预缓存街巷日用篇') : ng('Service Worker 漏缓存街巷日用篇');
-/['\"]\.\/data\/observatory\.js\?v=188['\"]/.test(swSource) ? ok('Service Worker 预缓存三签校时资料') : ng('Service Worker 漏缓存三签校时资料');
-/['\"]\.\/data\/artifacts\.js\?v=188['\"]/.test(swSource) ? ok('Service Worker 预缓存见物设定') : ng('Service Worker 漏缓存见物设定');
+/['\"]\.\/data\/daily\.js\?v=\d+['\"]/.test(swSource) ? ok('Service Worker 预缓存街巷日用篇') : ng('Service Worker 漏缓存街巷日用篇');
+/['\"]\.\/data\/observatory\.js\?v=\d+['\"]/.test(swSource) ? ok('Service Worker 预缓存三签校时资料') : ng('Service Worker 漏缓存三签校时资料');
+/['\"]\.\/data\/artifacts\.js\?v=\d+['\"]/.test(swSource) ? ok('Service Worker 预缓存见物设定') : ng('Service Worker 漏缓存见物设定');
 /['\"]\.\/assets\/three-seal-observatory\.webp['\"]/.test(swSource) ? ok('Service Worker 预缓存原创三签台器物图') : ng('Service Worker 漏缓存三签台器物图');
 const beingSource = fs.readFileSync(P + 'data/beings.js', 'utf8');
 const beingImages = [...beingSource.matchAll(/image:\s*['\"]([^'\"]+)['\"]\s*,\s*imageAlt:\s*['\"]([^'\"]+)['\"]/g)];
@@ -237,7 +237,7 @@ placeRows.length >= 10 && new Set(placeIds).size === placeIds.length && missingP
   ? ok('地物图志 ' + placeRows.length + ' 景齐整：替代文字、题记、WebP 文件均完整且轻量')
   : ng('地物图志缺项、重号、过大或缺少替代文字：' + missingPlaceImages.join('、'));
 const uncachedPlaces = placeRows.filter(x => !swSource.includes("'./" + x.image + "'"));
-uncachedPlaces.length === 0 && /data\/places\.js\?v=188/.test(swSource)
+uncachedPlaces.length === 0 && /data\/places\.js\?v=\d+/.test(swSource)
   ? ok('地物资料与 ' + placeRows.length + ' 幅意象均纳入离线首装')
   : ng('离线册漏收地物资料或图片：' + uncachedPlaces.map(x => x.id).join('、'));
 const placeAppSource = fs.readFileSync(P + 'assets/app.js', 'utf8');
@@ -273,12 +273,17 @@ const placeTargets = new Set(mapData.extras.map(x => x.id).concat([mapData.ghost
 const validMapCityIds = new Set(q('WXCITIES').map(x => x.id));
 const unlinkedPlaces = placeRows.filter(x => !(x.cityId && validMapCityIds.has(x.cityId)) && !(x.mapRef && placeTargets.has(x.mapRef)));
 unlinkedPlaces.length ? ng('地物图志未关联地图地物或京城：' + unlinkedPlaces.map(x => x.name).join('、')) : ok('十处地物全部可由地图点位、装订脊道或所属京城就地开卷');
-const mapInteractionOk = /function appendMapScene\(/.test(placeAppSource) && /appendMapScene\(box, rd, rd\.road\)/.test(placeAppSource) &&
-  /appendMapScene\(box, k, k\.name\)/.test(placeAppSource) && /function openLandmark\(/.test(placeAppSource) &&
+/* v1.53.0 起七个开法统一走 detailOpen 骨架，故核对骨架本身与各入口，而非逐条硬编码旧调用字面量 */
+const detailOpeners = (placeAppSource.match(/detailOpen\(\{/g) || []).length;
+const mapSkeletonOk = /function detailOpen\(/.test(placeAppSource) && /function detailLinks\(/.test(placeAppSource) &&
+  /function detailRoadList\(/.test(placeAppSource) && /function appendMapScene\(/.test(placeAppSource) &&
+  detailOpeners >= 5;
+const mapInteractionOk = mapSkeletonOk && /function openLandmark\(/.test(placeAppSource) &&
   /closest\('\.map-place'\)/.test(placeAppSource) && /closest\('\.lm-item'\)/.test(placeAppSource) &&
   /function revealMapDetail\(/.test(placeAppSource) && /revealMapDetail\(\)/.test(placeAppSource) &&
   /stake-card-image/.test(placeAppSource) && /aria-label': rd\.road[^\n]+路线图/.test(placeAppSource);
 mapInteractionOk ? ok('京、道、桥、脊、地标、页外地物与桩均有键鼠同用的图文卷宗入口') : ng('地图特征点击/键盘交互或就地插图未完整接通');
+mapSkeletonOk ? ok('地图卷宗七种开法共用同一骨架（题签→图→提要→正文），共 ' + detailOpeners + ' 处入口') : ng('地图卷宗骨架未统一，各开法版面仍会各自为政');
 const generatedMapAssets = ['bridge-upper','bridge-middle','bridge-lower','route-harvest','route-forge','route-river','route-north','route-mountain','route-boundary','stake-riverbank'].map(id => 'assets/map-scenes/' + id + '.webp');
 const missingGeneratedMapAssets = generatedMapAssets.filter(src => !fs.existsSync(P + src) || !swSource.includes("'./" + src + "'"));
 missingGeneratedMapAssets.length ? ng('新增地图意象缺图或未预缓存：' + missingGeneratedMapAssets.join('、')) : ok('原创新增道桥与水岸桩景均为本地图像并纳入离线册');
@@ -430,9 +435,9 @@ else {
     artifactAtlas.items.some(x => !x.name || !x.kind || !x.place || !x.image || !x.alt || x.alt.length < 12 || !x.scene || !x.use || !x.limit || !x.goto || !x.link);
   badItems ? ng('见物需十件异域器物，逐件具图、替代文字、所见、用途与止界') : ok('见物十件均有独立门类、图说与证据止界');
   const missingArt = artifactAtlas.items.filter(x => !fs.existsSync(P + x.image));
-  missingArt.length ? ng('见物图像缺失：' + missingArt.map(x => x.image).join('、')) : ok(artifactImages.length + ' 幅见物插图本地资源齐备');
+  missingArt.length ? ng('见物图像缺失：' + missingArt.map(x => x.image).join('、')) : ok(artifactAtlas.items.length + ' 幅见物插图本地资源齐备');
   const uncachedArt = artifactAtlas.items.filter(x => !swSource.includes("'./" + x.image + "'"));
-  uncachedArt.length ? ng('见物图未进入离线册：' + uncachedArt.map(x => x.image).join('、')) : ok(artifactImages.length + ' 幅见物插图全部列入离线缓存');
+  uncachedArt.length ? ng('见物图未进入离线册：' + uncachedArt.map(x => x.image).join('、')) : ok(artifactAtlas.items.length + ' 幅见物插图全部列入离线缓存');
   const artifactUi = /id="pg-artifacts"/.test(html) && /data-goto="artifacts"/.test(html) && /id="artifactGrid"/.test(html) && /buildArtifactAtlas/.test(fs.readFileSync(P + 'assets/app.js', 'utf8'));
   artifactUi ? ok('见物篇有导航、篇面与图文交互入口') : ng('见物篇导航或图文交互未接通');
 }
@@ -451,7 +456,9 @@ else {
   const uncachedScenes = cityScenes.filter(c => !swSource.includes("'./" + c.scene + "'"));
   uncachedScenes.length ? ng('京城意象未纳入离线册：' + uncachedScenes.map(c => c.scene).join('、')) : ok('十三幅京城意象全部纳入离线缓存');
   const citySceneSource = fs.readFileSync(P + 'assets/app.js', 'utf8');
-  const citySceneUi = /appendMapScene\(box, c, c\.name \+ '城景'\)/.test(citySceneSource) && /item\.sceneAlt \|\| item\.imageAlt \|\| item\.alt/.test(citySceneSource) && /item\.sceneCaption \|\| item\.imageCaption/.test(citySceneSource);
+  /* v1.53.0：城景改由 detailOpen 统一铺陈，故核对「传城景入骨架」而非旧调用字面量 */
+  const citySceneUi = /function openCity\(/.test(citySceneSource) && /detailOpen\(\{[\s\S]{0,220}?item: c \}\)/.test(citySceneSource) &&
+    /item\.sceneAlt \|\| item\.imageAlt \|\| item\.alt/.test(citySceneSource) && /item\.sceneCaption \|\| item\.imageCaption/.test(citySceneSource);
   citySceneUi ? ok('选京即见城景，替代说明与图说齐备') : ng('天地图城景交互、替代说明或图说缺失');
 }
 const observatory = q('WXOBSERVATORY');
@@ -762,7 +769,7 @@ const disclosuresRemoved = repeatedImageDisclosures.every(text => !visibleImageD
 disclosuresRemoved ? ok('插图旁不再重复堆叠声明；替代文字仍保留') : ng('插图旁仍有重复声明文字');
 const srcBlock = (appSrc.match(/var SOURCES = \[([\s\S]*?)\n    \];/) || [0, ''])[1];
 const srcCount = (srcBlock.match(/name: '/g) || []).length;
-const tipOk = html.indexOf('全书二十一篇') >= 0 && html.indexOf('索引二十一源') >= 0 && pageIds.length === 21 && srcCount === 21 && /data\/daily\.js\?v=188/.test(html) && /data\/daily\.js\?v=188/.test(swSource) && /data\/observatory\.js\?v=188/.test(html) && /data\/observatory\.js\?v=188/.test(swSource) && /data\/artifacts\.js\?v=188/.test(html) && /data\/artifacts\.js\?v=188/.test(swSource) && /data\/places\.js\?v=188/.test(html) && /data\/places\.js\?v=188/.test(swSource);
+const tipOk = html.indexOf('全书二十一篇') >= 0 && html.indexOf('索引二十一源') >= 0 && pageIds.length === 21 && srcCount === 21 && /data\/daily\.js\?v=\d+/.test(html) && /data\/daily\.js\?v=\d+/.test(swSource) && /data\/observatory\.js\?v=\d+/.test(html) && /data\/observatory\.js\?v=\d+/.test(swSource) && /data\/artifacts\.js\?v=\d+/.test(html) && /data\/artifacts\.js\?v=\d+/.test(swSource) && /data\/places\.js\?v=\d+/.test(html) && /data\/places\.js\?v=\d+/.test(swSource);
 tipOk ? ok('初见笺、篇目、索引与离线数据一致（二十一篇 · 二十一源）') : ng('初见笺计数脱节：实况 ' + pageIds.length + ' 篇 · ' + srcCount + ' 源，或新增设定未纳入离线册');
 
 console.log('\n【结论】' + (warn.length ? '需处理 ' + warn.length + ' 项' : '全部通过'));
