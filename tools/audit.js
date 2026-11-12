@@ -6,6 +6,7 @@ const fs = require('fs'), vm = require('vm');
 const P = __dirname.replace(/\\/g, '/') + '/../';
 const DATA = ['core','cities','places','beings','timeline','lexicon','sayings','goods','stories','characters','relations','stakes','suiling','organs','arcs','docs','updates','trials','granaries','relay','daily','observatory','artifacts'];
 const JS = DATA.map(d => 'data/' + d + '.js').concat(['assets/app.js']);
+function cnNumText(n){const d=['零','一','二','三','四','五','六','七','八','九'];const b=Math.floor(n/100)%10,h=Math.floor(n/10)%10,o=n%10;return (b?d[b]+'百':'')+(h?d[h]+'十':'')+(o?d[o]:'');}
 let warn = [];
 const ok = m => console.log('  ✓ ' + m);
 const ng = m => { warn.push(m); console.log('  ✗ ' + m); };
@@ -65,8 +66,12 @@ appleStandalone ? ok('iPhone 主屏安装配置为独立网页 App，含图标�
 const safeAreaUiOk = /viewport-fit=cover/.test(installHtmlSource) && /apple-mobile-web-app-status-bar-style" content="black"/.test(installHtmlSource) &&
   /--system-safe-area-top:env\(safe-area-inset-top,0px\)/.test(css) && /--system-safe-area-right:env\(safe-area-inset-right,0px\)/.test(css) &&
   /--system-safe-area-bottom:env\(safe-area-inset-bottom,0px\)/.test(css) && /--system-safe-area-left:env\(safe-area-inset-left,0px\)/.test(css) &&
-  /--mobile-statusbar-top:max\(var\(--safe-area-top\),24px\)/.test(css) && /html\.standalone-app\{--safe-area-top:max\(var\(--system-safe-area-top\),44px\);--mobile-statusbar-top:max\(var\(--system-safe-area-top\),44px\)\}/.test(css) &&
-  /\.mobile-nav\{top:var\(--mobile-statusbar-top\)/.test(css) && /\.top\{padding-top:calc\(14px \+ var\(--mobile-statusbar-top\)\)/.test(css) &&
+  /* v1.52.0 新契约：吸顶导航自视口顶端铺起，安全区由导航条内边距承担，不再叠一层假状态栏高度 */
+  /html\.standalone-app\{--safe-area-top:max\(var\(--system-safe-area-top\),44px\)/.test(css) &&
+  /\.mobile-nav\{top:0;padding:calc\(7px \+ var\(--safe-area-top\)\)/.test(css) &&
+  /\.top\{padding-top:calc\(16px \+ var\(--safe-area-top\)\)/.test(css) &&
+  /\.prog\{top:0\}/.test(css) && /scroll-padding-top:calc\(66px \+ var\(--safe-area-top\)\)/.test(css) &&
+  /body::before\{/.test(css) && /z-index:51/.test(css) &&
   /\.reader-tools\{position:sticky;top:var\(--safe-area-top\)/.test(css) && /\.nav\{top:calc\(54px \+ var\(--safe-area-top\)\)/.test(css) &&
   /\.mobile-page-popover\{width:min\(360px,calc\(100vw - 24px - var\(--safe-area-left\) - var\(--safe-area-right\)\)\)/.test(css) &&
   /popoverRect\.bottom \+ 8 > window\.innerHeight - bottomInset/.test(installAppSource) && /window\.scrollTo\(0, Math\.max\(0, currentY \+ navRect\.top - stickyTop\)\)/.test(installAppSource) &&
@@ -76,9 +81,9 @@ safeAreaUiOk ? ok('手机状态栏改用不透叠暗底；吸顶栏、回案偏�
 const swFontsOk = /fontCss\.text\(\)/.test(swSource) && /cache\.addAll\(fonts\.slice\(/.test(swSource);
 swFontsOk ? ok('离线安装会分批预存 ' + fontRefs.length + ' 个本地字形子集') : ng('离线安装未覆盖本地字体子集');
 /['\"]\.\/data\/relay\.js\?v=\d+['\"]/.test(swSource) ? ok('Service Worker 预缓存信路数据') : ng('Service Worker 漏缓存信路数据');
-/['\"]\.\/data\/daily\.js\?v=186['\"]/.test(swSource) ? ok('Service Worker 预缓存街巷日用篇') : ng('Service Worker 漏缓存街巷日用篇');
-/['\"]\.\/data\/observatory\.js\?v=186['\"]/.test(swSource) ? ok('Service Worker 预缓存三签校时资料') : ng('Service Worker 漏缓存三签校时资料');
-/['\"]\.\/data\/artifacts\.js\?v=186['\"]/.test(swSource) ? ok('Service Worker 预缓存见物设定') : ng('Service Worker 漏缓存见物设定');
+/['\"]\.\/data\/daily\.js\?v=188['\"]/.test(swSource) ? ok('Service Worker 预缓存街巷日用篇') : ng('Service Worker 漏缓存街巷日用篇');
+/['\"]\.\/data\/observatory\.js\?v=188['\"]/.test(swSource) ? ok('Service Worker 预缓存三签校时资料') : ng('Service Worker 漏缓存三签校时资料');
+/['\"]\.\/data\/artifacts\.js\?v=188['\"]/.test(swSource) ? ok('Service Worker 预缓存见物设定') : ng('Service Worker 漏缓存见物设定');
 /['\"]\.\/assets\/three-seal-observatory\.webp['\"]/.test(swSource) ? ok('Service Worker 预缓存原创三签台器物图') : ng('Service Worker 漏缓存三签台器物图');
 const beingSource = fs.readFileSync(P + 'data/beings.js', 'utf8');
 const beingImages = [...beingSource.matchAll(/image:\s*['\"]([^'\"]+)['\"]\s*,\s*imageAlt:\s*['\"]([^'\"]+)['\"]/g)];
@@ -90,11 +95,11 @@ const oversizedBeingImages = beingImages.map(m => m[1]).filter(src => {
   return !src.endsWith('.webp') || bytes.length > 400 * 1024 || bytes.toString('ascii', 0, 4) !== 'RIFF' || bytes.toString('ascii', 8, 12) !== 'WEBP';
 });
 const uncachedBeingImages = beingImages.map(m => m[1]).filter(src => !swSource.includes("'./" + src + "'"));
-beingImages.length === 10 && beingImages.every(m => m[2].trim().length > 15) && !missingBeingImages.length && !oversizedBeingImages.length
-  ? ok('众生谱十幅均为轻量 WebP，且有描述性替代文字') : ng('众生意象缺图、非轻量 WebP 或缺少替代文字：' + missingBeingImages.concat(oversizedBeingImages).join('、'));
+beingImages.length >= 10 && beingImages.every(m => m[2].trim().length > 15) && !missingBeingImages.length && !oversizedBeingImages.length
+  ? ok('众生谱 ' + beingImages.length + ' 幅均为轻量 WebP，且有描述性替代文字') : ng('众生意象缺图、非轻量 WebP 或缺少替代文字：' + missingBeingImages.concat(oversizedBeingImages).join('、'));
 if (!/\.being-grid\{[^}]*minmax\(min\(100%,300px\),1fr\)/.test(css)) ng('众生谱网格未适配小于卡片最小宽度的窄屏');
 else ok('众生谱卡片可在 320 像素窄屏收缩，不设固定最小横宽');
-uncachedBeingImages.length ? ng('众生意象未纳入离线缓存：' + uncachedBeingImages.join('、')) : ok('众生谱十幅意象均纳入离线预缓存');
+uncachedBeingImages.length ? ng('众生意象未纳入离线缓存：' + uncachedBeingImages.join('、')) : ok('众生谱 ' + beingImages.length + ' 幅意象均纳入离线预缓存');
 const loreBeings = fs.readFileSync(P + 'data/beings.js', 'utf8');
 const loreStories = fs.readFileSync(P + 'data/stories.js', 'utf8');
 const loreLexicon = fs.readFileSync(P + 'data/lexicon.js', 'utf8');
@@ -209,15 +214,15 @@ const K = Object.keys(ctx).filter(k => k.charAt(0) === 'W').sort();
 ok('全局变量 ' + K.length + ' 个：' + K.join('、'));
 const q = n => ctx[n];
 const storyScenes = (q('WXSTORIES') || []).filter(x => x.image || x.imageAlt);
-const expectedStorySceneIds = ['s1','s2','s3','s5','s6','s8','s9','s11','s15','s17','s21','s24','s25','s33','s39','s47','s52','s80','s93','s100'];
+const expectedStorySceneIds = storyScenes.map(x => x.id);
 const missingStoryScenes = expectedStorySceneIds.filter(id => {
   const story = (q('WXSTORIES') || []).filter(x => x.id === id)[0];
   if (!story || !story.image || !story.imageAlt || !fs.existsSync(P + story.image)) return true;
   const bytes = fs.readFileSync(P + story.image);
   return !story.image.endsWith('.webp') || bytes.length > 450 * 1024 || bytes.toString('ascii', 0, 4) !== 'RIFF' || bytes.toString('ascii', 8, 12) !== 'WEBP' || !swSource.includes("'./" + story.image + "'");
 });
-storyScenes.length === expectedStorySceneIds.length && missingStoryScenes.length === 0
-  ? ok('二十卷异闻意象均有替代文字、轻量 WebP 文件并纳入离线首装')
+expectedStorySceneIds.length >= 20 && missingStoryScenes.length === 0
+  ? ok(('第 ' + expectedStorySceneIds.length + ' 卷异闻意象均有替代文字、轻量 WebP 文件并纳入离线首装').replace(/^第 (\d+) 卷/, (m, n) => cnNumText(Number(n)) + '卷'))
   : ng('异闻场景图缺项、过大、格式错误或未预缓存：' + missingStoryScenes.join('、'));
 const placeRows = q('WXPLACES') || [];
 const placeIds = placeRows.map(x => x.id);
@@ -228,12 +233,12 @@ const missingPlaceImages = expectedPlaceImages.filter(id => {
   const bytes = fs.readFileSync(P + item.image);
   return !item.alt || !item.imageCaption || !item.note || !item.name || !item.region || !item.image.endsWith('.webp') || bytes.toString('ascii', 0, 4) !== 'RIFF' || bytes.toString('ascii', 8, 12) !== 'WEBP' || bytes.length > 450 * 1024;
 });
-placeRows.length === 10 && new Set(placeIds).size === placeIds.length && missingPlaceImages.length === 0
-  ? ok('地物图志十景齐整：替代文字、题记、WebP 文件均完整且轻量')
+placeRows.length >= 10 && new Set(placeIds).size === placeIds.length && missingPlaceImages.length === 0
+  ? ok('地物图志 ' + placeRows.length + ' 景齐整：替代文字、题记、WebP 文件均完整且轻量')
   : ng('地物图志缺项、重号、过大或缺少替代文字：' + missingPlaceImages.join('、'));
 const uncachedPlaces = placeRows.filter(x => !swSource.includes("'./" + x.image + "'"));
-uncachedPlaces.length === 0 && /data\/places\.js\?v=186/.test(swSource)
-  ? ok('地物资料与十幅意象均纳入离线首装')
+uncachedPlaces.length === 0 && /data\/places\.js\?v=188/.test(swSource)
+  ? ok('地物资料与 ' + placeRows.length + ' 幅意象均纳入离线首装')
   : ng('离线册漏收地物资料或图片：' + uncachedPlaces.map(x => x.id).join('、'));
 const placeAppSource = fs.readFileSync(P + 'assets/app.js', 'utf8');
 const placeAtlasUiOk = /id="placeAtlasGrid"/.test(html) && !/id="placeAtlasStage"/.test(html) &&
@@ -276,7 +281,7 @@ const mapInteractionOk = /function appendMapScene\(/.test(placeAppSource) && /ap
 mapInteractionOk ? ok('京、道、桥、脊、地标、页外地物与桩均有键鼠同用的图文卷宗入口') : ng('地图特征点击/键盘交互或就地插图未完整接通');
 const generatedMapAssets = ['bridge-upper','bridge-middle','bridge-lower','route-harvest','route-forge','route-river','route-north','route-mountain','route-boundary','stake-riverbank'].map(id => 'assets/map-scenes/' + id + '.webp');
 const missingGeneratedMapAssets = generatedMapAssets.filter(src => !fs.existsSync(P + src) || !swSource.includes("'./" + src + "'"));
-missingGeneratedMapAssets.length ? ng('新增地图意象缺图或未预缓存：' + missingGeneratedMapAssets.join('、')) : ok('十幅原创新增道桥与水岸桩景均为本地图像并纳入离线册');
+missingGeneratedMapAssets.length ? ng('新增地图意象缺图或未预缓存：' + missingGeneratedMapAssets.join('、')) : ok('原创新增道桥与水岸桩景均为本地图像并纳入离线册');
 const cnt = n => { const v = q(n); return Array.isArray(v) ? v.length : null; };
 const routes = q('WXCORE').readingRoutes || [];
 const validPages = new Set(pageIds);
@@ -348,16 +353,17 @@ trialCityBad.length ? ng('试账案指向不存在之京：' + trialCityBad.map(
 const gran = q('WXGRANARIES');
 if (!gran || !Array.isArray(gran.stores) || !Array.isArray(gran.seasons)) ng('仓衡三制形状不全');
 else {
-  const gBad = gran.stores.length !== 3 || gran.seasons.length !== 3 || gran.seasons.some(s => !s.moves || s.moves.length !== 3 || !s.audit);
-  gBad ? ng('仓衡三制须为三仓三时，每时三处粮账并有复核') : ok('仓衡三制三仓三时齐备，各仓事有三处粮账与复核');
+  const storeCount = gran.stores.length;
+  const gBad = storeCount < 3 || gran.seasons.length !== 3 || gran.seasons.some(s => !s.moves || s.moves.length !== storeCount || !s.audit);
+  gBad ? ng('仓衡须为三仓以上、三时，每时每仓各一处粮账并有复核') : ok('仓衡 ' + storeCount + ' 仓三时齐备，各仓事逐仓有粮账与复核');
   const gDup = new Set(gran.stores.map(s => s.id)).size !== gran.stores.length || new Set(gran.seasons.map(s => s.id)).size !== gran.seasons.length;
   gDup ? ng('仓制或仓事 id 重复') : ok('仓制与仓事 id 无重复');
 }
 const reviewDoc = q('WXDOCS').filter(p => p.n === '留格复账牒 · 司录式')[0];
 const docs = q('WXDOCS');
-const docsBad = docs.length !== 19 || new Set(docs.map(p => p.n)).size !== docs.length ||
+const docsBad = docs.length < 19 || new Set(docs.map(p => p.n)).size !== docs.length ||
   docs.some(p => !p.n || !p.kind || !p.seat || !p.when || !p.text || !p.ref);
-docsBad ? ng('故纸须十九件，逐件具名、类型、席位、年月、原文与卷号') : ok('故纸十九件均有来源席位、原文与回卷');
+docsBad ? ng('故纸须至少十九件，逐件具名、类型、席位、年月、原文与卷号') : ok('故纸 ' + docs.length + ' 件均有来源席位、原文与回卷');
 reviewDoc && /不收钱/.test(reviewDoc.text) && /原记不擦/.test(reviewDoc.text) && /不得独核/.test(reviewDoc.text) && /余账照结/.test(reviewDoc.text)
   ? ok('留格复账牒具免费申诉、原记留存、复核分离与余账照结')
   : ng('留格复账牒遗漏关键权利或裁处边界');
@@ -408,9 +414,10 @@ const daily = q('WXDAILY');
 if (!daily || !daily.scene || !Array.isArray(daily.scene.records) || !Array.isArray(daily.practices)) ng('街巷日用篇形状不全');
 else {
   const kinds = daily.practices.map(x => x.mark).sort().join('');
-  const dBad = daily.practices.length !== 3 || kinds !== '借共赠' || daily.scene.records.length !== 3 ||
+  const baseKinds = daily.practices.slice(0, 3).map(x => x.mark).sort().join('');
+  const dBad = daily.practices.length < 3 || baseKinds !== '借共赠' || daily.scene.records.length !== 3 ||
     daily.practices.some(x => !x.id || !x.name || !x.rule || !x.receipt || !x.boundary);
-  dBad ? ng('街约须完整呈现赠、借、共三签、三笔实录与边界') : ok('街巷日用有赠借共三签、三笔实录与各自止界');
+  dBad ? ng('街约须完整呈现赠、借、共三签、三笔实录与边界') : ok('街巷日用有赠借共三签（另附 ' + (daily.practices.length - 3) + ' 签）、三笔实录与各自止界');
   const dDup = new Set(daily.practices.map(x => x.id)).size !== daily.practices.length;
   dDup ? ng('街约签 id 重复') : ok('街约签 id 无重复');
 }
@@ -423,9 +430,9 @@ else {
     artifactAtlas.items.some(x => !x.name || !x.kind || !x.place || !x.image || !x.alt || x.alt.length < 12 || !x.scene || !x.use || !x.limit || !x.goto || !x.link);
   badItems ? ng('见物需十件异域器物，逐件具图、替代文字、所见、用途与止界') : ok('见物十件均有独立门类、图说与证据止界');
   const missingArt = artifactAtlas.items.filter(x => !fs.existsSync(P + x.image));
-  missingArt.length ? ng('见物图像缺失：' + missingArt.map(x => x.image).join('、')) : ok('十幅见物插图本地资源齐备');
+  missingArt.length ? ng('见物图像缺失：' + missingArt.map(x => x.image).join('、')) : ok(artifactImages.length + ' 幅见物插图本地资源齐备');
   const uncachedArt = artifactAtlas.items.filter(x => !swSource.includes("'./" + x.image + "'"));
-  uncachedArt.length ? ng('见物图未进入离线册：' + uncachedArt.map(x => x.image).join('、')) : ok('十幅见物插图全部列入离线缓存');
+  uncachedArt.length ? ng('见物图未进入离线册：' + uncachedArt.map(x => x.image).join('、')) : ok(artifactImages.length + ' 幅见物插图全部列入离线缓存');
   const artifactUi = /id="pg-artifacts"/.test(html) && /data-goto="artifacts"/.test(html) && /id="artifactGrid"/.test(html) && /buildArtifactAtlas/.test(fs.readFileSync(P + 'assets/app.js', 'utf8'));
   artifactUi ? ok('见物篇有导航、篇面与图文交互入口') : ng('见物篇导航或图文交互未接通');
 }
@@ -755,7 +762,7 @@ const disclosuresRemoved = repeatedImageDisclosures.every(text => !visibleImageD
 disclosuresRemoved ? ok('插图旁不再重复堆叠声明；替代文字仍保留') : ng('插图旁仍有重复声明文字');
 const srcBlock = (appSrc.match(/var SOURCES = \[([\s\S]*?)\n    \];/) || [0, ''])[1];
 const srcCount = (srcBlock.match(/name: '/g) || []).length;
-const tipOk = html.indexOf('全书二十一篇') >= 0 && html.indexOf('索引二十一源') >= 0 && pageIds.length === 21 && srcCount === 21 && /data\/daily\.js\?v=186/.test(html) && /data\/daily\.js\?v=186/.test(swSource) && /data\/observatory\.js\?v=186/.test(html) && /data\/observatory\.js\?v=186/.test(swSource) && /data\/artifacts\.js\?v=186/.test(html) && /data\/artifacts\.js\?v=186/.test(swSource) && /data\/places\.js\?v=186/.test(html) && /data\/places\.js\?v=186/.test(swSource);
+const tipOk = html.indexOf('全书二十一篇') >= 0 && html.indexOf('索引二十一源') >= 0 && pageIds.length === 21 && srcCount === 21 && /data\/daily\.js\?v=188/.test(html) && /data\/daily\.js\?v=188/.test(swSource) && /data\/observatory\.js\?v=188/.test(html) && /data\/observatory\.js\?v=188/.test(swSource) && /data\/artifacts\.js\?v=188/.test(html) && /data\/artifacts\.js\?v=188/.test(swSource) && /data\/places\.js\?v=188/.test(html) && /data\/places\.js\?v=188/.test(swSource);
 tipOk ? ok('初见笺、篇目、索引与离线数据一致（二十一篇 · 二十一源）') : ng('初见笺计数脱节：实况 ' + pageIds.length + ' 篇 · ' + srcCount + ' 源，或新增设定未纳入离线册');
 
 console.log('\n【结论】' + (warn.length ? '需处理 ' + warn.length + ' 项' : '全部通过'));

@@ -13,7 +13,8 @@
   --safe-area-right:var(--system-safe-area-right);
   --safe-area-bottom:var(--system-safe-area-bottom);
   --safe-area-left:var(--system-safe-area-left);
-  --mobile-statusbar-top:max(var(--safe-area-top),24px);
+  /* 旧值：曾用于给吸顶导航假让位，现已由导航条内边距承担，仅作兼容保留 */
+  --mobile-statusbar-top:var(--safe-area-top);
   --ink:#11100e; --ink2:#1a1815; --ink3:#2b261f; --panel:#211e19;
   --line:#5a5042; --line2:#433a30; --dim:#b6aa96;
   --gold:#c8a663; --gold2:#ecd7a5; --golddim:#b39764;
@@ -31,7 +32,7 @@
 @supports (padding-top:env(safe-area-inset-top)){
   :root{--system-safe-area-top:env(safe-area-inset-top,0px);--system-safe-area-right:env(safe-area-inset-right,0px);--system-safe-area-bottom:env(safe-area-inset-bottom,0px);--system-safe-area-left:env(safe-area-inset-left,0px)}
 }
-html.standalone-app{--safe-area-top:max(var(--system-safe-area-top),44px);--mobile-statusbar-top:max(var(--system-safe-area-top),44px)}
+html.standalone-app{--safe-area-top:max(var(--system-safe-area-top),44px);--mobile-statusbar-top:var(--safe-area-top)}
 
 *{margin:0;padding:0;box-sizing:border-box}
 button{min-height:24px;touch-action:manipulation}
@@ -1778,13 +1779,13 @@ button,.chip,.artifact-link,.tch{transition:color .18s,border-color .18s,backgro
 @media(max-width:720px){
   .brand-seal{width:40px;height:40px;padding:4px 2px;font-size:9px;letter-spacing:.12em;text-indent:.12em}
   .reader-tools{position:relative;z-index:auto;padding-left:calc(14px + var(--safe-area-left));padding-right:calc(14px + var(--safe-area-right))}
-  .top{padding-top:calc(14px + var(--mobile-statusbar-top));padding-left:calc(12px + var(--safe-area-left));padding-right:calc(12px + var(--safe-area-right))}
-  .mobile-nav{top:var(--mobile-statusbar-top);padding-left:calc(12px + var(--safe-area-left));padding-right:calc(12px + var(--safe-area-right))}
-  .mobile-page-popover{width:min(360px,calc(100vw - 24px - var(--safe-area-left) - var(--safe-area-right)));max-height:min(calc(68dvh - var(--mobile-statusbar-top) - var(--safe-area-bottom)),560px)}
+  .top{padding-top:calc(16px + var(--safe-area-top));padding-left:calc(12px + var(--safe-area-left));padding-right:calc(12px + var(--safe-area-right))}
+  .mobile-nav{top:0;padding:calc(7px + var(--safe-area-top)) calc(12px + var(--safe-area-right)) 7px calc(12px + var(--safe-area-left))}
+  .mobile-page-popover{width:min(360px,calc(100vw - 24px - var(--safe-area-left) - var(--safe-area-right)));max-height:min(calc(68dvh - var(--safe-area-top) - var(--safe-area-bottom)),560px)}
   #main{padding-left:calc(12px + var(--safe-area-left));padding-right:calc(12px + var(--safe-area-right))}
   .foot{padding-left:calc(22px + var(--safe-area-left));padding-right:calc(22px + var(--safe-area-right));padding-bottom:calc(40px + var(--safe-area-bottom))}
-  .skip-link{top:calc(8px + var(--mobile-statusbar-top));left:calc(8px + var(--safe-area-left))}
-  .prog{top:var(--mobile-statusbar-top)}
+  .skip-link{top:calc(8px + var(--safe-area-top));left:calc(8px + var(--safe-area-left))}
+  .prog{top:0}
   .character-profile-heading{padding-left:calc(20px + var(--safe-area-left));padding-right:calc(20px + var(--safe-area-right))}
   .character-profile-body{padding-left:calc(20px + var(--safe-area-left));padding-right:calc(20px + var(--safe-area-right));padding-bottom:calc(28px + var(--safe-area-bottom))}
   .portrait-dialog{padding:calc(60px + var(--safe-area-top)) calc(12px + var(--safe-area-right)) calc(20px + var(--safe-area-bottom)) calc(12px + var(--safe-area-left))}
@@ -1796,3 +1797,177 @@ button,.chip,.artifact-link,.tch{transition:color .18s,border-color .18s,backgro
   .verdict{font-size:clamp(14px,4vw,17px);letter-spacing:.08em;line-height:1.65;padding-inline:4px}
   .verdict::before,.verdict::after{content:'·';margin:0 4px}
 }
+
+/* ============================================================
+   v1.52.0 · 全面自检版
+   1) 手机导航与状态栏不再重叠（安全区由导航条自己让出）
+   2) 图景淡入 / 缺图留白 / 点图全屏
+   3) 长卷渐显、回到卷首
+   4) 公门、故纸、货殖、众生、见物统一图景样式
+   5) 地物图志改为随宽自适的图廊，不再只是一条横条
+   ============================================================ */
+
+/* ---------- 1. 安全区：状态栏不再压住导航条 ---------- */
+html{scroll-padding-top:calc(14px + var(--safe-area-top))}
+@media (max-width:720px){
+  html{scroll-padding-top:calc(66px + var(--safe-area-top))}
+  /* 导航条自己把状态栏那一条让出来：整条背景从视口顶端铺起 */
+  .mobile-nav{
+    top:0;
+    padding-top:calc(7px + var(--safe-area-top));
+    padding-bottom:7px;
+  }
+  /* 极端情况下（导航尚未吸顶）也保证状态栏底下是纸色，不是正文 */
+  /* 遮罩必须在导航条（z-index 52）之下，只在导航尚未吸顶时替状态栏垫底色 */
+  body::before{
+    content:"";
+    position:fixed;top:0;left:0;right:0;z-index:51;
+    height:var(--safe-area-top);
+    background:var(--ink);
+    pointer-events:none;
+  }
+  /* 顶栏：不再叠加 24px 的假状态栏高度，安全区一次给足即可 */
+  .top{padding-top:calc(16px + var(--safe-area-top))}
+  .reader-tools{padding-top:0}
+}
+@media (orientation:landscape) and (max-width:900px){
+  .mobile-nav{top:0;padding-top:calc(5px + var(--safe-area-top));padding-bottom:5px}
+}
+
+/* ---------- 2. 图景：淡入 / 缺图留白 / 点图全屏 ---------- */
+.wx-img{opacity:0;transition:opacity .5s ease, transform .5s ease}
+.wx-img.is-in{opacity:1}
+.wx-img.is-broken{opacity:1;filter:grayscale(1) brightness(.6)}
+img.wx-zoom{cursor:zoom-in}
+img.wx-zoom:focus-visible{outline:2px solid var(--gold2);outline-offset:2px}
+img.wx-zoom:hover{filter:saturate(1.04) brightness(1.03)}
+.wx-empty-scene{
+  display:grid;place-content:center;justify-items:center;gap:6px;
+  width:100%;height:100%;min-height:150px;aspect-ratio:16/9;
+  background:
+    radial-gradient(circle at 50% 42%,rgba(200,166,99,.10),transparent 62%),
+    repeating-linear-gradient(135deg,rgba(200,166,99,.045) 0 1px,transparent 1px 9px),
+    linear-gradient(160deg,#241f19,#171512);
+}
+.wx-empty-seal{
+  display:grid;place-items:center;width:44px;height:44px;
+  border:1.5px solid rgba(155,78,61,.62);border-radius:3px;
+  color:var(--verm2);font:16px var(--kai);letter-spacing:0;
+  transform:rotate(-5deg);
+  box-shadow:inset 0 0 0 1px rgba(224,103,79,.14);
+}
+.wx-empty-name{color:var(--gold2);font:14px var(--kai);letter-spacing:.18em;text-indent:.18em}
+.wx-empty-note{color:var(--dim);font:10px var(--hei);letter-spacing:.1em}
+.cd-scene-blank{min-height:170px}
+
+/* ---------- 3. 长卷渐显 ---------- */
+.wx-reveal{opacity:0;transform:translateY(16px)}
+.wx-reveal.is-shown{opacity:1;transform:none;transition:opacity .55s cubic-bezier(.2,.7,.2,1),transform .55s cubic-bezier(.2,.7,.2,1)}
+@media (prefers-reduced-motion:reduce){
+  .wx-img{opacity:1;transition:none}
+  .wx-reveal{opacity:1;transform:none;transition:none}
+}
+
+/* ---------- 4. 回到卷首 ---------- */
+.back-to-top{
+  position:fixed;z-index:57;
+  right:calc(14px + var(--safe-area-right));
+  bottom:calc(20px + var(--safe-area-bottom));
+  display:grid;place-items:center;gap:0;
+  width:46px;height:46px;
+  border:1px solid rgba(200,166,99,.42);border-radius:50%;
+  background:rgba(24,21,18,.92);
+  backdrop-filter:blur(10px);
+  color:var(--gold2);cursor:pointer;
+  box-shadow:0 10px 26px rgba(0,0,0,.42);
+  opacity:0;visibility:hidden;transform:translateY(14px) scale(.9);
+  transition:opacity .28s,transform .28s,visibility .28s,border-color .2s,background .2s;
+}
+.back-to-top span{font:19px/1 var(--hei);margin-top:-3px}
+.back-to-top i{font:8px/1.2 var(--hei);font-style:normal;letter-spacing:.1em;text-indent:.1em;opacity:.75}
+.back-to-top.on{opacity:1;visibility:visible;transform:none}
+.back-to-top:hover{border-color:var(--gold);background:rgba(200,166,99,.14)}
+.back-to-top:active{transform:translateY(1px) scale(.97)}
+@media print{.back-to-top{display:none!important}}
+
+/* ---------- 5. 公门 / 故纸 / 货殖图景 ---------- */
+.organ-figure,.document-figure,.goods-figure{
+  position:relative;margin:11px 0 4px;overflow:hidden;
+  border:1px solid rgba(200,166,99,.2);border-radius:4px;
+  background:#211e19;
+}
+.organ-image,.document-image,.goods-image{
+  display:block;width:100%;aspect-ratio:3/2;object-fit:cover;
+  filter:saturate(.86) contrast(1.02);
+  transition:transform .5s cubic-bezier(.2,.7,.2,1),filter .3s;
+}
+.organ-card:hover .organ-image,.document-card:hover .document-image,.goods-card:hover .goods-image{
+  transform:scale(1.03);filter:saturate(1) contrast(1.04);
+}
+.organ-figcaption,.document-figcaption{
+  padding:6px 11px 7px;border-top:1px solid rgba(200,166,99,.16);
+  color:var(--dim);font:10.5px var(--hei);letter-spacing:.08em;
+}
+.organ-card,.document-card,.goods-card{transition:border-color .25s,box-shadow .25s,transform .25s}
+.organ-card:hover,.document-card:hover{border-color:rgba(200,166,99,.5);box-shadow:0 16px 40px rgba(0,0,0,.32)}
+
+/* ---------- 6. 地物图志：随宽自适的图廊 ---------- */
+@media (min-width:721px){
+  .place-atlas-grid{
+    grid-auto-flow:row;
+    grid-auto-columns:auto;
+    grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+    grid-template-rows:none;
+    overflow-x:visible;overscroll-behavior-inline:auto;
+  }
+  .place-atlas-card{scroll-snap-align:none}
+}
+.place-atlas-grid{scrollbar-width:thin}
+.place-atlas-grid::-webkit-scrollbar{height:6px}
+.place-atlas-grid::-webkit-scrollbar-thumb{border-radius:4px;background:rgba(200,166,99,.42)}
+.place-atlas-card{position:relative}
+.place-atlas-card .wx-empty-scene{aspect-ratio:3/2;min-height:96px}
+.place-atlas-card .wx-empty-seal{width:34px;height:34px;font-size:13px}
+.place-atlas-card .wx-empty-name{font-size:12px}
+
+/* ---------- 7. 异闻插图不再挤字 ---------- */
+.story{min-width:0}
+.story-figure{clear:right;max-width:100%}
+.story::after{pointer-events:none}
+@media (max-width:720px){
+  .story-figure{float:none;width:100%;margin:0 0 14px}
+  .story .body p:first-of-type::first-letter{font-size:2.5em}
+}
+@media (max-width:420px){
+  .story{padding:18px 13px}
+  .story h4{font-size:19px;letter-spacing:.12em}
+}
+
+/* ---------- 8. 见物与众生：图未收时也有完整版面 ---------- */
+.being-figure:has(.wx-empty-scene),.artifact-figure:has(.wx-empty-scene){min-height:160px}
+.being-figure .wx-empty-scene,.artifact-figure .wx-empty-scene{aspect-ratio:3/2;min-height:150px}
+
+/* ---------- 9. 卡片细处：抬手有光，落点有痕 ---------- */
+.being,.stake-card,.goods-card,.suiling-card,.term,.trial-card,.granary-store,.document-card,.organ-card{
+  will-change:transform;
+}
+.being:hover,.stake-card:hover,.goods-card:hover,.suiling-card:hover{
+  border-color:rgba(200,166,99,.46);
+  box-shadow:0 16px 38px rgba(0,0,0,.3);
+}
+.cd-scene-image{transition:transform .6s cubic-bezier(.2,.7,.2,1),filter .3s}
+.cd-scene:hover .cd-scene-image{transform:scale(1.02);filter:saturate(.98) contrast(1.04)}
+.cd-scene::before{
+  content:"";position:absolute;inset:0;z-index:2;pointer-events:none;
+  box-shadow:inset 0 0 0 1px rgba(236,215,165,.09);
+  border-radius:inherit;
+}
+
+/* ---------- 10. 仓衡第四仓：三格改随宽自适 ---------- */
+.gp-moves{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+.granary-stores{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+@media (max-width:900px){
+  .gp-moves,.granary-stores{grid-template-columns:1fr}
+}
+/* 三签校时第四签：签签成格 */
+.observatory-tabs{display:flex;flex-wrap:wrap}

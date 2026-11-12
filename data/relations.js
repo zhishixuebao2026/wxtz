@@ -42,7 +42,15 @@ var WXRELATIONS = {
     { id: 'xiaolushi',   name: '小录事',  g: '公门', x: 725, y: 510 },
     { id: 'huashou',     name: '图房画手', g: '公门', x: 272, y: 110 },
     { id: 'piaoli',      name: '老票吏',  g: '公门', x: 908, y: 368 },
-    { id: 'liangzhaohe', name: '梁照禾',  g: '公门', x: 936, y: 456 }
+    { id: 'liangzhaohe', name: '梁照禾',  g: '公门', x: 936, y: 456 },
+    /* —— v1.52.0 新立传者 —— */
+    { id: 'honglupo',   name: '洪炉婆',   g: '公门', x:  60, y: 250 },
+    { id: 'qicuoniang', name: '戚措娘',   g: '公门', x: 152, y: 566 },
+    { id: 'louyan',     name: '娄砚',     g: '公门', x: 462, y:  96 },
+    { id: 'sanqian',    name: '三千',     g: '异闻', x: 470, y: 500 },
+    { id: 'ashi',       name: '阿拾',     g: '异闻', x: 420, y: 690 },
+    { id: 'yanbusou',   name: '燕不收',   g: '异闻', x: 636, y: 690 }
+
   ],
   links: [
     { s: 'liyuan', t: 'liangzhaohe', kind: '同题', type: '两头记',
@@ -135,6 +143,33 @@ var WXRELATIONS = {
     { s: 'huashou', t: 'tuoqingzhi', kind: '同题', type: '丈量',
       note: '图房画田之鳞，界桩堂量京之界——一个册上挪半指，田替他留着；一个桩往里三步，人让三步。中界的尺寸，是这两双手量出来的。' },
     { s: 'xiaolushi', t: 'huashou', kind: '同题', type: '图线',
-      note: '誊手牵线，画手描鳞——一个把卷连成布，一个把田描成鱼。中界的账，一半是线，一半是鳞。' }
+      note: '誊手牵线，画手描鳞——一个把卷连成布，一个把田描成鱼。中界的账，一半是线，一半是鳞。' },
+    /* —— v1.52.0 牵线 —— */
+    { s: 'honglupo', t: 'tiewuming', kind: '同场', type: '炉线',
+      note: '炉头听火，簿守落字——一炉十七柄，第几柄要回炉，一个听得出，一个写得上。' },
+    { s: 'honglupo', t: 'jia', kind: '同题', type: '账簿线',
+      note: '一个凭耳朵签簿，一个凭算盘记账：赤京听火，昭京落笔——都不肯一个人把那一格签了。' },
+    { s: 'qicuoniang', t: 'jiangkeqin', kind: '同场', type: '江线',
+      note: '平流坊的账房与坊东家：一行旧账二十六年不许提也不许销，两个人都守着。' },
+    { s: 'qicuoniang', t: 'wuzhongren', kind: '同题', type: '坊线',
+      note: '一个替坊里留着没问出口的那句话，一个替雾里的人留着没抄完的那一页。' },
+    { s: 'louyan', t: 'huashou', kind: '同题', type: '图线',
+      note: '一个量尺，一个描鳞，各执一本；晏京则例说：两本并置，不许拿一本盖另一本。' },
+    { s: 'louyan', t: 'mishouchang', kind: '同场', type: '秤线',
+      note: '秤校的是斗，尺量的是田——都是先过一遍再记账，短过的秤压星，改过的线留旧本。' },
+    { s: 'sanqian', t: 'hongsigu', kind: '同场', type: '钟线',
+      note: '钟楼守鼓，街口敲梆：一个记钟次，一个报更次；都不记听的人去了哪里。' },
+    { s: 'sanqian', t: 'xuliubai', kind: '同题', type: '界线',
+      note: '一个不肯把梆声变成告密，一个不肯把空格变成罪状——都守着「不替人补那一笔」。' },
+    { s: 'ashi', t: 'wuzhongren', kind: '同题', type: '留白线',
+      note: '一个把捞到的字全倒回池里，一个替雾里的人留着没抄完的页——都不肯挑。' },
+    { s: 'ashi', t: 'siyeren', kind: '同题', type: '字页线',
+      note: '一个把捞到的字全倒回池里不肯挑，一个专撕写着字的页——都跟纸过不去，都不是一路人。' },
+    { s: 'yanbusou', t: 'luqingjian', kind: '同题', type: '纸线',
+      note: '一个捞上来先晾一夜再读，一个抄错的字不许改回——都怕把湿的当成干的。' },
+    { s: 'yanbusou', t: 'ashi', kind: '同场', type: '捞线',
+      note: '同是捞字，一个用网替别人捞账，一个用两只手等字认自己。' },
+    { s: 'yanbusou', t: 'chenxuan', kind: '同题', type: '空格线',
+      note: '一个夹着「未定有无」的空白页，一个守着不落名的空格——都替还没对上的东西留位置。' }
   ]
 };

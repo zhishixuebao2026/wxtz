@@ -29,12 +29,13 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%2311100e'/%3E%3Crect x='8' y='8' width='48' height='48' rx='6' fill='none' stroke='%23c0402e' stroke-width='2'/%3E%3Ctext x='32' y='45' font-size='34' text-anchor='middle' fill='%23c8a35a' font-family='serif'%3E%E8%B4%A6%3C/text%3E%3C/svg%3E">
 <!-- 自托管霞鹜文楷 Lite：页面无需依赖第三方字体/CDN，离线也能正确显示中文 -->
 <link rel="stylesheet" href="assets/fonts/lxgwwenkailite-regular.css">
-<link rel="stylesheet" href="assets/style.css?v=186">
+<link rel="stylesheet" href="assets/style.css?v=188">
 </head>
 <body>
 <a class="skip-link" href="#main">跳至正文</a>
 <noscript><div class="nosig">此站全篇依 JS 成册——请开 JavaScript 后入站。<br>本站纯静：离线双击 index.html 亦可读，无需服务器。</div></noscript>
 <div class="grain" aria-hidden="true"></div>
+<button type="button" id="backToTop" class="back-to-top" aria-label="回到卷首" title="回到卷首"><span aria-hidden="true">↑</span><i>卷首</i></button>
 
 <header class="top">
   <div class="brand">
@@ -146,7 +147,7 @@
         <li>异闻卷尾三签：岁令、谱、线——点「线」只展这一条线的卷；</li>
         <li>公门与故纸里的卷号 → 直回该桩公案；</li>
         <li>卷首 ★ → 收卷入自家架上（存你本机）；卷目旁「我架」一签，只看收过的。</li>
-        <li>人间试账三案：逐策看贷方、借方与余账，点京名可回天地图。</li>
+        <li>人间试账诸案：逐策看贷方、借方与余账，点京名可回天地图。</li>
         <li>货殖页「仓衡三制」：切换丰年、青黄、水患，看三种仓的粮如何过账。</li>
         <li>街巷日用页切换赠、借、共签：对照巷牌原记与止界，不把人情自动记作欠债。</li>
         <li>见物页十件器具各归一域：看它留下什么痕，也看它不能替谁作证。</li>
@@ -167,7 +168,7 @@
     <section class="place-atlas" aria-labelledby="placeAtlasTitle">
       <div class="place-atlas-head">
         <div><span class="place-atlas-kicker">中界地物 · 地图卷宗</span><h3 id="placeAtlasTitle">图上未尽之处</h3></div>
-        <p>十处地物就近列签；点选后，图景与设定在地图卷宗内展开。京城、道桥、地标与界桩也各有对应图像。</p>
+        <p id="placeAtlasNote">地物就近列签；点选后，图景与设定在地图卷宗内展开。京城、道桥、地标与界桩也各有对应图像。</p>
       </div>
       <div class="place-atlas-grid" id="placeAtlasGrid" role="group" aria-label="选择一处地物，在地图卷宗中查看"></div>
     </section>
@@ -233,7 +234,7 @@
 
   <!-- ================= 人间试账 ================= -->
   <section id="pg-trial" class="page">
-    <h3 class="sec-title"><span>人间试账</span><em>THREE HUMAN LEDGERS</em></h3>
+    <h3 class="sec-title"><span>人间试账</span><em>HUMAN LEDGERS</em></h3>
     <p class="lead" id="trialIntro"></p>
     <p class="trial-note">这里没有无代价的捷径，也没有替你选好的善恶。每一笔都摊开来路、去处与余账；选过之后，仍可改选。</p>
     <div class="trial-grid" id="trialGrid"></div>
@@ -371,7 +372,7 @@
     <h3 class="sec-title"><span>人间日用</span><em>LIFE BETWEEN LEDGERS</em></h3>
     <p class="lead" id="lifeLead"></p>
     <div class="daily-scene" id="dailyScene"></div>
-    <h3 class="sec-title"><span>巷约三签</span><em>GIFT · LOAN · COMMON WORK</em></h3>
+    <h3 class="sec-title"><span>巷约诸签</span><em>GIFT · LOAN · COMMON WORK · HELD</em></h3>
     <p class="lead daily-lead">把送出的、暂借的、合力做的分开写；记下事实，不替任何人把人情改成债。</p>
     <div class="chips daily-tabs" id="dailyTabs" role="group" aria-label="选择巷约样式"></div>
     <div class="daily-panel" id="dailyPanel" aria-live="polite"></div>
@@ -403,7 +404,7 @@
   <section id="pg-stories" class="page">
     <h3 class="sec-title"><span id="storiesTitle">异闻</span><em>WANDER STORIES</em></h3>
     <p class="lead" id="storyLead"></p>
-    <div class="chips" id="arcChips" aria-label="卷线十六线"></div>
+    <div class="chips" id="arcChips" aria-label="按异闻卷线筛选"></div>
     <p class="count" id="arcTip"></p>
     <div class="chips" id="storyTools"></div>
     <div class="story-list" id="storyList"></div>
@@ -445,32 +446,32 @@
 <footer class="foot">
   <p class="ticker" id="ticker" aria-live="off"></p>
   <p class="footline">万象天账 · 墨序司异闻籍 ——账不平，天不活。</p>
-  <p class="ver">版本 v1.51.0 · 资源戳 v=186 · 每笔有据，疑处留白。</p>
+  <p class="ver">版本 v1.52.1 · 资源戳 v=188 · 每笔有据，疑处留白。</p>
 </footer>
 
-<script src="data/core.js?v=186"></script>
-<script src="data/cities.js?v=186"></script>
-<script src="data/places.js?v=186"></script>
-<script src="data/beings.js?v=186"></script>
-<script src="data/timeline.js?v=186"></script>
-<script src="data/suiling.js?v=186"></script>
-<script src="data/organs.js?v=186"></script>
-<script src="data/arcs.js?v=186"></script>
-<script src="data/docs.js?v=186"></script>
-<script src="data/lexicon.js?v=186"></script>
-  <script src="data/sayings.js?v=186"></script>
-  <script src="data/goods.js?v=186"></script>
-  <script src="data/stakes.js?v=186"></script>
-<script src="data/stories.js?v=186"></script>
-<script src="data/characters.js?v=186"></script>
-<script src="data/relations.js?v=186"></script>
-<script src="data/updates.js?v=186"></script>
-<script src="data/trials.js?v=186"></script>
-<script src="data/granaries.js?v=186"></script>
-<script src="data/relay.js?v=186"></script>
-<script src="data/daily.js?v=186"></script>
-<script src="data/observatory.js?v=186"></script>
-<script src="data/artifacts.js?v=186"></script>
-<script src="assets/app.js?v=186"></script>
+<script src="data/core.js?v=188"></script>
+<script src="data/cities.js?v=188"></script>
+<script src="data/places.js?v=188"></script>
+<script src="data/beings.js?v=188"></script>
+<script src="data/timeline.js?v=188"></script>
+<script src="data/suiling.js?v=188"></script>
+<script src="data/organs.js?v=188"></script>
+<script src="data/arcs.js?v=188"></script>
+<script src="data/docs.js?v=188"></script>
+<script src="data/lexicon.js?v=188"></script>
+  <script src="data/sayings.js?v=188"></script>
+  <script src="data/goods.js?v=188"></script>
+  <script src="data/stakes.js?v=188"></script>
+<script src="data/stories.js?v=188"></script>
+<script src="data/characters.js?v=188"></script>
+<script src="data/relations.js?v=188"></script>
+<script src="data/updates.js?v=188"></script>
+<script src="data/trials.js?v=188"></script>
+<script src="data/granaries.js?v=188"></script>
+<script src="data/relay.js?v=188"></script>
+<script src="data/daily.js?v=188"></script>
+<script src="data/observatory.js?v=188"></script>
+<script src="data/artifacts.js?v=188"></script>
+<script src="assets/app.js?v=188"></script>
 </body>
 </html>
