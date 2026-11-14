@@ -321,17 +321,17 @@ body{
 .city-detail{
   border:1px solid var(--line2);border-radius:6px;background:linear-gradient(170deg,var(--panel),rgba(31,27,23,.92));
   box-shadow:0 14px 40px rgba(0,0,0,.45);padding:20px 22px;scroll-margin-top:calc(92px + var(--safe-area-top));
-  display:grid;grid-template-columns:minmax(220px,310px) 1fr;gap:12px 26px;align-items:start;
+  display:grid;grid-template-columns:minmax(0,1fr);gap:10px;align-items:start;
 }
 .cd-kicker{font-size:11px;color:var(--dim);letter-spacing:.4em;margin-bottom:4px;font-family:var(--hei)}
 .cd-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 .cd-head h4{font-size:24px;color:#f0ebdd;letter-spacing:.24em;font-weight:600}
-.cd-scene{grid-column:1/-1;position:relative;isolation:isolate;width:min(100%,780px);aspect-ratio:16/9;margin:5px auto 10px;overflow:hidden;border:1px solid rgba(207,170,103,.38);border-radius:5px;background:#211e19;box-shadow:0 10px 28px rgba(0,0,0,.24)}
+.cd-scene{grid-column:1;position:relative;isolation:isolate;width:100%;aspect-ratio:16/9;margin:5px 0 10px;overflow:hidden;border:1px solid rgba(207,170,103,.38);border-radius:5px;background:#211e19;box-shadow:0 10px 28px rgba(0,0,0,.24)}
 .cd-scene-image{display:block;width:100%;height:100%;object-fit:cover;object-position:center;filter:saturate(.88) contrast(1.02)}
 .cd-scene::after{content:"";position:absolute;z-index:0;inset:35% 0 0;background:linear-gradient(180deg,transparent,rgba(20,15,12,.82));pointer-events:none}
 .cd-scene-caption{position:absolute;z-index:1;right:14px;bottom:10px;left:14px;display:flex;align-items:end;justify-content:space-between;gap:10px;color:#f0ebdd;text-shadow:0 1px 8px rgba(0,0,0,.8);font:11px/1.55 var(--hei);letter-spacing:.08em}
 .cd-scene-label{color:var(--gold2)}
-.cd-site{grid-column:1/-1;min-width:0;padding:10px;border:1px solid rgba(200,166,99,.2);border-radius:4px;background:rgba(18,17,15,.4)}
+.cd-site{grid-column:1;min-width:0;padding:10px;border:1px solid rgba(200,166,99,.2);border-radius:4px;background:rgba(18,17,15,.4)}
 .cd-site-kicker{margin-bottom:4px;color:var(--golddim);font:10px/1.6 var(--hei);letter-spacing:.14em}
 .cd-site .cd-scene{width:100%;margin:0;aspect-ratio:16/9}
 .cd-site-note{margin-top:7px;color:var(--silk2);font:12px/1.75 var(--song)}
@@ -358,12 +358,21 @@ body{
 .lg-pit{width:12px;height:12px;border:1.5px dashed #7a4a30;border-radius:50%;display:inline-block}
 
 /* ---------- 天地图卷首的地物图签：不再把图像留在页尾 ---------- */
-.place-atlas{margin:15px 0 12px;padding:15px 16px 12px;border:1px solid rgba(200,166,99,.28);border-radius:7px;background:linear-gradient(145deg,rgba(38,33,28,.84),rgba(15,20,26,.94));box-shadow:0 12px 32px rgba(0,0,0,.2)}
-.place-atlas-head{display:flex;align-items:end;justify-content:space-between;gap:18px;margin-bottom:11px;padding:0 2px 10px;border-bottom:1px solid rgba(200,166,99,.2)}
+/* v1.53.0 地物签谱：由「页面上方横铺的二十格图册」改为「图例之后的折叠抽屉」，默认收起，不再抢地图的版面 */
+.place-atlas{margin:13px 0 12px;padding:0;border:1px solid rgba(200,166,99,.28);border-radius:7px;background:linear-gradient(145deg,rgba(38,33,28,.84),rgba(15,20,26,.94));box-shadow:0 12px 32px rgba(0,0,0,.2)}
+.place-atlas-head{display:flex;align-items:center;gap:13px;margin:0;padding:11px 14px;cursor:pointer;list-style:none;transition:background .2s}
+.place-atlas-head::-webkit-details-marker{display:none}
+.place-atlas-head::marker{content:''}
+.place-atlas-head:hover{background:rgba(200,166,99,.06)}
+.place-atlas-head:focus-visible{outline:2px solid var(--gold2);outline-offset:-2px}
+.place-atlas-mark{flex:0 0 auto;width:8px;height:8px;margin-left:2px;border-right:1.5px solid var(--verm2);border-bottom:1.5px solid var(--verm2);transform:rotate(-45deg);transition:transform .25s}
+.place-atlas[open] .place-atlas-mark{transform:rotate(45deg)}
+.place-atlas[open] .place-atlas-head{border-bottom:1px solid rgba(200,166,99,.2)}
+.place-atlas-titles{display:grid;gap:2px;min-width:0}
 .place-atlas-kicker{color:var(--verm2);font:10px var(--hei);letter-spacing:.23em}
-.place-atlas-head h3{margin:3px 0 0;color:var(--gold2);font:600 clamp(19px,2.1vw,24px)/1.4 var(--kai);letter-spacing:.15em}
-.place-atlas-head>p{max-width:560px;margin:0;color:var(--silk3);font:12px/1.7 var(--hei)}
-.place-atlas-grid{display:grid;grid-auto-flow:column;grid-auto-columns:clamp(145px,15vw,176px);grid-template-rows:1fr;gap:9px;overflow-x:auto;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;scrollbar-width:thin;scrollbar-color:rgba(200,166,99,.36) transparent;padding:2px 2px 8px}
+.place-atlas-title{margin:0;color:var(--gold2);font:600 clamp(18px,2.1vw,23px)/1.4 var(--kai);letter-spacing:.15em}
+.place-atlas-note{max-width:560px;margin:0 0 0 auto;color:var(--silk3);font:12px/1.7 var(--hei);text-align:right}
+.place-atlas-grid{display:grid;grid-auto-flow:column;grid-auto-columns:clamp(145px,15vw,176px);grid-template-rows:1fr;gap:9px;overflow-x:auto;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;scrollbar-width:thin;scrollbar-color:rgba(200,166,99,.36) transparent;padding:12px 14px 14px}
 .place-atlas-card{display:flex;min-width:0;flex-direction:column;padding:0;overflow:hidden;scroll-snap-align:start;border:1px solid rgba(200,166,99,.19);border-radius:4px;background:rgba(18,17,15,.6);color:var(--silk);text-align:left;cursor:pointer;touch-action:manipulation;transition:border-color .2s,transform .2s,background .2s;}
 .place-atlas-card:hover{transform:translateY(-2px);border-color:rgba(200,166,99,.65)}
 .place-atlas-card:focus-visible{outline:2px solid var(--gold2);outline-offset:2px}
@@ -374,12 +383,16 @@ body{
 .place-atlas-card-region{overflow:hidden;color:var(--dim);font:9px var(--hei);letter-spacing:.04em;text-overflow:ellipsis;white-space:nowrap}
 .place-atlas-card strong{overflow:hidden;color:var(--silk2);font:12px var(--kai);letter-spacing:.06em;text-overflow:ellipsis;white-space:nowrap}
 .place-atlas-card[aria-pressed=true] strong{color:var(--gold2)}
-@media(max-width:700px){.place-atlas{margin:12px 0 10px;padding:13px 10px 8px}.place-atlas-head{display:block;margin-bottom:9px}.place-atlas-head>p{margin-top:5px;font-size:11.5px}.place-atlas-grid{grid-auto-columns:minmax(142px,44vw);gap:8px}.place-atlas-card-meta{padding:6px 7px 8px}.place-atlas-card strong{font-size:11.5px}}
+@media(max-width:700px){.place-atlas{margin:11px 0 10px}.place-atlas-head{flex-wrap:wrap;gap:9px 11px;padding:10px 12px}.place-atlas-note{margin:0;text-align:left;font-size:11.5px}.place-atlas-grid{grid-auto-columns:minmax(142px,44vw);gap:8px}.place-atlas-card-meta{padding:6px 7px 8px}.place-atlas-card strong{font-size:11.5px}}
 @media(max-width:360px){.place-atlas-grid{grid-auto-columns:142px;gap:6px}.place-atlas-card-meta{padding-inline:6px}.place-atlas-card-region{font-size:8px}}
 @media(prefers-reduced-motion:reduce){.place-atlas-card,.place-atlas-thumb{transition:none}.place-atlas-card:hover{transform:none}}
 
 .lg-sea{width:22px;border-top:2px solid #60513a;border-radius:50%/100% 0 0 0;display:inline-block;transform:rotate(-2deg)}
 .lg-ghost{width:14px;height:10px;border:1.5px dashed #a07c45;display:inline-block;opacity:.7}
+/* v1.53.0 图例去歧：地标／页外地物／存疑之地三样原先共用一枚虚线方框，读者无从分辨 */
+.lg-lm{position:relative;display:inline-block;width:15px;height:11px;border-bottom:1.5px solid #8a2f1f}
+.lg-lm::after{content:'';position:absolute;left:50%;bottom:0;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:#8a2f1f}
+.lg-doubt{width:13px;height:11px;display:inline-block;border:1.5px dashed rgba(123,147,168,.9);border-radius:2px;background:repeating-linear-gradient(45deg,rgba(123,147,168,.2) 0 3px,transparent 3px 6px)}
 .lg-spine{width:26px;border-top:2px dotted rgba(216,188,120,.85);display:inline-block;background:rgba(107,84,38,.5)}
 .lg-grid{width:14px;height:14px;display:inline-block;border:1px solid rgba(140,88,44,.5);
   background-image:linear-gradient(rgba(140,88,44,.5) 1px,transparent 1px),linear-gradient(90deg,rgba(140,88,44,.5) 1px,transparent 1px);
@@ -747,7 +760,7 @@ body{
 .stake-card.sel{border-color:rgba(200,166,99,.55);box-shadow:0 0 0 1px rgba(200,166,99,.28),0 8px 22px rgba(0,0,0,.35)}
 .stake-card.sel .stake-acts{display:flex}
 .stake-acts .chip{margin:0}
-.cd-links{grid-column:2;display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.cd-links{grid-column:1;display:flex;align-items:center;gap:8px;margin-top:12px;flex-wrap:wrap}
 .cd-links .chip{margin:0}
 /* 人物志：索引卡只开独立详传弹窗，不在网格内撑高 */
 .net-deg{margin-left:8px;font-size:11px;color:var(--golddim);letter-spacing:.15em;font-family:var(--hei)}
@@ -896,11 +909,13 @@ body{
 #shijuSuiling{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;margin-top:14px}
 #shijuTails{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px;margin-top:14px}
 @media(max-width:560px){.shiju-city,#shijuTails{grid-template-columns:minmax(0,1fr)}}
-.cd-roads{margin-top:8px;padding-top:12px;border-top:1px dashed rgba(200,166,99,.3);display:flex;flex-wrap:wrap;gap:8px;grid-column:1 / -1}
+.cd-roads{margin-top:8px;padding-top:12px;border-top:1px dashed rgba(200,166,99,.3);display:flex;flex-wrap:wrap;gap:8px;grid-column:1}
 
 /* v0.17 铺卷：卷宗移列图下，左立（名签/塔/铭/京谚）右文（志/钩子/土产）横排 */
-.cd-kicker{grid-column:1 / -1;margin-bottom:2px}
-.cd-text,.cd-goods,.cd-hook,.cd-lat{grid-column:2}
+.cd-kicker{grid-column:1;margin-bottom:2px}
+/* 卷宗栏已改单栏：标题、塔、铭、谚、正文一律落第一栏，不再靠自动排布碰运气 */
+.cd-head,.cd-tower,.cd-motto,.cd-proverb{grid-column:1}
+.cd-text,.cd-goods,.cd-hook,.cd-lat{grid-column:1}
 .cd-roads b{display:block;flex:1 0 100%;color:var(--gold);font-size:12px;letter-spacing:.4em;margin-bottom:2px;font-family:var(--hei)}
 .cd-road{display:flex;width:100%;min-height:38px;gap:10px;align-items:baseline;padding:7px 10px;margin-bottom:6px;border:1px solid rgba(160,58,40,.25);border-radius:3px;cursor:pointer;background:rgba(92,36,27,.08);color:var(--silk2);font:inherit;text-align:left;transition:border-color .2s,background .2s}
 .cd-road:hover{border-color:var(--verm);background:rgba(155,78,61,.12)}
@@ -1721,7 +1736,7 @@ button,.chip,.artifact-link,.tch{transition:color .18s,border-color .18s,backgro
   .story .body{font-size:15px;line-height:1.92}
   .story-figure{float:none;width:100%;max-width:none;aspect-ratio:16/9;margin:14px 0 12px}
   .story .tail{padding-top:12px;font-size:13px}
-  .place-atlas-head{align-items:flex-start;flex-direction:column;gap:8px}
+  .place-atlas-head{align-items:flex-start;gap:8px}
   .nav button{padding:9px 11px;font-size:13px;letter-spacing:.12em;text-indent:.12em}
   .reader-tools{padding-inline:12px}
 }
@@ -1923,6 +1938,7 @@ img.wx-zoom:hover{filter:saturate(1.04) brightness(1.03)}
   .place-atlas-card{scroll-snap-align:none}
 }
 .place-atlas-grid{scrollbar-width:thin}
+@media(prefers-reduced-motion:reduce){.place-atlas-mark{transition:none}}
 .place-atlas-grid::-webkit-scrollbar{height:6px}
 .place-atlas-grid::-webkit-scrollbar-thumb{border-radius:4px;background:rgba(200,166,99,.42)}
 .place-atlas-card{position:relative}
@@ -1971,3 +1987,40 @@ img.wx-zoom:hover{filter:saturate(1.04) brightness(1.03)}
 }
 /* 三签校时第四签：签签成格 */
 .observatory-tabs{display:flex;flex-wrap:wrap}
+
+/* ---------- v1.53.0 地图卷宗：七种开法同一版面 ---------- */
+/* 一图多用者须注明「借景」，不让人以为点错了地方 */
+.cd-scene-caption{flex-wrap:wrap}
+.cd-scene-share{
+  flex:1 0 100%;margin-top:3px;padding-top:3px;
+  border-top:1px solid rgba(236,215,165,.18);
+  color:var(--golddim);font:10px/1.5 var(--hei);letter-spacing:.06em;
+}
+.cd-scene-share::before{content:'借景 · ';color:var(--verm2)}
+/* 卷宗内的去路：统一成带标签的小签行，不再时而行、时而签 */
+.cd-links-label{
+  flex:0 0 auto;color:var(--dim);
+  font:10px var(--hei);letter-spacing:.2em;
+}
+.cd-links::before{display:none}
+.cd-links .chip{margin:0}
+/* 道路清单：列表场景仍用整行，但与小签行同一套配色与圆角 */
+.cd-roads{gap:7px}
+.cd-roads b{flex:1 0 100%;margin-bottom:3px}
+.cd-road{
+  display:flex;align-items:baseline;gap:10px;width:100%;min-height:40px;
+  padding:8px 11px;margin:0;border:1px solid rgba(200,166,99,.24);border-radius:3px;
+  background:rgba(92,36,27,.08);color:var(--silk2);font:inherit;text-align:left;cursor:pointer;
+  transition:border-color .2s,background .2s,transform .2s;
+}
+.cd-road:hover{border-color:var(--golddim);background:rgba(200,166,99,.1);transform:translateX(2px)}
+.cd-road:focus-visible{outline:2px solid var(--gold2);outline-offset:2px}
+.cd-road .cr-name{flex:none;color:#e3c98d;font-family:var(--kai);font-size:14.5px;letter-spacing:.12em}
+.cd-road .cr-note{flex:1;min-width:0;color:var(--silk3);font-size:12px;letter-spacing:.03em}
+.cd-road::after{content:'↗';flex:none;color:var(--golddim);font-size:12px}
+/* 城中地物小图：与卷宗主图同宽同比例，不再忽宽忽窄 */
+.cd-site{margin-top:4px}
+.cd-site .cd-scene{margin:0 0 8px}
+@media (prefers-reduced-motion:reduce){
+  .cd-road:hover{transform:none}
+}

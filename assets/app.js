@@ -1111,13 +1111,14 @@
       '<span><i class="lg-road"></i>道（点选看路线图与里数）</span>',
       '<span><i class="lg-bridge"></i>桥 · 渡金沟（点选看桥图）</span>',
       '<span><i class="lg-spine"></i>脊 · 通无字京（点选看脊图）</span>',
-      '<span><i class="lg-ghost"></i>地标与页外地物（点选看图签）</span>',
+      '<span><i class="lg-lm"></i>地标（点选看图签）</span>',
+      '<span><i class="lg-ghost"></i>页外地物（点选看图签）</span>',
       '<span><i class="lg-grid"></i>画方 · 每方' + WXMAP.grid.li + '里</span>',
       '<span><i class="lg-stake"></i>界桩 · 点上开签　<i class="lg-st 在记"></i>在记<i class="lg-st 已销"></i>已销<i class="lg-st 自移"></i>自移<i class="lg-st 存疑"></i>存疑<i class="lg-st 赊"></i>赊</span>',
       '<span><i class="lg-pit"></i>冲销坑</span>',
       '<span><i class="lg-sea"></i>废账海</span>',
       '<span><i class="lg-line"></i>灰廊</span>',
-      '<span><i class="lg-ghost"></i>存疑之地</span>'
+      '<span><i class="lg-doubt"></i>存疑之地</span>'
     ].join('');
     svg.addEventListener('click', function (e) {
       var placeEl = e.target.closest ? e.target.closest('.map-place') : null;
@@ -1156,24 +1157,104 @@
     detail.scrollIntoView({ behavior: behavior, block: 'start' });
   }
 
+  /* 一图多用的反查表：谁借了谁的景，图说里须写明，免得点开两处见同一张图以为出错 */
+  var SCENE_USERS = null;
+  function sceneUsers() {
+    if (SCENE_USERS) return SCENE_USERS;
+    var m = {};
+    function add(src, item, name) {
+      if (!src) return;
+      (m[src] = m[src] || []).push({ item: item, name: name });
+    }
+    WXCITIES.forEach(function (c) { add(c.image, c, c.name + '\uff08\u4eac\uff09'); });
+    WXMAP.roads.forEach(function (r) { add(r.scene, r, r.road + '\uff08' + r.kind + '\uff09'); });
+    WXMAP.landmarks.forEach(function (l) { add(l.image, l, l.t + '\uff08\u5730\u6807\uff09'); });
+    if (typeof WXSTAKES !== 'undefined') WXSTAKES.forEach(function (k) { add(k.image, k, k.no + ' ' + k.name + '\uff08\u754c\u6869\uff09'); });
+    if (typeof WXPLACES !== 'undefined') WXPLACES.forEach(function (pl) { add(pl.image, pl, pl.name + '\uff08\u5730\u7269\uff09'); });
+    SCENE_USERS = m;
+    return m;
+  }
+
   function appendMapScene(parent, item, label) {
-    if (!parent || !item) return null;
-    var src = item.scene || item.image;
-    if (!src) return null;
+    if (!parent) return null;
+    var src = item ? (item.scene || item.image) : '';
+    if (!src) {
+      var blank = el('figure', 'cd-scene cd-scene-map cd-scene-blank');
+      blank.appendChild(emptyScene(label, '\u6b64\u666f\u672a\u89c1\u6536\u56fe \u00b7 \u7559\u767d\u4e0d\u4f5c\u8bc1'));
+      var blankCap = el('figcaption', 'cd-scene-caption');
+      blankCap.appendChild(txt(el('span', 'cd-scene-label'), label + ' \u00b7 \u56fe\u666f\u672a\u6536'));
+      blank.appendChild(blankCap);
+      parent.appendChild(blank);
+      return blank;
+    }
     var figure = el('figure', 'cd-scene cd-scene-map');
     var image = el('img', 'cd-scene-image');
     image.src = src;
-    image.alt = item.sceneAlt || item.imageAlt || item.alt || (label + '意象');
+    image.alt = item.sceneAlt || item.imageAlt || item.alt || (label + '\u610f\u8c61');
     image.width = 1200;
     image.height = 800;
     image.loading = 'lazy';
     image.decoding = 'async';
     figure.appendChild(image);
     var caption = el('figcaption', 'cd-scene-caption');
-    caption.appendChild(txt(el('span', 'cd-scene-label'), label + ' · ' + (item.sceneCaption || item.imageCaption || item.caption || '意象图')));
+    caption.appendChild(txt(el('span', 'cd-scene-label'), label + ' \u00b7 ' + (item.sceneCaption || item.imageCaption || item.caption || '\u610f\u8c61\u56fe')));
+    var sharers = (sceneUsers()[src] || []).filter(function (u) { return u.item !== item; }).map(function (u) { return u.name; });
+    if (sharers.length) {
+      caption.appendChild(txt(el('span', 'cd-scene-share'),
+        '\u6b64\u56fe\u4ea6\u7528\u4e8e\uff1a' + sharers.slice(0, 3).join('\u3001') + (sharers.length > 3 ? ' \u7b49 ' + sharers.length + ' \u5904' : '')));
+    }
     figure.appendChild(caption);
     parent.appendChild(figure);
+    markImage(image);
     return figure;
+  }
+
+  /* v1.53.0 \u5377\u5b97\u7edf\u4e00\u9aa8\u67b6\uff1a\u4eac\uff0f\u9053\uff0f\u6865\uff0f\u810a\uff0f\u5730\u7269\uff0f\u5730\u6807\uff0f\u754c\u6869 \u4e03\u79cd\u5f00\u6cd5\u8d70\u540c\u4e00\u6761\u8def\uff0c\u7248\u9762\u4e0d\u518d\u5404\u81ea\u4e3a\u653f */
+  function detailOpen(opts) {
+    var box = $('#cityDetail');
+    if (!box) return null;
+    box.innerHTML = '';
+    box.appendChild(txt(el('p', 'cd-kicker'), opts.kicker));
+    var head = el('div', 'cd-head');
+    if (opts.nu) head.appendChild(txt(el('span', 'cd-nu'), opts.nu));
+    head.appendChild(txt(el('h4'), opts.title));
+    if (opts.page) head.appendChild(txt(el('span', 'cd-page'), opts.page));
+    box.appendChild(head);
+    appendMapScene(box, opts.item || null, opts.title);
+    return box;
+  }
+  function detailMotto(box, text) { box.appendChild(txt(el('blockquote', 'cd-motto'), text)); }
+  function detailMeta(box, text) { box.appendChild(txt(el('p', 'cd-tower'), text)); }
+  function detailText(box, text) { box.appendChild(txt(el('p', 'cd-text'), text)); }
+  /* \u53bb\u8def\u4e00\u5f8b\u300c\u6807\u7b7e + \u5c0f\u7b7e\u300d\uff0c\u4e0d\u518d\u65f6\u800c\u662f\u6574\u884c\u6309\u94ae\u3001\u65f6\u800c\u662f\u4e00\u6392\u5c0f\u7b7e */
+  function detailLinks(box, label, items) {
+    if (!items || !items.length) return;
+    var wrap = el('div', 'cd-links');
+    if (label) wrap.appendChild(txt(el('span', 'cd-links-label'), label));
+    items.forEach(function (it) {
+      var b = el('button', 'chip');
+      b.type = 'button';
+      txt(b, it.text);
+      if (it.title) b.setAttribute('title', it.title);
+      b.addEventListener('click', it.onClick);
+      wrap.appendChild(b);
+    });
+    box.appendChild(wrap);
+  }
+  /* \u9053\u8def\u6e05\u5355\u662f\u5217\u8868\uff0c\u4ecd\u7528\u6574\u884c\uff1b\u4f46\u914d\u8272\u5706\u89d2\u4e0e\u5c0f\u7b7e\u884c\u7edf\u4e00 */
+  function detailRoadList(box, label, rows) {
+    if (!rows || !rows.length) return;
+    var rg = el('div', 'cd-roads');
+    rg.appendChild(txt(el('b'), label));
+    rows.forEach(function (r) {
+      var row = el('button', 'cd-road');
+      row.type = 'button';
+      row.appendChild(txt(el('span', 'cr-name'), r.name));
+      row.appendChild(txt(el('span', 'cr-note'), r.note));
+      row.addEventListener('click', r.onClick);
+      rg.appendChild(row);
+    });
+    box.appendChild(rg);
   }
 
   function openCity(id) {
@@ -1186,15 +1267,9 @@
       g.classList.toggle('sel', g.getAttribute('data-id') === id);
     });
     $$('#mapSvg .rd.sel').forEach(function (g) { g.classList.remove('sel'); });
-    var box = $('#cityDetail');
-    box.innerHTML = '';
-    box.appendChild(txt(el('p', 'cd-kicker'), '卷宗 · 第' + WX_CITY_NUM[c.nu - 1] + '京'));
-    var h = el('div', 'cd-head');
-    h.appendChild(txt(el('span', 'cd-nu'), GameNum(c.nu)));
-    h.appendChild(txt(el('h4'), c.name));
-    h.appendChild(txt(el('span', 'cd-page'), c.page));
-    box.appendChild(h);
-    appendMapScene(box, c, c.name + '城景');
+    var box = detailOpen({ kicker: '卷宗 · 第' + WX_CITY_NUM[c.nu - 1] + '京', nu: GameNum(c.nu),
+      title: c.name, page: c.page, item: c });
+    if (!box) return;
     var cityPlaces = typeof WXPLACES !== 'undefined' ? WXPLACES.filter(function (place) { return place.cityId === id && place.cityShow !== false; }) : [];
     cityPlaces.forEach(function (place) {
       var site = el('section', 'cd-site');
@@ -1203,8 +1278,8 @@
       site.appendChild(txt(el('p', 'cd-site-note'), place.note));
       box.appendChild(site);
     });
-    box.appendChild(txt(el('p', 'cd-tower'), '总账塔 · ' + c.tower));
-    box.appendChild(txt(el('blockquote', 'cd-motto'), c.motto));
+    detailMeta(box, '总账塔 · ' + c.tower);
+    detailMotto(box, c.motto);
     if (typeof WXCITYSAYINGS !== 'undefined') {
       var ps = null;
       for (var si = 0; si < WXCITYSAYINGS.length; si++) {
@@ -1212,7 +1287,7 @@
       }
       if (ps) box.appendChild(txt(el('p', 'cd-proverb'), ps.replace(c.name + '：', '京谚 · ')));
     }
-    box.appendChild(txt(el('p', 'cd-text'), c.text));
+    detailText(box, c.text);
     /* 计里画方之验：京应落格点。不落者非疏漏，乃图上实状 —— 无字京方位存疑。 */
     var cell = WXMAP.grid.cell, fx = c.pos[0] % cell, fy = c.pos[1] % cell;
     var lat = el('p', 'cd-lat');
@@ -1221,35 +1296,23 @@
       ((fx + fy) * 2 / 5).toFixed(1) + ' 里）—— 格上量不到它，方位存疑。');
     box.appendChild(lat);
     if (c.goods.length) {
-      var g = el('div', 'cd-goods');
-      c.goods.forEach(function (gd) {
-        var s = el('span', 'chip');
-        txt(s, '物 · ' + gd);
-        g.appendChild(s);
-      });
-      box.appendChild(g);
+      detailLinks(box, '本京物产', c.goods.map(function (gd) { return { text: '物 · ' + gd }; }));
     }
     var hk = el('div', 'cd-hook');
     hk.appendChild(txt(el('b'), '账缝钩'));
     hk.appendChild(txt(el('p'), c.hook));
     box.appendChild(hk);
     var rel = WXMAP.roads.filter(function (r) { return r.a === id || r.b === id; });
-    if (rel.length) {
-      var rg = el('div', 'cd-roads');
-      rg.appendChild(txt(el('b'), '道　路'));
-      rel.forEach(function (r) {
-        var other = r.a === id ? r.b : r.a;
-        var o = cityById[other];
-        var roadIndex = WXMAP.roads.indexOf(r);
-        var row = el('button', 'cd-road');
-        row.type = 'button';
-        row.appendChild(txt(el('span', 'cr-name'), r.road));
-        row.appendChild(txt(el('span', 'cr-note'), (o ? '通' + o.name : other) + ' · ' + r.li + '里 · ' + r.note));
-        row.addEventListener('click', function () { openRoad(roadIndex); });
-        rg.appendChild(row);
-      });
-      box.appendChild(rg);
-    }
+    detailRoadList(box, '道　路', rel.map(function (r) {
+      var other = r.a === id ? r.b : r.a;
+      var o = cityById[other];
+      var roadIndex = WXMAP.roads.indexOf(r);
+      return {
+        name: r.road,
+        note: (o ? '通' + o.name : other) + ' · ' + r.li + '里 · ' + r.note,
+        onClick: function () { openRoad(roadIndex); }
+      };
+    }));
   }
   function openRoad(i) {
     var rd = WXMAP.roads[i];
@@ -1260,32 +1323,19 @@
     $$('.place-atlas-card').forEach(function (button) { button.setAttribute('aria-pressed', 'false'); });
     $$('#mapSvg .rd').forEach(function (g) { g.classList.toggle('sel', +g.getAttribute('data-i') === i); });
     var KIND = { '道': '页内陆路', '桥': '渡金沟', '脊': '沿装订线' };
-    var box = $('#cityDetail');
-    box.innerHTML = '';
-    box.appendChild(txt(el('p', 'cd-kicker'), '道里 · ' + (KIND[rd.kind] || '道')));
-    var h = el('div', 'cd-head');
-    h.appendChild(txt(el('h4'), rd.road));
-    h.appendChild(txt(el('span', 'cd-page'), rd.li + ' 里'));
-    box.appendChild(h);
-    appendMapScene(box, rd, rd.road);
-    box.appendChild(txt(el('p', 'cd-tower'), a.name + '（' + a.tower + '）　⇄　' + b.name + '（' + b.tower + '）'));
-    box.appendChild(txt(el('blockquote', 'cd-motto'), rd.note));
-    box.appendChild(txt(el('p', 'cd-text'),
+    var box = detailOpen({ kicker: '道里 · ' + (KIND[rd.kind] || '道'), title: rd.road,
+      page: rd.li + ' 里', item: rd });
+    if (!box) return;
+    detailMeta(box, a.name + '（' + a.tower + '）　⇄　' + b.name + '（' + b.tower + '）');
+    detailMotto(box, rd.note);
+    detailText(box,
       (rd.kind === '桥' ? '此桥横跨金沟，' : rd.kind === '脊' ? '此脊沿装订线而行，' : '此道行于账页之内，') +
       '图上量弧 ' + rd.li + ' 里。图依计里画方，每方折地 ' + WXMAP.grid.li + ' 里，故道之长短可于格上覆量。' +
-      '道旁三铺，四铺一程，此道每铺折里 ' + (rd.li / 4) + ' —— 铺距因道长短而殊，勾稽时即以里数除四核之。'));
-    var rg = el('div', 'cd-roads');
-    rg.appendChild(txt(el('b'), '两　端'));
-    [rd.a, rd.b].forEach(function (cid) {
+      '道旁三铺，四铺一程，此道每铺折里 ' + (rd.li / 4) + ' —— 铺距因道长短而殊，勾稽时即以里数除四核之。');
+    detailRoadList(box, '两　端', [rd.a, rd.b].map(function (cid) {
       var o = cityById[cid];
-      var row = el('button', 'cd-road');
-      row.type = 'button';
-      row.appendChild(txt(el('span', 'cr-name'), o.name));
-      row.appendChild(txt(el('span', 'cr-note'), o.tower + ' · ' + o.tag + ' · 开城卷宗'));
-      row.addEventListener('click', function () { openCity(cid); });
-      rg.appendChild(row);
-    });
-    box.appendChild(rg);
+      return { name: o.name, note: o.tower + ' · ' + o.tag + ' · 开城卷宗', onClick: function () { openCity(cid); } };
+    }));
   }
 
   function openPlace(id) {
@@ -1297,51 +1347,36 @@
     $$('.place-atlas-card').forEach(function (button) {
       button.setAttribute('aria-pressed', button.getAttribute('data-place') === place.id ? 'true' : 'false');
     });
-    var box = $('#cityDetail');
-    box.innerHTML = '';
-    box.appendChild(txt(el('p', 'cd-kicker'), '地物图志 · ' + place.region));
-    var head = el('div', 'cd-head');
-    head.appendChild(txt(el('span', 'cd-nu'), '图'));
-    head.appendChild(txt(el('h4'), place.name));
-    head.appendChild(txt(el('span', 'cd-page'), '意象卷'));
-    box.appendChild(head);
-    appendMapScene(box, place, place.name);
-    box.appendChild(txt(el('p', 'cd-text'), place.note));
+    var box = detailOpen({ kicker: '地物图志 · ' + place.region, nu: '图', title: place.name,
+      page: '意象卷', item: place });
+    if (!box) return;
+    detailText(box, place.note);
     box.appendChild(txt(el('p', 'cd-lat'), '图景只作设定意象，不据此断定方位、道里或未核之事。'));
-    var links = el('div', 'cd-links');
+    var placeLinks = [];
     if (place.cityId && cityById[place.cityId]) {
       var city = cityById[place.cityId];
-      var cityButton = el('button', 'chip');
-      cityButton.type = 'button';
-      txt(cityButton, '看所辖京 · ' + city.name);
-      cityButton.addEventListener('click', function () { openCity(city.id); });
-      links.appendChild(cityButton);
+      placeLinks.push({ text: '看所辖京 · ' + city.name, onClick: function () { openCity(city.id); } });
     }
     if (place.mapRef === 'spine') {
       WXMAP.roads.forEach(function (road, index) {
         if (road.kind !== '脊') return;
-        var roadButton = el('button', 'chip');
-        roadButton.type = 'button';
-        txt(roadButton, '看' + road.road + ' · ' + road.li + '里');
-        roadButton.addEventListener('click', function () { openRoad(index); });
-        links.appendChild(roadButton);
+        placeLinks.push({ text: '看' + road.road + ' · ' + road.li + '里', onClick: function () { openRoad(index); } });
       });
     } else if (place.mapRef) {
       var marker = document.querySelector('#mapSvg [data-place="' + place.id + '"]');
       if (marker) {
-        var markerButton = el('button', 'chip');
-        markerButton.type = 'button';
-        txt(markerButton, '在图上定位 · ' + place.name);
-        markerButton.addEventListener('click', function () {
-          marker.focus();
-          marker.classList.add('place-target');
-          var map = $('#mapSvg');
-          if (map && window.matchMedia('(max-width: 960px)').matches) map.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
+        placeLinks.push({
+          text: '在图上定位 · ' + place.name,
+          onClick: function () {
+            marker.focus();
+            marker.classList.add('place-target');
+            var map = $('#mapSvg');
+            if (map && window.matchMedia('(max-width: 960px)').matches) map.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
+          }
         });
-        links.appendChild(markerButton);
       }
     }
-    if (links.childNodes.length) box.appendChild(links);
+    detailLinks(box, '相　关', placeLinks);
   }
 
   function openLandmark(id) {
@@ -1351,39 +1386,21 @@
     $$('.place-atlas-card').forEach(function (button) { button.setAttribute('aria-pressed', 'false'); });
     var selected = document.querySelector('#mapSvg .lm-item[data-landmark="' + id + '"]');
     if (selected) selected.classList.add('sel');
-    var box = $('#cityDetail');
-    box.innerHTML = '';
-    box.appendChild(txt(el('p', 'cd-kicker'), '地图地标 · 参照不代替测量'));
-    var head = el('div', 'cd-head');
-    head.appendChild(txt(el('span', 'cd-nu'), '标'));
-    head.appendChild(txt(el('h4'), landmark.t));
-    head.appendChild(txt(el('span', 'cd-page'), landmark.s));
-    box.appendChild(head);
-    appendMapScene(box, landmark, landmark.t);
-    box.appendChild(txt(el('blockquote', 'cd-motto'), landmark.note));
-    box.appendChild(txt(el('p', 'cd-text'), '此地标只供辨识地图中的地貌关系，图像不作实测图、边界凭据或案情证明。'));
-    var links = el('div', 'cd-links');
+    var box = detailOpen({ kicker: '地图地标 · 参照不代替测量', nu: '标', title: landmark.t,
+      page: landmark.s, item: landmark });
+    if (!box) return;
+    detailMotto(box, landmark.note);
+    detailText(box, '此地标只供辨识地图中的地貌关系，图像不作实测图、边界凭据或案情证明。');
+    var lmLinks = [];
     if (landmark.id === 'golden-gutter-bridges') {
       WXMAP.roads.forEach(function (road, index) {
         if (road.kind !== '桥') return;
-        var button = el('button', 'chip');
-        button.type = 'button';
-        txt(button, '开桥簿 · ' + road.road);
-        button.addEventListener('click', function () { openRoad(index); });
-        links.appendChild(button);
+        lmLinks.push({ text: '开桥簿 · ' + road.road, onClick: function () { openRoad(index); } });
       });
     }
-    if (landmark.id === 'lan-river') {
-      var lan = el('button', 'chip'); lan.type = 'button'; txt(lan, '看澜京卷宗');
-      lan.addEventListener('click', function () { openCity('lan'); });
-      links.appendChild(lan);
-    }
-    if (landmark.id === 'north-screen-range') {
-      var ye = el('button', 'chip'); ye.type = 'button'; txt(ye, '看野京卷宗');
-      ye.addEventListener('click', function () { openCity('ye'); });
-      links.appendChild(ye);
-    }
-    if (links.childNodes.length) box.appendChild(links);
+    if (landmark.id === 'lan-river') lmLinks.push({ text: '看澜京卷宗', onClick: function () { openCity('lan'); } });
+    if (landmark.id === 'north-screen-range') lmLinks.push({ text: '看野京卷宗', onClick: function () { openCity('ye'); } });
+    detailLinks(box, '相　关', lmLinks);
   }
 
   function GameNum(n) {
@@ -3643,31 +3660,16 @@
     if (!k) return;
     $$('#mapSvg .nd.sel, #mapSvg .rd.sel, #mapSvg .lm-item.sel, #mapSvg .map-place').forEach(function (g) { g.classList.remove('sel', 'place-target'); });
     $$('.place-atlas-card').forEach(function (button) { button.setAttribute('aria-pressed', 'false'); });
-    var box = $('#cityDetail');
-    box.innerHTML = '';
-    box.appendChild(txt(el('p', 'cd-kicker'), '桩签 · ' + k.state + ' · 界桩志录'));
-    var h = el('div', 'cd-head');
-    h.appendChild(txt(el('span', 'cd-nu'), k.no));
-    h.appendChild(txt(el('h4'), k.name));
-    box.appendChild(h);
-    appendMapScene(box, k, k.name);
-    box.appendChild(txt(el('p', 'cd-tower'), k.where));
-    box.appendChild(txt(el('blockquote', 'cd-motto'), '桩面：' + k.face));
-    box.appendChild(txt(el('p', 'cd-text'), '量语：' + k.measure));
-    box.appendChild(txt(el('p', 'cd-text'), k.note));
-    var ln = el('div', 'cd-links');
-    var b1 = el('button', 'chip');
-    txt(b1, '翻看界桩志');
-    b1.addEventListener('click', function () { focusStake(k.no); });
-    ln.appendChild(b1);
+    var box = detailOpen({ kicker: '桩签 · ' + k.state + ' · 界桩志录', nu: k.no, title: k.name, item: k });
+    if (!box) return;
+    detailMeta(box, k.where);
+    detailMotto(box, '桩面：' + k.face);
+    detailText(box, '量语：' + k.measure);
+    detailText(box, k.note);
+    var stakeLinks = [{ text: '翻看界桩志', onClick: function () { focusStake(k.no); } }];
     var cit = cityById[k.cid];
-    if (cit) {
-      var b2 = el('button', 'chip');
-      txt(b2, '所辖京 · ' + cit.name);
-      b2.addEventListener('click', function () { openCity(cit.id); });
-      ln.appendChild(b2);
-    }
-    box.appendChild(ln);
+    if (cit) stakeLinks.push({ text: '所辖京 · ' + cit.name, onClick: function () { openCity(cit.id); } });
+    detailLinks(box, '相　关', stakeLinks);
   }
 
   /* ---------------- 勾稽共用（人物志／众生谱字下点金；异闻自持一份） ---------------- */
