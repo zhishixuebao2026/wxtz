@@ -199,6 +199,13 @@ const navBlock = (html.match(/<nav\b[^>]*>([\s\S]*?)<\/nav>/) || [0, ''])[1];
 const navPages = [...navBlock.matchAll(/data-goto="([^"]+)"/g)].map(m => m[1]).sort();
 const pageRoutesMatch = JSON.stringify(pageIds) === JSON.stringify(navPages);
 pageRoutesMatch ? ok('全篇导航与页面路由一一对应（' + pageIds.length + ' 篇）') : ng('导航与页面路由不一致：' + pageIds.join('、') + ' / ' + navPages.join('、'));
+const tocUiOk = /id="readerTools"[\s\S]*?id="desktopTocTrigger"[\s\S]*?id="nav"/.test(html) &&
+  /aria-controls="nav"/.test(html) && /\.toc-control\.is-open \.nav\{display:grid\}/.test(css) &&
+  /@media\(max-width:720px\)\{\s*\.toc-control\{display:none\}/.test(css) &&
+  /function closeDesktopToc\(/.test(fs.readFileSync(P + 'assets/app.js', 'utf8')) &&
+  /ArrowRight[\s\S]{0,300}ArrowLeft/.test(fs.readFileSync(P + 'assets/app.js', 'utf8')) &&
+  /aria-hidden', 'false'/.test(fs.readFileSync(P + 'assets/app.js', 'utf8'));
+tocUiOk ? ok('篇目目录并入顶栏并默认折叠；弹层可外点/Escape/Tab 收起，键盘巡览且不再占据正文') : ng('篇目目录未收进顶栏、未默认折叠或键盘/收起行为有缺漏');
 const scriptTags = [...html.matchAll(/<script src="([^"]+)"/g)].map(m => m[1]);
 ok('index.html 引用 ' + scriptTags.length + ' 个脚本');
 const noVersion = scriptTags.filter(s => !/\?v=\d+$/.test(s));
@@ -240,12 +247,49 @@ const uncachedPlaces = placeRows.filter(x => !swSource.includes("'./" + x.image 
 uncachedPlaces.length === 0 && /data\/places\.js\?v=\d+/.test(swSource)
   ? ok('地物资料与 ' + placeRows.length + ' 幅意象均纳入离线首装')
   : ng('离线册漏收地物资料或图片：' + uncachedPlaces.map(x => x.id).join('、'));
+const siteArtTargets = [
+  ['tide-pier', 'lan', /并记两数/.test((placeRows.filter(x => x.id === 'tide-pier')[0] || {}).note || '') && /船票也不能证明水尺读数/.test((placeRows.filter(x => x.id === 'tide-pier')[0] || {}).note || '')],
+  ['bell-tower-rain-pool', 'zhong', /不以水纹倒推钟声/.test((placeRows.filter(x => x.id === 'bell-tower-rain-pool')[0] || {}).note || '')],
+  ['beacon-wall', 'ye', /分记火色与能见远近/.test((placeRows.filter(x => x.id === 'beacon-wall')[0] || {}).note || '') && /未见/.test((placeRows.filter(x => x.id === 'beacon-wall')[0] || {}).note || '')]
+];
+const siteArtBad = siteArtTargets.filter(([id, cityId, loreOk]) => {
+  const place = placeRows.filter(x => x.id === id)[0], city = (q('WXCITIES') || []).filter(x => x.id === cityId)[0];
+  if (!place || !city || !loreOk || !place.alt || !place.imageCaption || place.image === city.scene || !fs.existsSync(P + place.image) || !swSource.includes("'./" + place.image + "'")) return true;
+  const bytes = fs.readFileSync(P + place.image);
+  return bytes.length > 300 * 1024 || bytes.toString('ascii', 0, 4) !== 'RIFF' || bytes.toString('ascii', 8, 12) !== 'WEBP';
+});
+siteArtBad.length ? ng('埠、雨池或烽台专属场景/规程未完整接通：' + siteArtBad.map(x => x[0]).join('、')) : ok('水尺埠、雨池、烽台均有独立轻量图景、离线缓存与互相勾稽的日用规程');
+const newlyIllustratedPlaces = ['frost-prism-vault', 'quench-register-floor', 'cloud-tea-pavilion'];
+const illustratedPlaceBad = newlyIllustratedPlaces.filter(id => {
+  const place = placeRows.find(x => x.id === id);
+  return !place || !place.image || !place.alt || !place.imageCaption || !fs.existsSync(P + place.image) ||
+    !place.image.endsWith('.webp') || !swSource.includes("'./" + place.image + "'") ||
+    place.image === (((q('WXCITIES') || []).find(x => x.id === place.cityId) || {}).scene);
+});
+illustratedPlaceBad.length ? ng('霜棱阁、淬火簿楼或云间茶亭缺少独立离线图景：' + illustratedPlaceBad.join('、')) : ok('霜棱阁晶库、淬火簿楼、云间茶亭均有独立原创轻量 WebP、替代文字与离线预存');
 const placeAppSource = fs.readFileSync(P + 'assets/app.js', 'utf8');
-const placeAtlasUiOk = /id="placeAtlasGrid"/.test(html) && !/id="placeAtlasStage"/.test(html) &&
-  /function buildPlaceAtlas\(/.test(placeAppSource) && /openPlace\(place\.id\)/.test(placeAppSource) &&
-  /setAttribute\('aria-pressed'/.test(placeAppSource) && /\.place-atlas-grid\{display:grid;grid-auto-flow:column/.test(css) &&
-  /prefers-reduced-motion:reduce\)\{\.place-atlas-card/.test(css);
-placeAtlasUiOk ? ok('十处地物图签前置于天地图，点选在同一地图卷宗开图，横向触控可阅且尊重减少动态偏好') : ng('地物图签未接入地图卷宗或响应式/动态偏好兜底未接通');
+const mapAtlasData = q('WXMAP');
+const mapAtlasCities = q('WXCITIES') || [];
+const mapAtlasStakes = q('WXSTAKES') || [];
+const mapAtlasRoads = mapAtlasData.roads || [];
+const mapAtlasLandmarks = mapAtlasData.landmarks || [];
+const mapAtlasTotal = mapAtlasCities.length + mapAtlasRoads.length + placeRows.length + mapAtlasLandmarks.length + mapAtlasStakes.length;
+const mapAtlasAssets = mapAtlasCities.map(x => [x.scene, x.sceneAlt, x.sceneCaption])
+  .concat(mapAtlasRoads.map(x => [x.scene, x.sceneAlt, x.sceneCaption]))
+  .concat(placeRows.map(x => [x.image, x.alt || x.imageAlt, x.imageCaption]))
+  .concat(mapAtlasLandmarks.map(x => [x.image, x.imageAlt, x.imageCaption]))
+  .concat(mapAtlasStakes.map(x => [x.image, x.imageAlt, x.imageCaption]));
+const mapAtlasMissing = mapAtlasAssets.filter(x => !x[0] || !x[1] || !x[2] || !fs.existsSync(P + x[0]) || !x[0].endsWith('.webp'));
+const mapAtlasUiOk = /id="mapAtlasGrid"/.test(html) && /id="mapAtlasFilters"/.test(html) &&
+  /function buildMapAtlas\(/.test(placeAppSource) && /openRoad\(i\)/.test(placeAppSource) &&
+  /openPlace\(x\.id\)/.test(placeAppSource) && /openStake\(x\.no\)/.test(placeAppSource) &&
+  /mapAtlasSelect\('city:'/.test(placeAppSource) && /\.map-atlas-grid\{display:grid;grid-auto-flow:column/.test(css) &&
+  /prefers-reduced-motion:reduce\)\{\.map-atlas-card/.test(css);
+const mapAtlasAfterMap = html.indexOf('<div class="map-flex">') < html.indexOf('<div class="map-legend" id="mapLegend">') &&
+  html.indexOf('<div class="map-legend" id="mapLegend">') < html.indexOf('<section class="map-atlas"');
+mapAtlasTotal === 67 && mapAtlasMissing.length === 0 && mapAtlasUiOk && mapAtlasAfterMap
+  ? ok('地图及图例之后展示 ' + mapAtlasTotal + ' 处京城、道桥、地物、地标与界桩图景；图签直开同一卷宗，资源及响应式适配齐全')
+  : ng('地图图志的位置、数量、资源、筛选入口或响应式/动态偏好兜底有缺漏（共 ' + mapAtlasTotal + '，缺 ' + mapAtlasMissing.length + '）');
 const mapDetailLayoutOk = /\.map-flex\{display:grid;grid-template-columns:minmax\(0,1\.55fr\) minmax\(300px,\.9fr\)/.test(css) &&
   /\.city-detail>\*\{grid-column:1\}/.test(css) &&
   css.indexOf('@media(min-width:961px){\n  .city-detail{position:sticky') > css.indexOf('.cd-text,.cd-goods,.cd-hook,.cd-lat{grid-column:2}') &&
@@ -269,6 +313,11 @@ mapRoads.length === 19 && mapLandmarks.length === 3 && stakes.length === 12 && !
   ? ok('十九条道路、三处地图地标与十二根界桩皆有轻量 WebP、图说和替代文字')
   : ng('道桥/地标/界桩图像或说明缺项、体积偏大或格式错误：' + badMapScenes.map(x => x.name || x.road).join('、'));
 uncachedMapScenes.length ? ng('地图道桥/地标/界桩图未预缓存：' + uncachedMapScenes.join('、')) : ok('全部地图道桥、地标与界桩图均列入离线册');
+const bespokeRouteNames = ['炉历道', '药终道', '票边道'];
+const bespokeRoutes = mapRoads.filter(x => bespokeRouteNames.includes(x.road));
+const bespokeRouteOk = bespokeRoutes.length === bespokeRouteNames.length && new Set(bespokeRoutes.map(x => x.scene)).size === bespokeRouteNames.length &&
+  bespokeRoutes.every(x => x.sceneAlt && x.sceneCaption && swSource.includes("'./" + x.scene + "'") && fs.existsSync(P + x.scene));
+bespokeRouteOk ? ok('炉历道、药终道、票边道各有独立原创路景、替代文字及离线预存') : ng('三条主题道景仍有共用、失链或未离线缓存');
 const placeTargets = new Set(mapData.extras.map(x => x.id).concat([mapData.ghost.id, 'spine']));
 const validMapCityIds = new Set(q('WXCITIES').map(x => x.id));
 const unlinkedPlaces = placeRows.filter(x => !(x.cityId && validMapCityIds.has(x.cityId)) && !(x.mapRef && placeTargets.has(x.mapRef)));
@@ -284,7 +333,7 @@ const mapInteractionOk = mapSkeletonOk && /function openLandmark\(/.test(placeAp
   /stake-card-image/.test(placeAppSource) && /aria-label': rd\.road[^\n]+路线图/.test(placeAppSource);
 mapInteractionOk ? ok('京、道、桥、脊、地标、页外地物与桩均有键鼠同用的图文卷宗入口') : ng('地图特征点击/键盘交互或就地插图未完整接通');
 mapSkeletonOk ? ok('地图卷宗七种开法共用同一骨架（题签→图→提要→正文），共 ' + detailOpeners + ' 处入口') : ng('地图卷宗骨架未统一，各开法版面仍会各自为政');
-const generatedMapAssets = ['bridge-upper','bridge-middle','bridge-lower','route-harvest','route-forge','route-river','route-north','route-mountain','route-boundary','stake-riverbank'].map(id => 'assets/map-scenes/' + id + '.webp');
+const generatedMapAssets = ['bridge-upper','bridge-middle','bridge-lower','route-harvest','route-forge','route-river','route-north','route-mountain','route-boundary','route-scale-road','route-hidden-pass','route-snow-ledger','stake-riverbank'].map(id => 'assets/map-scenes/' + id + '.webp');
 const missingGeneratedMapAssets = generatedMapAssets.filter(src => !fs.existsSync(P + src) || !swSource.includes("'./" + src + "'"));
 missingGeneratedMapAssets.length ? ng('新增地图意象缺图或未预缓存：' + missingGeneratedMapAssets.join('、')) : ok('原创新增道桥与水岸桩景均为本地图像并纳入离线册');
 const cnt = n => { const v = q(n); return Array.isArray(v) ? v.length : null; };
@@ -369,6 +418,19 @@ const docs = q('WXDOCS');
 const docsBad = docs.length < 19 || new Set(docs.map(p => p.n)).size !== docs.length ||
   docs.some(p => !p.n || !p.kind || !p.seat || !p.when || !p.text || !p.ref);
 docsBad ? ng('故纸须至少十九件，逐件具名、类型、席位、年月、原文与卷号') : ok('故纸 ' + docs.length + ' 件均有来源席位、原文与回卷');
+const illustratedDocNames = ['天账庭庭令','霜棱阁昼簿样','衡人楼五问榜','三照覆籍签 · 沈归','留格复账牒 · 司录式'];
+const illustratedDocs = docs.filter(p => illustratedDocNames.includes(p.n));
+const illustratedOrganNames = ['灶','鉴真司','墨序司','常乐坊','钱炉'];
+const illustratedOrgans = (q('WXORGANS') || []).filter(o => illustratedOrganNames.includes(o.n));
+const visualRecordBad = illustratedDocs.concat(illustratedOrgans).filter(x => {
+  if (!x.image || !x.imageAlt || !x.imageCaption || !x.image.endsWith('.webp') || !fs.existsSync(P + x.image) || !swSource.includes("'./" + x.image + "'")) return true;
+  const bytes = fs.readFileSync(P + x.image);
+  return bytes.length > 250 * 1024 || bytes.toString('ascii', 0, 4) !== 'RIFF' || bytes.toString('ascii', 8, 12) !== 'WEBP';
+});
+const institutionImageUi = /if \(g\.image\)[\s\S]{0,500}organ-image/.test(fs.readFileSync(P + 'assets/app.js', 'utf8')) && /if \(paper\.image\)[\s\S]{0,400}document-image/.test(fs.readFileSync(P + 'assets/app.js', 'utf8'));
+illustratedDocs.length === 5 && illustratedOrgans.length === 5 && !visualRecordBad.length && institutionImageUi
+  ? ok('五处公门与五件故纸各有原创图景、替代文字、原卡片展示及离线预存')
+  : ng('公门/故纸十图的字段、卡片展示、离线缓存或轻量 WebP 校验有缺漏');
 reviewDoc && /不收钱/.test(reviewDoc.text) && /原记不擦/.test(reviewDoc.text) && /不得独核/.test(reviewDoc.text) && /余账照结/.test(reviewDoc.text)
   ? ok('留格复账牒具免费申诉、原记留存、复核分离与余账照结')
   : ng('留格复账牒遗漏关键权利或裁处边界');
@@ -641,6 +703,17 @@ C2.forEach(function (c) {
   }
 });
 ok('十二京每京三物齐整');
+const illustratedGoodsNames = ['日表','仓帖','记名铁','星盘','水引','律钟','官牒','云岫茶','昼矾','归票'];
+const illustratedGoods = G2.filter(g => illustratedGoodsNames.includes(g.n));
+const badGoodsArt = illustratedGoods.filter(g => {
+  if (!g.image || !g.imageAlt || !g.image.endsWith('.webp') || !fs.existsSync(P + g.image) || !swSource.includes("'./" + g.image + "'")) return true;
+  const bytes = fs.readFileSync(P + g.image);
+  return bytes.length > 250 * 1024 || bytes.toString('ascii', 0, 4) !== 'RIFF' || bytes.toString('ascii', 8, 12) !== 'WEBP';
+});
+const goodsImageUi = /if \(g\.image\)[\s\S]{0,360}goods-image/.test(fs.readFileSync(P + 'assets/app.js', 'utf8'));
+illustratedGoods.length === 10 && new Set(illustratedGoods.map(g => g.image)).size === 10 && !badGoodsArt.length && goodsImageUi
+  ? ok('十件跨京货殖各有轻量原创 WebP、替代文字、商品卡展示与离线预存')
+  : ng('货殖图像数量、格式、替代文字、卡片入口或离线册有缺漏（' + illustratedGoods.length + '件）');
 
 console.log('\n【十 界桩勾当】');
 const K2 = q('WXSTAKES');

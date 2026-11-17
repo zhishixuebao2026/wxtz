@@ -29,7 +29,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%2311100e'/%3E%3Crect x='8' y='8' width='48' height='48' rx='6' fill='none' stroke='%23c0402e' stroke-width='2'/%3E%3Ctext x='32' y='45' font-size='34' text-anchor='middle' fill='%23c8a35a' font-family='serif'%3E%E8%B4%A6%3C/text%3E%3C/svg%3E">
 <!-- 自托管霞鹜文楷 Lite：页面无需依赖第三方字体/CDN，离线也能正确显示中文 -->
 <link rel="stylesheet" href="assets/fonts/lxgwwenkailite-regular.css">
-<link rel="stylesheet" href="assets/style.css?v=191">
+<link rel="stylesheet" href="assets/style.css?v=202">
 </head>
 <body>
 <a class="skip-link" href="#main">跳至正文</a>
@@ -48,39 +48,43 @@
   <div class="era" id="eraBadge"><i></i>第七账期 · 未结</div>
 </header>
 
-<div class="reader-tools" role="region" aria-label="阅读工具">
+<div class="reader-tools" id="readerTools" role="region" aria-label="阅读工具">
   <button type="button" id="readerBack" class="reader-tool" aria-label="返回上一页">← 返回</button>
   <button type="button" id="readerContinue" class="reader-tool" disabled>续读</button>
+  <div class="toc-control" id="tocControl">
+    <button type="button" id="desktopTocTrigger" class="reader-tool toc-trigger" aria-label="打开篇目目录，当前为总纲" aria-haspopup="true" aria-expanded="false" aria-controls="nav">
+      <span aria-hidden="true">☷</span><span>目录</span><span id="desktopTocCurrent">总纲</span><span class="toc-chevron" aria-hidden="true">⌄</span>
+    </button>
+    <nav class="nav" id="nav" aria-label="篇目目录" aria-hidden="true">
+      <button data-goto="home" class="on">总纲</button>
+      <button data-goto="map">天地图</button>
+      <button data-goto="relay">信路</button>
+      <button data-goto="power">力量等级</button>
+      <button data-goto="trial">人间试账</button>
+      <button data-goto="beings">众生谱</button>
+      <button data-goto="characters">人物志</button>
+      <button data-goto="network">关系网</button>
+      <button data-goto="timeline">历纪</button>
+      <button data-goto="suiling">岁令</button>
+      <button data-goto="lexicon">词库</button>
+      <button data-goto="shiju">拾句</button>
+      <button data-goto="find" title="全书检索 · 快捷键 /">索引</button>
+      <button data-goto="goods">货殖</button>
+      <button data-goto="artifacts">见物</button>
+      <button data-goto="life">街巷</button>
+      <button data-goto="stakes">界桩</button>
+      <button data-goto="organs">公门</button>
+      <button data-goto="docs">故纸</button>
+      <button data-goto="stories">异闻</button>
+      <button data-goto="updates">更新志</button>
+    </nav>
+  </div>
   <button type="button" class="reader-tool" data-goto="home">回总纲</button>
   <button type="button" id="installAppBtn" class="reader-tool install-app-tool" aria-haspopup="dialog" aria-controls="installDialog" title="添加到主屏幕"><span class="install-label-short">＋ 主屏</span><span class="install-label-long">装入主屏</span></button>
   <span class="reader-position" id="readerPosition">总纲 · 尚未开卷</span>
   <span class="reader-percent" id="readerPercent">0%</span>
   <span class="reader-track" aria-hidden="true"><i id="readerTrackFill"></i></span>
 </div>
-
-<nav class="nav" id="nav" aria-label="篇目">
-  <button data-goto="home" class="on">总纲</button>
-  <button data-goto="map">天地图</button>
-  <button data-goto="relay">信路</button>
-  <button data-goto="power">力量等级</button>
-  <button data-goto="trial">人间试账</button>
-  <button data-goto="beings">众生谱</button>
-  <button data-goto="characters">人物志</button>
-  <button data-goto="network">关系网</button>
-  <button data-goto="timeline">历纪</button>
-  <button data-goto="suiling">岁令</button>
-  <button data-goto="lexicon">词库</button>
-  <button data-goto="shiju">拾句</button>
-  <button data-goto="find" title="全书检索 · 快捷键 /">索引</button>
-  <button data-goto="goods">货殖</button>
-  <button data-goto="artifacts">见物</button>
-  <button data-goto="life">街巷</button>
-  <button data-goto="stakes">界桩</button>
-  <button data-goto="organs">公门</button>
-  <button data-goto="docs">故纸</button>
-  <button data-goto="stories">异闻</button>
-  <button data-goto="updates">更新志</button>
-</nav>
 <div class="mobile-nav" id="mobileNav">
   <button type="button" class="mobile-back" id="mobileBack" aria-label="返回上一页" title="返回上一页">
     <span aria-hidden="true">‹</span>返回
@@ -172,14 +176,16 @@
       <aside id="cityDetail" class="city-detail" aria-live="polite"></aside>
     </div>
     <div class="map-legend" id="mapLegend"></div>
-    <details class="place-atlas" id="placeAtlas">
-      <summary class="place-atlas-head">
-        <span class="place-atlas-mark" aria-hidden="true"></span>
-        <span class="place-atlas-titles"><span class="place-atlas-kicker">中界地物 · 地图卷宗</span><span class="place-atlas-title" id="placeAtlasTitle">图上未尽之处</span></span>
-        <span class="place-atlas-note" id="placeAtlasNote">地物就近列签；点选后，图景与设定在地图卷宗内展开。京城、道桥、地标与界桩也各有对应图像。</span>
-      </summary>
-      <div class="place-atlas-grid" id="placeAtlasGrid" role="group" aria-label="选择一处地物，在地图卷宗中查看"></div>
-    </details>
+    <section class="map-atlas" aria-labelledby="mapAtlasTitle">
+      <div class="map-atlas-head">
+        <div><span class="map-atlas-kicker">图景先行 · 图不代替实测</span><h4 id="mapAtlasTitle">中界地图图志</h4></div>
+        <p>京城、道桥、页外地物、地标与界桩的图景并列收在这里。选一张，即在上方地图卷宗中展开对应设定。</p>
+      </div>
+      <div class="map-atlas-filters" id="mapAtlasFilters" role="group" aria-label="筛选地图图志类别"></div>
+      <p class="map-atlas-count" id="mapAtlasCount" aria-live="polite"></p>
+      <div class="map-atlas-grid" id="mapAtlasGrid" role="group" aria-label="选择图景，在地图卷宗中查看"></div>
+      <p class="map-atlas-foot">所有图景均为世界意象；不作实测图、方位、道里、边界或案情凭据。相同图景的复用关系会在卷宗图说中明示。</p>
+    </section>
   </section>
 
   <!-- ================= 信路 ================= -->
@@ -447,32 +453,32 @@
 <footer class="foot">
   <p class="ticker" id="ticker" aria-live="off"></p>
   <p class="footline">万象天账 · 墨序司异闻籍 ——账不平，天不活。</p>
-  <p class="ver">版本 v1.53.1 · 资源戳 v=191 · 每笔有据，疑处留白。</p>
+  <p class="ver">版本 v1.62.0 · 资源戳 v=202 · 每笔有据，疑处留白。</p>
 </footer>
 
-<script src="data/core.js?v=191"></script>
-<script src="data/cities.js?v=191"></script>
-<script src="data/places.js?v=191"></script>
-<script src="data/beings.js?v=191"></script>
-<script src="data/timeline.js?v=191"></script>
-<script src="data/suiling.js?v=191"></script>
-<script src="data/organs.js?v=191"></script>
-<script src="data/arcs.js?v=191"></script>
-<script src="data/docs.js?v=191"></script>
-<script src="data/lexicon.js?v=191"></script>
-  <script src="data/sayings.js?v=191"></script>
-  <script src="data/goods.js?v=191"></script>
-  <script src="data/stakes.js?v=191"></script>
-<script src="data/stories.js?v=191"></script>
-<script src="data/characters.js?v=191"></script>
-<script src="data/relations.js?v=191"></script>
-<script src="data/updates.js?v=191"></script>
-<script src="data/trials.js?v=191"></script>
-<script src="data/granaries.js?v=191"></script>
-<script src="data/relay.js?v=191"></script>
-<script src="data/daily.js?v=191"></script>
-<script src="data/observatory.js?v=191"></script>
-<script src="data/artifacts.js?v=191"></script>
-<script src="assets/app.js?v=191"></script>
+<script src="data/core.js?v=202"></script>
+<script src="data/cities.js?v=202"></script>
+<script src="data/places.js?v=202"></script>
+<script src="data/beings.js?v=202"></script>
+<script src="data/timeline.js?v=202"></script>
+<script src="data/suiling.js?v=202"></script>
+<script src="data/organs.js?v=202"></script>
+<script src="data/arcs.js?v=202"></script>
+<script src="data/docs.js?v=202"></script>
+<script src="data/lexicon.js?v=202"></script>
+  <script src="data/sayings.js?v=202"></script>
+  <script src="data/goods.js?v=202"></script>
+  <script src="data/stakes.js?v=202"></script>
+<script src="data/stories.js?v=202"></script>
+<script src="data/characters.js?v=202"></script>
+<script src="data/relations.js?v=202"></script>
+<script src="data/updates.js?v=202"></script>
+<script src="data/trials.js?v=202"></script>
+<script src="data/granaries.js?v=202"></script>
+<script src="data/relay.js?v=202"></script>
+<script src="data/daily.js?v=202"></script>
+<script src="data/observatory.js?v=202"></script>
+<script src="data/artifacts.js?v=202"></script>
+<script src="assets/app.js?v=202"></script>
 </body>
 </html>

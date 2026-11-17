@@ -9,18 +9,18 @@
 
 var WXORGANS = [
   { n: '天账庭', city: null, seat: '中界 · 装订线上', role: '名与年结；收未决之行', head: '庭不设长——年结之夜，天自来坐', law: '存疑之行不拿来冲销；余账照结，庭不判清白。', ref: '卷叁拾叁、卷玖拾叁、卷壹佰' },
-  { n: '墨序司', city: null, seat: '雾中 · 不可至', role: '烧掉的', head: '照灯人——不问来处', law: '字自己会亮，司里不点灯。', ref: '卷伍拾肆' },
+  { n: '墨序司', city: null, seat: '雾中 · 不可至', role: '烧掉的', head: '照灯人——不问来处', law: '字自己会亮，司里不点灯。', ref: '卷伍拾肆', image: 'assets/organs/ink-order-office.webp', imageAlt: '雾海纸页间一座半隐的灯阁，空架、未点的灯与敞开的门廊都没有字迹。', imageCaption: '墨序司 · 司里不点灯，字自己会亮。' },
   { n: '司录处', city: '闻京', seat: '闻京 · 抄本楼', role: '抄传、回执、同名覆籍与留格收牒', head: '司录', law: '同名先分栏；争账只收具体一行，付申者一联，原记不涂，原录者不得独核。', ref: '卷捌拾、卷壹佰' },
-  { n: '鉴真司', city: '晏京', seat: '晏京 · 衡人楼', role: '真伪与五问', head: '楼中无主——秤面即判词', law: '落账先上秤：贷方何在？', ref: '卷伍拾、卷陆拾柒' },
+  { n: '鉴真司', city: '晏京', seat: '晏京 · 衡人楼', role: '真伪与五问', head: '楼中无主——秤面即判词', law: '落账先上秤：贷方何在？', ref: '卷伍拾、卷陆拾柒', image: 'assets/organs/verification-balance-hall.webp', imageAlt: '衡人楼内空着的铜衡居中，两张分开的核验桌各自留有空白簿页。', imageCaption: '鉴真司 · 两席分核，不以秤替人判词。' },
   { n: '悬日楼', city: '昭京', seat: '昭京', role: '时辰', head: '报时人——岁选一任，不世袭', law: '慢一息，先复核；轮值自愿，时差不转记于人。', ref: '卷叁拾伍、卷玖拾肆' },
   { n: '霜棱阁', city: '白京', seat: '白京', role: '昼', head: '雪厚生', law: '昼皆有账，夜皆有凭。', ref: '卷伍拾伍' },
   { n: '推步台', city: '玄京', seat: '玄京', role: '天信与岁名', head: '观星者——记星不记人', law: '说破天机者，缴泄账税。', ref: '卷贰拾柒、卷伍拾陆、卷玖拾壹' },
   { n: '冥京票库', city: '冥京', seat: '冥京 · 地下九层', role: '票根与忘', head: '票吏——四十年一任', law: '退钱的时候，名字退不了。', ref: '卷捌拾柒、卷玖拾贰' },
   { n: '界桩堂', city: '野京', seat: '野京', role: '一百零八桩', head: '堂不设主事——桩自己站着', law: '桩内是账，桩外是雾。', ref: '卷柒拾' },
   { n: '平流坊', city: '澜京', seat: '澜京', role: '江上债', head: '坊主', law: '江上的账，不收利，只认桨。', ref: '卷陆拾壹' },
-  { n: '常乐坊', city: '昭京', seat: '昭京', role: '戏与账戏', head: '不设坊主——对台自裁', law: '台上可以绕圈子，账上不行。', ref: '卷伍拾柒' },
-  { n: '钱炉', city: '昭京', seat: '昭京', role: '早钱', head: '炉头', law: '过午的钱回炉。', ref: '卷陆拾肆' },
-  { n: '灶', city: null, seat: '家家户户', role: '香火与糖瓜', head: '三十年了，顶班的还是一页白纸', law: '案角永远空一小块——给没来供灶的人家留着。', ref: '卷伍拾捌' },
+  { n: '常乐坊', city: '昭京', seat: '昭京', role: '戏与账戏', head: '不设坊主——对台自裁', law: '台上可以绕圈子，账上不行。', ref: '卷伍拾柒', image: 'assets/organs/joyful-stage-office.webp', imageAlt: '昭京木台上空着圆心，侧席置着鼓与戏面，边缘灯火未照成围观审判。', imageCaption: '常乐坊 · 台上绕圈，账上仍须落口。' },
+  { n: '钱炉', city: '昭京', seat: '昭京', role: '早钱', head: '炉头', law: '过午的钱回炉。', ref: '卷陆拾肆', image: 'assets/organs/coin-furnace-workshop.webp', imageAlt: '日暮钱炉旁，匠人只铸一小批无字铜钱，旁边是回收铜料的冷却架。', imageCaption: '钱炉 · 过午的钱回炉，铜料另记去处。' },
+  { n: '灶', city: null, seat: '家家户户', role: '香火与糖瓜', head: '三十年了，顶班的还是一页白纸', law: '案角永远空一小块——给没来供灶的人家留着。', ref: '卷伍拾捌', image: 'assets/organs/kitchen-hearth-office.webp', imageAlt: '家人围着灶火备餐，桌边放着一本合起的簿子，日常烟火并未变成公门仪式。', imageCaption: '灶 · 留白仍在家中，烟火不作公门凭证。' },
   /* —— v1.52.0 公门补三署 —— */
   { n: '平流坊账房', city: '澜京', seat: '澜京 · 平流坊', role: '坊账与旧行', head: '戚措娘——做了二十六年，旧账一行没销', law: '销了是替人认债，不销是替坊里留一句。', ref: '卷壹佰零叁' },
   { n: '街口更棚', city: '钟京', seat: '钟京 · 街口', role: '报更不报人', head: '三千——敲了三十年梆，不记谁家灯亮', law: '只报更次，不报人家；问人家事的财物入公用水桶。', ref: '卷壹佰零伍' },
