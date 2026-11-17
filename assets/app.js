@@ -83,7 +83,7 @@
   });
 
   /* 入场渐显：只做一次，减少动效偏好下自动跳过 */
-  var REVEAL_SEL = '.being,.story,.document-card,.organ-card,.artifact-card,.trial-card,.granary-store,.suiling-card,.lv,.term,.shiju-card,.stake-card,.goods-card,.observatory-case,.relay-case,.place-atlas-card,.reading-route-card';
+  var REVEAL_SEL = '.being,.story,.document-card,.organ-card,.artifact-card,.trial-card,.granary-store,.suiling-card,.lv,.term,.shiju-card,.stake-card,.goods-card,.observatory-case,.relay-case,.map-atlas-card,.reading-route-card';
   var revealIO = null;
   function setupReveal() {
     if (REDUCED || typeof IntersectionObserver === 'undefined') return;
@@ -181,6 +181,10 @@
     return b ? b.textContent.trim() : '总纲';
   }
   var mobilePicker = $('#mobilePicker');
+  var desktopToc = $('#tocControl');
+  var desktopTocTrigger = $('#desktopTocTrigger');
+  var desktopTocCurrent = $('#desktopTocCurrent');
+  var desktopTocNav = $('#nav');
   var mobilePageTrigger = $('#mobilePageTrigger');
   var mobilePageCurrent = $('#mobilePageCurrent');
   var mobilePagePopover = $('#mobilePagePopover');
@@ -190,7 +194,7 @@
 
   function stickyNavigationOffset(extra) {
     var mobile = $('#mobileNav');
-    var bar = mobile && window.getComputedStyle(mobile).display !== 'none' ? mobile : $('#nav');
+    var bar = mobile && window.getComputedStyle(mobile).display !== 'none' ? mobile : $('#readerTools');
     var gap = Number(extra) || 0;
     if (!bar) return gap;
     var style = window.getComputedStyle(bar);
@@ -201,6 +205,8 @@
   }
 
   function syncMobilePicker(id) {
+    if (desktopTocCurrent) txt(desktopTocCurrent, pageLabel(id));
+    if (desktopTocTrigger) desktopTocTrigger.setAttribute('aria-label', '打开篇目目录，当前为' + pageLabel(id));
     if (!mobilePicker) return;
     if (mobilePageCurrent) txt(mobilePageCurrent, pageLabel(id));
     if (mobilePageTrigger) mobilePageTrigger.setAttribute('aria-label', '选择篇目，当前为' + pageLabel(id));
@@ -302,6 +308,68 @@
       }
     });
   }
+  function closeDesktopToc(returnFocus) {
+    if (!desktopToc || !desktopToc.classList.contains('is-open')) return;
+    desktopToc.classList.remove('is-open');
+    if (desktopTocTrigger) {
+      desktopTocTrigger.setAttribute('aria-expanded', 'false');
+      if (returnFocus && window.getComputedStyle(desktopTocTrigger).display !== 'none') desktopTocTrigger.focus({ preventScroll: true });
+    }
+    if (desktopTocNav) desktopTocNav.setAttribute('aria-hidden', 'true');
+  }
+  function openDesktopToc(focusCurrent) {
+    if (!desktopToc || !desktopTocTrigger || !desktopTocNav) return;
+    desktopToc.classList.add('is-open');
+    desktopTocTrigger.setAttribute('aria-expanded', 'true');
+    desktopTocNav.setAttribute('aria-hidden', 'false');
+    if (focusCurrent) {
+      var current = desktopTocNav.querySelector('button.on') || desktopTocNav.querySelector('button[data-goto]');
+      if (current) current.focus({ preventScroll: true });
+    }
+  }
+  if (desktopTocTrigger) {
+    desktopTocTrigger.addEventListener('click', function () {
+      if (desktopToc && desktopToc.classList.contains('is-open')) closeDesktopToc(false);
+      else openDesktopToc(false);
+    });
+    desktopTocTrigger.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && desktopToc && desktopToc.classList.contains('is-open')) {
+        event.preventDefault(); closeDesktopToc(true);
+      } else if (event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault(); openDesktopToc(true);
+      }
+    });
+  }
+  if (desktopToc) {
+    desktopToc.addEventListener('focusout', function (event) {
+      var next = event.relatedTarget;
+      if (desktopToc.classList.contains('is-open') && (!next || !desktopToc.contains(next))) {
+        setTimeout(function () {
+          if (desktopToc.classList.contains('is-open') && !desktopToc.contains(document.activeElement)) closeDesktopToc(false);
+        }, 0);
+      }
+    });
+  }
+  if (desktopTocNav) {
+    desktopTocNav.addEventListener('keydown', function (event) {
+      var items = $$('#nav button[data-goto]'), index = items.indexOf(document.activeElement), next = index;
+      if (event.key === 'Escape') { event.preventDefault(); closeDesktopToc(true); return; }
+      if (event.key === 'Home') next = 0;
+      else if (event.key === 'End') next = items.length - 1;
+      else if (event.key === 'ArrowRight') next = Math.min(items.length - 1, index + 1);
+      else if (event.key === 'ArrowLeft') next = Math.max(0, index - 1);
+      else if (event.key === 'ArrowDown') next = Math.min(items.length - 1, index + 4);
+      else if (event.key === 'ArrowUp') next = Math.max(0, index - 4);
+      else return;
+      event.preventDefault();
+      if (items[next]) items[next].focus();
+    });
+  }
+  document.addEventListener('click', function (event) {
+    if (desktopToc && desktopToc.classList.contains('is-open') && !desktopToc.contains(event.target)) {
+      closeDesktopToc(false);
+    }
+  });
   function readY() { return window.pageYOffset || document.documentElement.scrollTop || 0; }
   function scrollRatio() {
     var root = document.documentElement, span = root.scrollHeight - root.clientHeight;
@@ -329,6 +397,7 @@
   }
   function show(id, noPush, restoreScroll) {
     if (PAGES.indexOf(id) < 0) id = 'home';
+    closeDesktopToc(true);
     if (LAZY[id]) { var f0 = LAZY[id]; delete LAZY[id]; f0(); }
     if (id === CUR && restoreScroll == null) return;
     var currentY = readY();
@@ -1260,9 +1329,9 @@
   function openCity(id) {
     var c = cityById[id] || WXCITIES.filter(function (x) { return x.id === id; })[0];
     if (!c) return;
+    mapAtlasSelect('city:' + c.id);
     $$('#mapSvg .map-place').forEach(function (node) { node.classList.remove('place-target', 'sel'); });
     $$('#mapSvg .lm-item.sel').forEach(function (node) { node.classList.remove('sel'); });
-    $$('.place-atlas-card').forEach(function (button) { button.setAttribute('aria-pressed', 'false'); });
     $$('#mapSvg .nd').forEach(function (g) {
       g.classList.toggle('sel', g.getAttribute('data-id') === id);
     });
@@ -1319,8 +1388,8 @@
     if (!rd) return;
     var a = cityById[rd.a], b = cityById[rd.b];
     if (!a || !b) return;
+    mapAtlasSelect('road:' + i);
     $$('#mapSvg .nd.sel, #mapSvg .lm-item.sel, #mapSvg .map-place.place-target').forEach(function (g) { g.classList.remove('sel', 'place-target'); });
-    $$('.place-atlas-card').forEach(function (button) { button.setAttribute('aria-pressed', 'false'); });
     $$('#mapSvg .rd').forEach(function (g) { g.classList.toggle('sel', +g.getAttribute('data-i') === i); });
     var KIND = { '道': '页内陆路', '桥': '渡金沟', '脊': '沿装订线' };
     var box = detailOpen({ kicker: '道里 · ' + (KIND[rd.kind] || '道'), title: rd.road,
@@ -1342,11 +1411,9 @@
     if (typeof WXPLACES === 'undefined') return;
     var place = WXPLACES.filter(function (item) { return item.id === id; })[0];
     if (!place) return;
+    mapAtlasSelect('place:' + id);
     $$('#mapSvg .nd.sel, #mapSvg .rd.sel, #mapSvg .lm-item.sel, #mapSvg .map-place.sel').forEach(function (node) { node.classList.remove('sel'); });
     $$('#mapSvg .map-place').forEach(function (node) { node.classList.toggle('place-target', node.getAttribute('data-place') === place.id); });
-    $$('.place-atlas-card').forEach(function (button) {
-      button.setAttribute('aria-pressed', button.getAttribute('data-place') === place.id ? 'true' : 'false');
-    });
     var box = detailOpen({ kicker: '地物图志 · ' + place.region, nu: '图', title: place.name,
       page: '意象卷', item: place });
     if (!box) return;
@@ -1382,8 +1449,8 @@
   function openLandmark(id) {
     var landmark = WXMAP.landmarks.filter(function (item) { return item.id === id; })[0];
     if (!landmark) return;
+    mapAtlasSelect('landmark:' + id);
     $$('#mapSvg .nd.sel, #mapSvg .rd.sel, #mapSvg .map-place.sel, #mapSvg .map-place.place-target, #mapSvg .lm-item.sel').forEach(function (node) { node.classList.remove('sel', 'place-target'); });
-    $$('.place-atlas-card').forEach(function (button) { button.setAttribute('aria-pressed', 'false'); });
     var selected = document.querySelector('#mapSvg .lm-item[data-landmark="' + id + '"]');
     if (selected) selected.classList.add('sel');
     var box = detailOpen({ kicker: '地图地标 · 参照不代替测量', nu: '标', title: landmark.t,
@@ -1407,47 +1474,104 @@
     return '一二三四五六七八九十'[n - 1] || n;
   }
 
-  /* ---------------- 地物图志：天地图的非方位意象 ---------------- */
-  function buildPlaceAtlas() {
-    if (typeof WXPLACES === 'undefined') return;
-    var grid = $('#placeAtlasGrid');
-    if (!grid) return;
-    var noteEl = $('#placeAtlasNote');
-    if (noteEl) txt(noteEl, cnNum(WXPLACES.length) + '处地物就近列签；点选后，图景与设定在地图卷宗内展开。京城、道桥、地标与界桩也各有对应图像。');
-    grid.innerHTML = '';
-    WXPLACES.forEach(function (place, index) {
-      var button = el('button', 'place-atlas-card');
+  /* ---------------- 中界地图图志：所有地理图景同处一卷 ---------------- */
+  var MAP_ATLAS_ITEMS = [];
+  var MAP_ATLAS_FILTER = 'all';
+  var MAP_ATLAS_SELECTED = '';
+  var MAP_ATLAS_LABELS = { all: '全部图景', city: '十三京', road: '道桥脊', place: '地物', landmark: '地标', stake: '界桩' };
+  function mapAtlasSelect(key) {
+    MAP_ATLAS_SELECTED = key || '';
+    $$('.map-atlas-card').forEach(function (button) {
+      var active = button.getAttribute('data-atlas-key') === MAP_ATLAS_SELECTED;
+      button.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+  }
+  function buildMapAtlas() {
+    var grid = $('#mapAtlasGrid'), filters = $('#mapAtlasFilters'), count = $('#mapAtlasCount');
+    if (!grid || !filters || !count) return;
+    MAP_ATLAS_ITEMS = [];
+    WXCITIES.forEach(function (x) {
+      MAP_ATLAS_ITEMS.push({ key: 'city:' + x.id, type: 'city', name: x.name, region: x.page + ' · ' + x.tag, image: x.scene, alt: x.sceneAlt, item: x,
+        open: function () { openCity(x.id); } });
+    });
+    WXMAP.roads.forEach(function (x, i) {
+      var from = cityById[x.a], to = cityById[x.b];
+      MAP_ATLAS_ITEMS.push({ key: 'road:' + i, type: 'road', name: x.road, region: x.kind + ' · ' + (from ? from.name : x.a) + ' ⇄ ' + (to ? to.name : x.b) + ' · ' + x.li + '里', image: x.scene, alt: x.sceneAlt, item: x,
+        open: function () { openRoad(i); } });
+    });
+    WXPLACES.forEach(function (x) {
+      MAP_ATLAS_ITEMS.push({ key: 'place:' + x.id, type: 'place', name: x.name, region: x.region, image: x.image, alt: x.alt || x.imageAlt, item: x,
+        open: function () { openPlace(x.id); } });
+    });
+    WXMAP.landmarks.forEach(function (x) {
+      MAP_ATLAS_ITEMS.push({ key: 'landmark:' + x.id, type: 'landmark', name: x.t, region: '地图地标 · ' + x.s, image: x.image, alt: x.imageAlt, item: x,
+        open: function () { openLandmark(x.id); } });
+    });
+    (typeof WXSTAKES !== 'undefined' ? WXSTAKES : []).forEach(function (x) {
+      MAP_ATLAS_ITEMS.push({ key: 'stake:' + x.no, type: 'stake', name: x.name, region: '界桩 · ' + x.no + ' · ' + x.state, image: x.image, alt: x.imageAlt, item: x,
+        open: function () { openStake(x.no); } });
+    });
+    var groups = ['all', 'city', 'road', 'place', 'landmark', 'stake'];
+    filters.innerHTML = '';
+    groups.forEach(function (type) {
+      var amount = type === 'all' ? MAP_ATLAS_ITEMS.length : MAP_ATLAS_ITEMS.filter(function (x) { return x.type === type; }).length;
+      var button = el('button', 'map-atlas-filter');
       button.type = 'button';
-      button.setAttribute('data-place', place.id);
-      button.setAttribute('aria-pressed', 'false');
-      button.setAttribute('aria-controls', 'cityDetail');
-      button.setAttribute('aria-label', '在地图卷宗中查看' + place.name + '，' + place.region);
-      if (place.image) {
-        var thumb = el('img', 'place-atlas-thumb');
-        thumb.src = place.image;
+      button.setAttribute('data-filter', type);
+      button.setAttribute('aria-pressed', type === MAP_ATLAS_FILTER ? 'true' : 'false');
+      txt(button, MAP_ATLAS_LABELS[type] + ' · ' + amount);
+      button.addEventListener('click', function () { MAP_ATLAS_FILTER = type; renderMapAtlas(); });
+      filters.appendChild(button);
+    });
+    function renderMapAtlas() {
+      var visible = MAP_ATLAS_FILTER === 'all' ? MAP_ATLAS_ITEMS : MAP_ATLAS_ITEMS.filter(function (x) { return x.type === MAP_ATLAS_FILTER; });
+      $$('.map-atlas-filter', filters).forEach(function (button) {
+        var active = button.getAttribute('data-filter') === MAP_ATLAS_FILTER;
+        button.setAttribute('aria-pressed', active ? 'true' : 'false');
+      });
+      txt(count, MAP_ATLAS_LABELS[MAP_ATLAS_FILTER] + ' · ' + visible.length + ' 处；横向滑动阅览，选择图签可直开卷宗。');
+      grid.innerHTML = '';
+      visible.forEach(function (record, index) {
+        var button = el('button', 'map-atlas-card');
+        button.type = 'button';
+        button.setAttribute('data-atlas-key', record.key);
+        button.setAttribute('aria-pressed', MAP_ATLAS_SELECTED === record.key ? 'true' : 'false');
+        button.setAttribute('aria-controls', 'cityDetail');
+        button.setAttribute('aria-label', '查看' + record.name + '，' + record.region);
+        button.tabIndex = index === 0 ? 0 : -1;
+        button.addEventListener('keydown', function (event) {
+          var cards = $$('.map-atlas-card', grid), current = cards.indexOf(button), next = current;
+          if (event.key === 'ArrowRight') next = Math.min(cards.length - 1, current + 1);
+          else if (event.key === 'ArrowLeft') next = Math.max(0, current - 1);
+          else if (event.key === 'Home') next = 0;
+          else if (event.key === 'End') next = cards.length - 1;
+          else return;
+          event.preventDefault();
+          cards.forEach(function (card, cardIndex) { card.tabIndex = cardIndex === next ? 0 : -1; });
+          cards[next].focus();
+        });
+        var thumb = el('img', 'map-atlas-thumb');
+        thumb.src = record.image;
         thumb.alt = '';
         thumb.width = 384;
         thumb.height = 256;
-        thumb.loading = index < 4 ? 'eager' : 'lazy';
+        thumb.loading = index < 3 ? 'eager' : 'lazy';
         thumb.decoding = 'async';
         button.appendChild(thumb);
         markImage(thumb);
-      } else {
-        button.appendChild(emptyScene(place.name, '图景未收'));
-      }
-      var meta = el('span', 'place-atlas-card-meta');
-      meta.appendChild(txt(el('span', 'place-atlas-card-region'), place.region));
-      meta.appendChild(txt(el('strong'), place.name));
-      button.appendChild(meta);
-      button.addEventListener('click', function () {
-        openPlace(place.id);
-        if (window.matchMedia('(max-width: 960px)').matches) {
-          var detail = $('#cityDetail');
-          if (detail) detail.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
-        }
+        var meta = el('span', 'map-atlas-card-meta');
+        meta.appendChild(txt(el('span', 'map-atlas-card-region'), record.region));
+        meta.appendChild(txt(el('strong'), record.name));
+        button.appendChild(meta);
+        button.addEventListener('click', function () {
+          mapAtlasSelect(record.key);
+          record.open();
+          revealMapDetail();
+        });
+        grid.appendChild(button);
       });
-      grid.appendChild(button);
-    });
+    }
+    renderMapAtlas();
   }
 
   /* ---------------- 信路：递信、交接与事实核验 ---------------- */
@@ -2534,6 +2658,18 @@
         head.appendChild(txt(el('span', 'office-scope'), group.id === 'center' ? '中枢' : group.id === 'folk' ? '民间' : g.city));
         card.appendChild(head);
         card.appendChild(txt(el('h4'), g.n));
+        if (g.image) {
+          var officeFig = el('figure', 'organ-figure');
+          var officeImg = el('img', 'organ-image');
+          officeImg.src = g.image;
+          officeImg.alt = g.imageAlt || (g.n + '意象');
+          officeImg.width = 1200; officeImg.height = 800;
+          officeImg.loading = 'lazy'; officeImg.decoding = 'async';
+          officeFig.appendChild(officeImg);
+          if (g.imageCaption) officeFig.appendChild(txt(el('figcaption', 'organ-figcaption'), g.imageCaption));
+          card.appendChild(officeFig);
+          markImage(officeImg);
+        }
         var seat = el('p', 'office-seat');
         seat.appendChild(lrDecorate(g.seat, {}, false));
         card.appendChild(seat);
@@ -3658,8 +3794,8 @@
   function openStake(no) {
     var k = (typeof WXSTAKES !== 'undefined' ? WXSTAKES : []).filter(function (x) { return x.no === no; })[0];
     if (!k) return;
+    mapAtlasSelect('stake:' + no);
     $$('#mapSvg .nd.sel, #mapSvg .rd.sel, #mapSvg .lm-item.sel, #mapSvg .map-place').forEach(function (g) { g.classList.remove('sel', 'place-target'); });
-    $$('.place-atlas-card').forEach(function (button) { button.setAttribute('aria-pressed', 'false'); });
     var box = detailOpen({ kicker: '桩签 · ' + k.state + ' · 界桩志录', nu: k.no, title: k.name, item: k });
     if (!box) return;
     detailMeta(box, k.where);
@@ -4240,7 +4376,7 @@
   /* ---------------- 启动 ---------------- */
   buildHome();
   buildMap();
-  buildPlaceAtlas();
+  buildMapAtlas();
   buildPower();
   buildTrial();
   buildJudge();
